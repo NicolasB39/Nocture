@@ -2,6 +2,7 @@ import { on } from './bus.js';
 import { raw, split } from './format.js';
 import { showList } from './list.js';
 import { cutLines } from './memory.js';
+import { effortCut } from './prompt.js';
 import { conflicts } from './protocol.js';
 import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js';
 import { loadCtx, TERR } from './scenarios.js';
@@ -98,8 +99,11 @@ async function delFrom(i) {
   c.mem.upto = Math.min(upto, i);
   c.mem.lines = cutLines(lines, i);
   // Histoire GitHub vidée pour recommencer : à synchroniser quand même (syncable, merge.js).
-  const r0 = c.reset;
+  const r0 = c.reset,
+    e0 = c.effLog,
+    f0 = c.effort;
   if (!i && c.remote) c.reset = Date.now();
+  effortCut(c, i);
   await save();
   render(true);
   toast(
@@ -116,6 +120,8 @@ async function delFrom(i) {
         c.mem.upto = upto;
         c.mem.lines = lines;
         c.reset = r0;
+        c.effLog = e0;
+        c.effort = f0;
         await save();
         render(true);
       }
@@ -133,6 +139,7 @@ async function resendFrom(i, t) {
   // Le tour modifié doit repartir tel quel : il sort du résumé s'il y était déjà.
   c.mem.upto = Math.min(upto, i);
   c.mem.lines = cutLines(c.mem.lines || [], i);
+  effortCut(c, i + 1);
   if (pv?.alts) {
     delete pv.alts;
     delete pv.ai;

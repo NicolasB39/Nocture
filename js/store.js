@@ -2,6 +2,7 @@ import { S, app } from './state.js';
 import { LIX, split } from './format.js';
 import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutLines, unnum } from './memory.js';
+import { effortCut } from './prompt.js';
 
 let db;
 const one = m => {
@@ -68,6 +69,13 @@ export const clean = x => {
     accent: typeof x.accent == 'string' && /^#[0-9a-f]{6}$/i.test(x.accent) ? x.accent.toLowerCase() : '',
     maxTok: n(x.maxTok),
     effort: ['low', 'medium', 'high'].includes(x.effort) ? x.effort : '',
+    // Changements d'effort en cours de partie (effortSet, prompt.js) : [indice, effort], dans l'ordre.
+    effLog: Array.isArray(x.effLog)
+      ? x.effLog
+          .filter(e => Array.isArray(e) && Number.isInteger(e[0]) && e[0] >= 0 && ['', 'low', 'medium', 'high'].includes(e[1]))
+          .sort((a, b) => a[0] - b[0])
+          .slice(-20)
+      : [],
     models:
       x.models && typeof x.models == 'object'
         ? Object.fromEntries(Object.entries(x.models).filter(([, v]) => typeof v == 'string' && v.trim()))
@@ -108,6 +116,7 @@ export const forkOf = (s, i, name, id) => {
   c.mem.lines = cutLines(c.mem.lines, n);
   c.mem.win = Math.min(c.mem.win || 0, n);
   c.mem.upto = Math.min(c.mem.upto, n);
+  effortCut(c, n);
   return c;
 };
 const pvOf = s => {

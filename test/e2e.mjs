@@ -411,6 +411,9 @@ try {
     for (const k of ['temperature', 'top_p', 'top_k']) assert.ok(!(k in b), k + ' envoyé à Claude');
     assert.equal(h['anthropic-dangerous-direct-browser-access'], 'true');
     assert.equal(b.model, 'claude-sonnet-5-5');
+    // Relais en cas de refus, avec son en-tête bêta.
+    assert.equal(b.fallbacks, 'default');
+    assert.equal(h['anthropic-beta'], 'server-side-fallback-2026-07-01');
     assert.ok(b.system.length >= 1 && b.system.every(x => x.cache_control?.type == 'ephemeral'));
     assert.ok(
       [...b.system, ...b.messages.flatMap(m => (Array.isArray(m.content) ? m.content : []))].filter(x => x.cache_control).length <= 4

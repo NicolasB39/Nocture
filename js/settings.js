@@ -4,7 +4,7 @@ import { jump, render, tk } from './view.js';
 import { money, priceOf } from './cost.js';
 import { fr } from './format.js';
 import { draw, showList } from './list.js';
-import { extrasOf, statOn } from './prompt.js';
+import { effortSet, extrasOf, statOn } from './prompt.js';
 import { DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
 import { fillLec, setReading } from './read.js';
 import { reset as rlReset } from './rate.js';
@@ -269,7 +269,7 @@ $('#dss').onclick = async () => {
   app.cur.cover = COVER;
   app.cur.accent = ACC;
   app.cur.maxTok = +$('#smx').value || 0;
-  app.cur.effort = $('#sef').value;
+  effortSet(app.cur, $('#sef').value);
   const mo = $('#smo').value.trim();
   app.cur.models ??= {};
   if (mo) app.cur.models[S.provider] = mo;

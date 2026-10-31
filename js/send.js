@@ -48,6 +48,7 @@ export async function ask(old, cont, hint) {
   $('#gst').textContent = 'Réponse en cours.';
   const t0 = Date.now();
   let msg = '',
+    refused = false,
     cut = false,
     part = false,
     raf = 0,
@@ -108,6 +109,7 @@ export async function ask(old, cont, hint) {
       top: s.top ?? S.top,
       model: modelOf(s),
       effort: s.effort || 'low',
+      effBase: info.effort,
       primary: true,
       onWait: (w, why) => {
         if (app.cur !== s) return;
@@ -154,6 +156,10 @@ export async function ask(old, cont, hint) {
     saveSet();
   } catch (e) {
     msg = e.message;
+    // Refus : renvoyer la même requête serait refusé de même ; on propose de reformuler ou d'orienter la scène.
+    refused = !!e.refusal;
+    if (refused)
+      msg += cont ? '. Régénérez la réponse, ou reformulez votre tour.' : '. Reformulez votre tour, ou orientez la scène avec une indication.';
     if (old) s.messages.push(old);
     // Un résumé fini pendant le tour n'a rien enregistré (persist, ai.js) : on le fait ici.
     await save(s).catch(() => {});
@@ -173,12 +179,20 @@ export async function ask(old, cont, hint) {
             ? 'Réponse coupée par la longueur maximale. Augmentez-la dans les réglages du scénario, continuez ou régénérez.'
             : ''),
       !!msg,
-      msg && {
-        label: 'Réessayer',
-        fn: () => {
-          if (!app.busy && app.cur === s && still()) again();
-        }
-      }
+      msg &&
+        (!refused
+          ? {
+              label: 'Réessayer',
+              fn: () => {
+                if (!app.busy && app.cur === s && still()) again();
+              }
+            }
+          : !cont && {
+              label: 'Indication…',
+              fn: () => {
+                if (!app.busy && app.cur === s && still()) regenHint();
+              }
+            })
     );
     $('#gst').textContent = msg ? 'Échec : ' + msg : 'Réponse reçue.';
     // Repère : le message juste avant la réponse (en général le tour du joueur). Le rendu final peut retirer
