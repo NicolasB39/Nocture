@@ -253,6 +253,37 @@ try {
     assert.equal(tops.length, 1, 'positions : ' + tops);
   });
 
+  // Longue histoire : seuls les app.LIM derniers messages sont affichés, et le plus ancien sort par le haut
+  // quand la réponse arrive. Fenêtre réduite à 4 pour le provoquer avec peu de messages.
+  await step('longue histoire : l’écran ne bouge pas quand un message sort par le haut', async () => {
+    delay = 2500;
+    await pg.evaluate(async () => {
+      (await import('/js/state.js')).app.LIM = 4;
+      window.T = [];
+      window.iv = setInterval(() => {
+        const u = [...document.querySelectorAll('#msgs .m.user')].at(-1);
+        if (u) T.push(Math.round(u.getBoundingClientRect().top));
+      }, 50);
+    });
+    await pg.fill('#inp', 'J’attends.');
+    await pg.click('#send');
+    await wait(400);
+    const first = await pg.evaluate(() => document.querySelector('#msgs .m[data-i]').dataset.i);
+    await pg.evaluate(() => (T.length = 0));
+    await done();
+    await wait(500);
+    const r = await pg.evaluate(async () => {
+      clearInterval(iv);
+      const out = { tops: [...new Set(T)], first: document.querySelector('#msgs .m[data-i]').dataset.i };
+      (await import('/js/state.js')).app.LIM = 50;
+      (await import('/js/view.js')).render();
+      return out;
+    });
+    delay = 0;
+    assert.notEqual(r.first, first, 'un message est bien sorti par le haut');
+    assert.equal(r.tops.length, 1, 'positions : ' + r.tops);
+  });
+
   const db = () =>
     pg.evaluate(async () => {
       const st = await import('/js/store.js');

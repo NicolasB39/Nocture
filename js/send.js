@@ -181,8 +181,15 @@ export async function ask(old, cont, hint) {
       }
     );
     $('#gst').textContent = msg ? 'Échec : ' + msg : 'Réponse reçue.';
+    // Repère : le message juste avant la réponse (en général le tour du joueur). Le rendu final peut retirer
+    // des messages par le haut (longue histoire : seuls les app.LIM derniers sont affichés), une position de
+    // défilement absolue ferait alors sauter l'écran vers la fin ; on garde ce message à sa place.
+    let an = lv?.previousElementSibling;
+    while (an && !an.matches('.m[data-i]')) an = an.previousElementSibling;
     const m = $('#msgs'),
       y = m.scrollTop,
+      ai = an?.dataset.i,
+      at = an?.getBoundingClientRect().top,
       // Position de la réponse à l'écran, et son intertitre s'il était déjà là (lieu annoncé en tête).
       top = lv?.getBoundingClientRect().top,
       had = !!lv?.previousElementSibling?.matches('.scene');
@@ -194,6 +201,8 @@ export async function ask(old, cont, hint) {
       nsc = !!sc?.matches('.scene') && !had;
     if (!S.follow) {
       m.scrollTop = y;
+      const a2 = ai != null && m.querySelector(':scope > .m[data-i="' + ai + '"]');
+      if (a2) m.scrollTop += a2.getBoundingClientRect().top - at;
       // Lieu connu seulement à la fin : l'intertitre arrive en fondu au-dessus de la réponse, et le défilement
       // compense sa hauteur pour que le texte en cours de lecture ne bouge pas. Sa hauteur seule : le message
       // du joueur, qui n'est plus le dernier, raccourcit aussi (barre d'actions rangée à côté de la bulle), et
