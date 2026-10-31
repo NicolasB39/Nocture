@@ -50,6 +50,8 @@ La **fiche complète** n'est envoyée que lorsque le personnage est en scène : 
 
 Tant que l'ensemble des fiches tient dans un petit budget (environ 900 tokens), aucune n'est filtrée : un scénario à deux ou trois personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable.
 
+**Avec Claude** (sans limite de tokens), ce budget passe à environ 3 000 tokens, pour les fiches comme pour le lorebook : la partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Le lorebook garde son fonctionnement par mots-clés si « Entrées max » est réglé dans le scénario, et tout redevient déclenché au-delà du budget, avec une limite de tokens ou avec un autre fournisseur, dont le cache n'est pas garanti.
+
 Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie stable, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène. L'IA peut ainsi montrer un personnage dès son entrée, sans attendre le tour suivant.
 
 ### Images
@@ -254,7 +256,7 @@ queue    dernier message, lorebook déclenché, fiches en scène, passages ancie
 
 Le choix du niveau suit un arbitrage simple. Un bloc placé avant l'historique est gratuit les tours où il ne bouge pas, mais le tour où il change, il invalide aussi tout l'historique. Pour un bloc de C tokens qui change tous les K tours avec un historique de H tokens, le remonter vaut le coup si `(C + H) / K < C`.
 
-La mémoire change par paliers d'une dizaine de messages (de quarante avec Claude, voir plus bas) : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou toutes les fiches d'un petit scénario) montent dans la partie fixe. L'état précédent et le rappel changent à chaque tour par nature.
+La mémoire change par paliers d'une dizaine de messages (de quarante avec Claude, voir plus bas) : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou toutes les fiches d'un petit scénario, et avec Claude tout un lorebook et des fiches modestes) montent dans la partie fixe. L'état précédent et le rappel changent à chaque tour par nature.
 
 Si votre fournisseur ne pratique pas le cache, ce placement ne change rien au total envoyé. Vous pouvez alors baisser « Souvenirs injectés » à 3 pour revenir à l'ancien volume.
 
@@ -322,7 +324,7 @@ La mémoire tient sur trois étages, du plus détaillé au plus condensé :
 
 Chaque ligne récente renvoie au message qu'elle résume, ce qui permet au Sommaire d'y sauter. Si le modèle renvoie plus ou moins de lignes qu'il n'a reçu de messages, les lignes sont gardées sans ce lien, plutôt que de pointer vers de mauvais messages.
 
-À côté, deux listes : les **souvenirs** (faits durables) et les **relations** (une ligne par personnage). Toutes les relations sont envoyées avec la mémoire, dans la partie qui reste en cache ; celle d'un personnage en scène est de plus répétée sous sa fiche. Les relations se consultent dans la fenêtre Personnages, pas dans la feuille Mémoire.
+À côté, deux listes : les **souvenirs** (faits durables) et les **relations** (une ligne par personnage). Toutes les relations sont envoyées avec la mémoire, dans la partie qui reste en cache ; celle d'un personnage en scène est de plus répétée sous sa fiche quand celle-ci part en fin de requête. Les relations se consultent dans la fenêtre Personnages, pas dans la feuille Mémoire.
 
 Les modèles reformulent : « Alice », « alice », « Alice, l'herboriste » désignent la même personne, et « la fiole est verte » revient sous la forme « La fiole verte est importante ». L'application rapproche donc les noms dont les mots se recouvrent, et les souvenirs dont le vocabulaire se recouvre à plus de 60 %. Dans les deux cas la formulation la plus récente remplace l'ancienne au lieu de s'y ajouter.
 

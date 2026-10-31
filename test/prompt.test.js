@@ -367,3 +367,43 @@ test('le message système ne dépend pas de qui est en scène, pour rester en ca
   assert.equal(sys('je parle à Alice'), sys('je parle à Bob'));
   assert.equal(sys('je parle à Alice'), sys('personne ici'));
 });
+
+test('Claude : fiches et lorebook modestes en entier dans la partie fixe, en cache', () => {
+  const p0 = S.provider;
+  try {
+    S.provider = 'claude';
+    ctx.chars = [
+      { name: 'Alice', sum: 'a', text: 'A'.repeat(4000), always: false, images: [], keys: [/alice/] },
+      { name: 'Bob', sum: 'b', text: 'B'.repeat(4000), always: false, images: [], keys: [/bob/] }
+    ];
+    ctx.lore = [
+      { keys: [/porte/], always: false, pr: 0, text: 'La porte grince.' },
+      { keys: [/forge/], always: false, pr: 1, text: 'La forge est froide.' }
+    ];
+    const s = sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'alice ouvre la porte' }] });
+    let r = buildInfo(s),
+      stable = r.msgs[0].content.slice(0, r.msgs[0].cut);
+    assert.match(stable, /## Alice[\s\S]*## Bob/, 'toutes les fiches, même hors scène');
+    assert.match(stable, /La forge est froide\.[\s\S]*La porte grince\./, 'tout le lorebook, par priorité');
+    assert.match(stable, /Leurs fiches détaillées suivent\./);
+    assert.doesNotMatch(r.msgs.at(-1).content, /## Alice|La porte grince/, 'rien en fin de requête');
+    // Limite d'entrées choisie : le lorebook reste déclenché, en fin de requête.
+    r = buildInfo({ ...s, loreMax: 1 });
+    assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /La forge/);
+    assert.match(r.msgs.at(-1).content, /La porte grince/);
+    // Limite de tokens réglée : comportement d'avant, seuls les actifs partent.
+    S.ctxLim = 100000;
+    r = buildInfo(s);
+    assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
+    assert.match(r.msgs.at(-1).content, /La porte grince[\s\S]*## Alice/);
+    // Trop gros (au-delà de 3 000 tokens) : seulement les actifs, même avec Claude.
+    S.ctxLim = 0;
+    ctx.chars[1].text = 'B'.repeat(9000);
+    r = buildInfo(s);
+    assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
+    assert.match(r.msgs.at(-1).content, /## Alice/);
+  } finally {
+    S.provider = p0;
+    S.ctxLim = 0;
+  }
+});
