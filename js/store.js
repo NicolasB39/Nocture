@@ -2,6 +2,7 @@ import { S, app } from './state.js';
 import { LIX, split } from './format.js';
 import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutLines, unnum } from './memory.js';
+import { effortCut } from './prompt.js';
 
 let db;
 const one = m => {
@@ -51,6 +52,7 @@ export const clean = x => {
     name: s(x.name).trim() || 'Sans titre',
     updated: n(x.updated) || Date.now(),
     remote: !!x.remote,
+    reset: n(x.reset),
     pin: !!x.pin,
     folder: s(x.folder),
     system: s(x.system),
@@ -67,6 +69,13 @@ export const clean = x => {
     accent: typeof x.accent == 'string' && /^#[0-9a-f]{6}$/i.test(x.accent) ? x.accent.toLowerCase() : '',
     maxTok: n(x.maxTok),
     effort: ['low', 'medium', 'high'].includes(x.effort) ? x.effort : '',
+    // Changements d'effort en cours de partie (effortSet, prompt.js) : [indice, effort], dans l'ordre.
+    effLog: Array.isArray(x.effLog)
+      ? x.effLog
+          .filter(e => Array.isArray(e) && Number.isInteger(e[0]) && e[0] >= 0 && ['', 'low', 'medium', 'high'].includes(e[1]))
+          .sort((a, b) => a[0] - b[0])
+          .slice(-20)
+      : [],
     models:
       x.models && typeof x.models == 'object'
         ? Object.fromEntries(Object.entries(x.models).filter(([, v]) => typeof v == 'string' && v.trim()))
@@ -107,6 +116,7 @@ export const forkOf = (s, i, name, id) => {
   c.mem.lines = cutLines(c.mem.lines, n);
   c.mem.win = Math.min(c.mem.win || 0, n);
   c.mem.upto = Math.min(c.mem.upto, n);
+  effortCut(c, n);
   return c;
 };
 const pvOf = s => {
@@ -124,6 +134,7 @@ const META = s => ({
   name: s.name,
   updated: s.updated,
   remote: s.remote,
+  reset: s.reset || 0,
   pin: !!s.pin,
   folder: s.folder,
   n: s.messages?.length || 0,
@@ -157,12 +168,20 @@ export const openDB = () =>
     };
     r.onerror = () => rej(r.error);
   });
+// Une transaction annulée à la validation (quota dépassé) déclenche abort sans error : sans ce cas, la
+// promesse ne se réglerait jamais et l'envoi resterait bloqué sur « Réponse en cours ».
+const fail = (t, rej, f) => {
+  t.onerror = t.onabort = () => {
+    f?.();
+    rej(t.error || new Error('Enregistrement impossible (espace de stockage plein ?)'));
+  };
+};
 const tx = (st, m, fn) =>
   new Promise((res, rej) => {
     const t = db.transaction(st, m);
     const rq = fn(t.objectStore(st));
     t.oncomplete = () => res(rq && rq.result);
-    t.onerror = () => rej(t.error);
+    fail(t, rej);
   });
 const read = (names, fn) =>
   new Promise((res, rej) => {
@@ -173,7 +192,7 @@ const read = (names, fn) =>
       r.onsuccess = () => (o[k] = r.result);
     }
     t.oncomplete = () => res(o);
-    t.onerror = () => rej(t.error);
+    fail(t, rej);
   });
 export const getAll = () =>
   read(['meta', 'covers'], { m: ['meta'], c: ['covers'] }).then(({ m, c }) => {
@@ -201,9 +220,11 @@ export const getOne = id =>
     K[id] = { c: pack(ms), v: c?.d || '', rev };
     return clean({ ...x, messages: ms, cover: c?.d || '' });
   });
-export const put = o =>
+// bkd : repère « à synchroniser », daté pour que sync() voie un enregistrement fait pendant qu'elle tourne.
+// La synchronisation elle-même écrit sans le poser (fromSync).
+export const put = (o, fromSync = false) =>
   new Promise((res, rej) => {
-    LS.set('bkd', 1);
+    if (!fromSync) LS.set('bkd', Date.now());
     const { messages = [], cover, ...head } = o,
       c = pack(messages),
       v = cover || '',
@@ -229,13 +250,10 @@ export const put = o =>
       K[o.id] = nk;
       res();
     };
-    t.onerror = () => {
-      delete K[o.id];
-      rej(t.error);
-    };
+    fail(t, rej, () => delete K[o.id]);
   });
-export const del = id => {
-  LS.set('bkd', 1);
+export const del = (id, fromSync = false) => {
+  if (!fromSync) LS.set('bkd', Date.now());
   LS.del('draft:' + id);
   LS.del('pos:' + id);
   delete K[id];
@@ -246,16 +264,29 @@ export const del = id => {
     t.objectStore('covers').delete(id);
     t.objectStore('meta').delete(id);
     t.oncomplete = () => res();
-    t.onerror = () => rej(t.error);
+    fail(t, rej);
   });
+};
+// Autres fenêtres de l'application (onglet et appli installée) : réglages et statistiques sont lus au
+// démarrage puis réécrits en bloc. Chaque enregistrement les prévient pour qu'elles relisent, au lieu
+// d'écraser plus tard la clé, le tarif ou les compteurs avec leur vieille copie. Canal ouvert par main.js.
+let bc = null;
+export const onPeer = fn => {
+  if (typeof BroadcastChannel != 'function') return;
+  bc = new BroadcastChannel('nocturne');
+  bc.onmessage = e => fn(e.data);
+};
+const told = k => r => {
+  bc?.postMessage(k);
+  return r;
 };
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);
   });
-export const saveSet = () => tx('settings', 'readwrite', s => s.put({ key: 'main', value: S }));
+export const saveSet = () => tx('settings', 'readwrite', s => s.put({ key: 'main', value: S })).then(told('set'));
 export const loadStats = () => tx('settings', 'readonly', s => s.get('stats')).then(r => r?.value || null);
-export const saveStats = v => tx('settings', 'readwrite', s => s.put({ key: 'stats', value: v }));
+export const saveStats = v => tx('settings', 'readwrite', s => s.put({ key: 'stats', value: v })).then(told('stats'));
 export const save = (s = app.cur) => {
   s.updated = Date.now();
   return put(s);

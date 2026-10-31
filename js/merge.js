@@ -1,7 +1,9 @@
 import { uid } from './util.js';
 
 export const TOMB_TTL = 1.5552e10;
-export const syncable = s => !(s.remote && !(s.messages ? s.messages.length : s.n));
+// Une histoire GitHub jamais jouée n'est pas synchronisée (chaque appareil en crée une vide). Vidée exprès
+// pour recommencer (reset), elle l'est : sinon la version distante remettrait les anciens messages.
+export const syncable = s => !(s.remote && !(s.messages ? s.messages.length : s.n) && !s.reset);
 
 export function merge(loc, rem, t1, t2, { seen = {}, now = Date.now(), nid = uid } = {}) {
   const tomb = { ...t1 };
@@ -29,8 +31,11 @@ export function merge(loc, rem, t1, t2, { seen = {}, now = Date.now(), nid = uid
       if (r) up = true;
       continue;
     }
+    // Divergence : les deux versions ont bougé depuis la dernière synchronisation. Sans repère (premier
+    // passage de cet appareil, autre dépôt, import), deux versions différentes divergent aussi : rien ne dit
+    // que l'une prolonge l'autre, la perdante est gardée en copie plutôt qu'écrasée.
     const base = seen[id];
-    if (l && r && base != null && l.updated !== r.updated && l.updated > base && r.updated > base) {
+    if (l && r && l.updated !== r.updated && (base == null || (l.updated > base && r.updated > base))) {
       const lose = p === l ? r : l,
         c = { ...lose, id: nid(), name: lose.name + ' (conflit)', updated: now };
       keep.push(c);

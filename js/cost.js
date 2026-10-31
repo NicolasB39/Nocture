@@ -1,8 +1,13 @@
 // Coût estimé des statistiques d'usage. Tarifs en dollars par million de tokens :
 // [entrée, sortie, lecture du cache]. L'écriture du cache coûte 1,25 × l'entrée (5 min) ou 2 × (1 h).
-// Tarifs publics d'Anthropic relevés en octobre 2026 ; Haiku 5.5 passe à 0,50 / 2,50 au-delà de 100 000
-// tokens de prompt, ce que l'estimation ignore. Les autres fournisseurs se renseignent dans la feuille.
+// La lecture du cache vaut 0,1 × l'entrée, sauf Fable 5.1 (0,025 ×), Opus 5.5 et Sonnet 5.5 (0,05 ×).
+// Tarifs publics d'Anthropic vérifiés le 31 octobre 2026. Les autres fournisseurs se renseignent dans la feuille.
+// Haiku 5.5 coûte cinq fois plus au-delà de 100 000 tokens de prompt (cache compris) : ces requêtes sont
+// comptées sous leur propre clé (ai.js), avec le suffixe LONG.
+export const HAIKU_LONG = 100000;
+export const LONG = ' (prompt > 100 k)';
 export const PRICES = {
+  ['claude/claude-haiku-5-5' + LONG]: [0.5, 2.5, 0.05],
   'claude/claude-fable-5-1': [10, 50, 0.25],
   'claude/claude-fable-5': [10, 50, 1],
   'claude/claude-opus-5-5': [4, 20, 0.2],
@@ -10,7 +15,7 @@ export const PRICES = {
   'claude/claude-opus-4-8': [5, 25, 0.5],
   'claude/claude-opus-4-7': [5, 25, 0.5],
   'claude/claude-opus-4-6': [5, 25, 0.5],
-  'claude/claude-sonnet-5-5': [2, 10, 0.2],
+  'claude/claude-sonnet-5-5': [2, 10, 0.1],
   'claude/claude-sonnet-5': [2, 10, 0.2],
   'claude/claude-sonnet-4-6': [3, 15, 0.3],
   'claude/claude-haiku-5-5': [0.1, 0.5, 0.01],
@@ -62,6 +67,14 @@ export const money = (usd, fx) => {
   );
 };
 
+// « 15 € », « 1 000 », « 0,92 » → nombre ; vide → null ; illisible ou nul → undefined.
+export const parseAmount = t => {
+  const s = String(t ?? '').trim();
+  if (!s) return null;
+  const m = s.replace(/[\s  ]/g, '').match(/^\D*(\d+(?:[.,]\d+)?)\D*$/),
+    n = m ? +m[1].replace(',', '.') : 0;
+  return n > 0 ? n : undefined;
+};
 // « 2 / 10 » ou « 2,5 10 0,25 » → [2, 10] / [2.5, 10, 0.25] ; vide → null ; illisible → undefined.
 export const parsePrice = t => {
   const s = String(t ?? '').trim();

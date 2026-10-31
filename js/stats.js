@@ -53,6 +53,21 @@ const add = (o, e) => {
 export const load = v => {
   if (v && typeof v.d == 'object' && v.d) STATS.d = v.d;
 };
+// d + k × by, case par case (jour, modèle, compteur), sans toucher d : fusionne ce qu'une fenêtre a compté
+// depuis sa dernière lecture avec ce qu'une autre a enregistré entre-temps (main.js). Les cases revenues
+// à zéro (statistiques effacées) disparaissent, au lieu de rester comme modèles à 0 requête.
+export const shift = (d, by, k = 1) => {
+  const o = structuredClone(d);
+  for (const day in by) {
+    for (const key in by[day]) {
+      const e = ((o[day] ??= {})[key] ??= []);
+      by[day][key].forEach((v, i) => (e[i] = (e[i] || 0) + k * (v || 0)));
+      if (e.every(v => !v)) delete o[day][key];
+    }
+    if (o[day] && !Object.keys(o[day]).length) delete o[day];
+  }
+  return o;
+};
 export const clear = () => {
   STATS.d = {};
   for (const k in SESSION) delete SESSION[k];

@@ -33,7 +33,10 @@ export async function ask(old, cont, hint) {
   const s = app.cur,
     p = S.provider,
     k = S.keys[p],
-    again = cont ? () => ask(null, true) : old ? () => regen(hint) : () => ask(null, false, hint);
+    again = cont ? () => ask(null, true) : old ? () => regen(hint) : () => ask(null, false, hint),
+    // Réessayer n'a de sens que si le fil finit encore comme au départ : tour du joueur à envoyer, ou
+    // réponse à continuer (le joueur a pu supprimer ou modifier des messages entre-temps).
+    still = cont ? () => s.messages.at(-1)?.role == 'assistant' : old ? () => true : () => s.messages.at(-1)?.role == 'user';
   if (!k) {
     if (old) s.messages.push(old);
     render();
@@ -45,6 +48,7 @@ export async function ask(old, cont, hint) {
   $('#gst').textContent = 'Réponse en cours.';
   const t0 = Date.now();
   let msg = '',
+    refused = false,
     cut = false,
     part = false,
     raf = 0,
@@ -105,6 +109,7 @@ export async function ask(old, cont, hint) {
       top: s.top ?? S.top,
       model: modelOf(s),
       effort: s.effort || 'low',
+      effBase: info.effort,
       primary: true,
       onWait: (w, why) => {
         if (app.cur !== s) return;
@@ -118,6 +123,7 @@ export async function ask(old, cont, hint) {
       }
     });
     app.stream = { mode: S.ns?.[p] ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
+    app.pt = r.pt ? { id: s.id, n: r.pt } : null;
     const lt = lastTurn();
     app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key, S.prices)) };
     const out = r.t;
@@ -150,7 +156,13 @@ export async function ask(old, cont, hint) {
     saveSet();
   } catch (e) {
     msg = e.message;
+    // Refus : renvoyer la même requête serait refusé de même ; on propose de reformuler ou d'orienter la scène.
+    refused = !!e.refusal;
+    if (refused)
+      msg += cont ? '. Régénérez la réponse, ou reformulez votre tour.' : '. Reformulez votre tour, ou orientez la scène avec une indication.';
     if (old) s.messages.push(old);
+    // Un résumé fini pendant le tour n'a rien enregistré (persist, ai.js) : on le fait ici.
+    await save(s).catch(() => {});
   }
   clearInterval(tick);
   cancelAnimationFrame(raf);
@@ -167,16 +179,31 @@ export async function ask(old, cont, hint) {
             ? 'Réponse coupée par la longueur maximale. Augmentez-la dans les réglages du scénario, continuez ou régénérez.'
             : ''),
       !!msg,
-      msg && {
-        label: 'Réessayer',
-        fn: () => {
-          if (!app.busy && app.cur === s) again();
-        }
-      }
+      msg &&
+        (!refused
+          ? {
+              label: 'Réessayer',
+              fn: () => {
+                if (!app.busy && app.cur === s && still()) again();
+              }
+            }
+          : !cont && {
+              label: 'Indication…',
+              fn: () => {
+                if (!app.busy && app.cur === s && still()) regenHint();
+              }
+            })
     );
     $('#gst').textContent = msg ? 'Échec : ' + msg : 'Réponse reçue.';
+    // Repère : le message juste avant la réponse (en général le tour du joueur). Le rendu final peut retirer
+    // des messages par le haut (longue histoire : seuls les app.LIM derniers sont affichés), une position de
+    // défilement absolue ferait alors sauter l'écran vers la fin ; on garde ce message à sa place.
+    let an = lv?.previousElementSibling;
+    while (an && !an.matches('.m[data-i]')) an = an.previousElementSibling;
     const m = $('#msgs'),
       y = m.scrollTop,
+      ai = an?.dataset.i,
+      at = an?.getBoundingClientRect().top,
       // Position de la réponse à l'écran, et son intertitre s'il était déjà là (lieu annoncé en tête).
       top = lv?.getBoundingClientRect().top,
       had = !!lv?.previousElementSibling?.matches('.scene');
@@ -184,14 +211,20 @@ export async function ask(old, cont, hint) {
     const fin = lv && !msg && m.querySelector(':scope > .m[data-i="' + (s.messages.length - 1) + '"]');
     if (fin) keepImgs(lv, fin);
     lv?.remove();
+    const sc = fin?.previousElementSibling,
+      nsc = !!sc?.matches('.scene') && !had;
     if (!S.follow) {
       m.scrollTop = y;
+      const a2 = ai != null && m.querySelector(':scope > .m[data-i="' + ai + '"]');
+      if (a2) m.scrollTop += Math.round(a2.getBoundingClientRect().top - at);
       // Lieu connu seulement à la fin : l'intertitre arrive en fondu au-dessus de la réponse, et le défilement
-      // compense sa hauteur pour que le texte en cours de lecture ne bouge pas.
-      if (fin && top < m.getBoundingClientRect().bottom) m.scrollTop += fin.getBoundingClientRect().top - top;
+      // compense sa hauteur pour que le texte en cours de lecture ne bouge pas. Sa hauteur seule : le message
+      // du joueur, qui n'est plus le dernier, raccourcit aussi (barre d'actions rangée à côté de la bulle), et
+      // caler la réponse sur sa place d'avant ferait descendre tout le fil d'autant.
+      if (nsc && top < m.getBoundingClientRect().bottom)
+        m.scrollTop += fin.getBoundingClientRect().top - sc.getBoundingClientRect().top;
     }
-    const sc = fin?.previousElementSibling;
-    if (sc?.matches('.scene') && !had) sc.classList.add('in');
+    if (nsc) sc.classList.add('in');
     if (!msg && unseen(tail())) newShow('Nouveau message');
     else $('#newm').hidden = true;
     if (!msg && !cont) autoRead(s.messages.length - 1);
@@ -241,17 +274,23 @@ export async function regen(hint) {
 $('#send').onclick = async () => {
   const t = $('#inp').value.trim();
   if (!t || app.busy) return;
-  stopSpeech();
-  $('#inp').value = '';
-  fit();
-  LS.del('draft:' + app.cur.id);
-  const pv = app.cur.messages.at(-1);
-  if (pv?.alts) {
-    delete pv.alts;
-    delete pv.ai;
+  // Verrou posé avant l'enregistrement : un double toucher pendant l'attente enverrait deux fois le tour.
+  app.busy = true;
+  try {
+    stopSpeech();
+    $('#inp').value = '';
+    fit();
+    LS.del('draft:' + app.cur.id);
+    const pv = app.cur.messages.at(-1);
+    if (pv?.alts) {
+      delete pv.alts;
+      delete pv.ai;
+    }
+    app.cur.messages.push({ role: 'user', content: t, t: Date.now() });
+    await save();
+  } finally {
+    app.busy = false;
   }
-  app.cur.messages.push({ role: 'user', content: t, t: Date.now() });
-  await save();
   render(true);
   ask();
 };

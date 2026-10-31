@@ -5,7 +5,7 @@ globalThis.document = { createElement: () => ({}), querySelector: () => null, qu
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
-const { BUSY, backoff, chat, waitMsg } = await import('../js/ai.js');
+const { BUSY, backoff, chat, lastTurn, waitMsg } = await import('../js/ai.js');
 const { S } = await import('../js/state.js');
 const { reset } = await import('../js/rate.js');
 
@@ -81,4 +81,63 @@ test('les messages d’attente nomment la cause', () => {
   assert.match(waitMsg(4, 'busy'), /surchargé ou en panne : nouvelle tentative dans 4 s/);
   assert.match(waitMsg(3, 'net'), /connexion perdue/);
   assert.match(waitMsg(9, 'pace'), /envoi dans 9 s/);
+});
+
+// Flux simulé : un morceau par lecture, puis fin propre ou coupure réseau.
+const sse = (parts, cut = false) => {
+  const enc = new TextEncoder();
+  let i = 0;
+  return new Response(
+    new ReadableStream({
+      pull(c) {
+        if (i < parts.length) c.enqueue(enc.encode(parts[i++]));
+        else if (cut) c.error(new TypeError('network error'));
+        else c.close();
+      }
+    }),
+    { status: 200, headers: { 'content-type': 'text/event-stream' } }
+  );
+};
+const oa = t => 'data: ' + JSON.stringify({ choices: [{ delta: { content: t } }] }) + '\n\n';
+const ev = o => 'event: ' + o.type + '\ndata: ' + JSON.stringify(o) + '\n\n';
+const antStart = ev({ type: 'message_start', message: { usage: { input_tokens: 50, output_tokens: 1 } } }),
+  antText = t => ev({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t } });
+const useClaude = () => Object.assign(S, { provider: 'claude', keys: { claude: 'k' } });
+
+test('une coupure réseau en pleine réponse garde le texte reçu', async () => {
+  queue([sse([oa('La pluie tombe. '), oa('Il se tait.')], true)]);
+  const r = await chat(ms, { od: () => {} });
+  assert.equal(r.t, 'La pluie tombe. Il se tait.');
+  assert.equal(r.partial, true);
+});
+
+test('un flux fermé sans fin annoncée est une réponse incomplète', async () => {
+  queue([sse([oa('Début du récit.')])]);
+  assert.equal((await chat(ms, { od: () => {} })).partial, true);
+  queue([sse([oa('Récit entier.'), 'data: ' + JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] }) + '\n\n', 'data: [DONE]\n\n'])]);
+  assert.equal((await chat(ms, { od: () => {} })).partial, false);
+});
+
+test('une surcharge annoncée dans le flux de Claude avant tout texte est retentée', async () => {
+  useClaude();
+  const why = [];
+  const calls = queue([
+    sse([antStart, ev({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } })]),
+    sse([antStart, antText('Le récit reprend.'), ev({ type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 5 } }), ev({ type: 'message_stop' })])
+  ]);
+  const r = await chat(ms, { od: () => {}, onWait: (w, y) => w && why.push(y) });
+  assert.equal(r.t, 'Le récit reprend.');
+  assert.equal(calls.length, 2);
+  assert.ok(why.length && why.every(y => y == 'busy'));
+});
+
+test('une réponse de Claude interrompue compte une sortie estimée, pas 1 jeton', async () => {
+  useClaude();
+  const t = 'Une longue phrase de récit, reçue avant la coupure du réseau. '.repeat(10);
+  queue([sse([antStart, antText(t)], true)]);
+  const r = await chat(ms, { od: () => {}, primary: true });
+  assert.equal(r.partial, true);
+  const e = lastTurn().e;
+  assert.ok(e[1] > 100, 'sortie estimée sur le texte : ' + e[1]);
+  assert.equal(e[3], 1, 'marquée comme estimée');
 });

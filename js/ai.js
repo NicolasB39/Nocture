@@ -1,10 +1,11 @@
+import { HAIKU_LONG, LONG } from './cost.js';
 import { budgetOf, estTok, omittedCount } from './prompt.js';
 import { SUM_MAX, clip, mergeMem, mergeRel, splitSummary, unnum } from './memory.js';
 import { hintOf, hit429, note, resetDur, wait } from './rate.js';
 import { cacheOf, record, usageOf } from './stats.js';
 import { PROVIDERS, S, app, ctx } from './state.js';
 import { getOne, save } from './store.js';
-import { err, strip } from './util.js';
+import { $, err, strip } from './util.js';
 
 const ANT = p => PROVIDERS[p]?.fmt == 'anthropic';
 export const sumGate = (u, big, go) => (big ? u >= 80 || (go && u > 40) : u >= 40);
@@ -36,10 +37,31 @@ export const effortOk = model => {
   if (f == 'haiku') return maj >= 5;
   return maj > 4 || (maj == 4 && min >= (f == 'opus' ? 5 : 6));
 };
-export const toAnt = (ms, { model, max, stream, ttl, effort }) => {
+const base = m => String(m || '').replace(/-\d{8}$/, '');
+// Changement d'effort en cours de partie sans réécrire le cache (beta) : un message système vide portant
+// output_config.effort, inséré dans l'historique, vaut à partir du tour du joueur qui suit. Changer l'effort
+// de premier niveau, lui, réécrit tout le cache des messages.
+export const EFF_BETA = 'mid-conversation-output-config-2026-07-01';
+export const effortMsgOk = model =>
+  ['claude-fable-5-1', 'claude-mythos-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'].includes(
+    base(model)
+  );
+// Relais en cas de refus (beta) : la requête refusée est rejouée côté serveur sur le modèle de secours
+// qu'Anthropic choisit selon le motif du refus. Avec Sonnet 5.5, seuls les refus « cyber » et « frontier_llm »
+// sont relayés ; les autres (« general_harms », etc.) reviennent comme refus.
+export const FB_BETA = 'server-side-fallback-2026-07-01';
+export const fallbackOk = model => ['claude-fable-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5'].includes(base(model));
+// En-tête des fonctions bêta qu'utilise une requête Claude.
+export const antBetas = b =>
+  [b.fallbacks && FB_BETA, b.messages?.some(m => m.output_config) && EFF_BETA].filter(Boolean).join(',');
+// effBefore (posé par buildInfo sur un message) : l'effort change juste avant ce message ; effBase : l'effort
+// en vigueur au premier message envoyé. Sans prise en charge par le modèle, l'effort actuel part en premier
+// niveau, comme avant.
+export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback }) => {
   const cc = { type: 'ephemeral', ...(ttl ? { ttl: '1h' } : {}) },
     sys = [],
-    out = [];
+    out = [],
+    marks = effortOk(model) && effortMsgOk(model) && ms.some(m => EFFORTS.includes(m.effBefore));
   for (const m of ms)
     if (m.role == 'system') {
       const k = m.cut ?? m.content.length;
@@ -49,19 +71,25 @@ export const toAnt = (ms, { model, max, stream, ttl, effort }) => {
   sys.slice(0, -3).forEach(b => delete b.cache_control);
   for (const m of ms) {
     if (m.role == 'system') continue;
+    if (marks && EFFORTS.includes(m.effBefore))
+      out.push({ role: 'system', content: [], output_config: { effort: m.effBefore } });
     const l = out.at(-1);
     if (l?.role == m.role) l.content += '\n\n' + m.content;
     else out.push({ role: m.role, content: m.content });
   }
   if (out[0]?.role == 'assistant') out.unshift({ role: 'user', content: '(Suite de l’histoire.)' });
-  const b = out.at(-2);
+  // Marqueur de cache sur le dernier message avant le tour en cours (un message d'effort n'en porte pas).
+  const b = out.slice(0, -1).findLast(x => x.role != 'system');
   if (b?.content.trim()) b.content = [{ type: 'text', text: b.content, cache_control: cc }];
+  const top = marks && EFFORTS.includes(effBase) ? effBase : effort;
   return {
     model,
     max_tokens: max || 4096,
     ...(sys.length ? { system: sys } : {}),
     messages: out,
-    ...(EFFORTS.includes(effort) && effortOk(model) ? { output_config: { effort } } : {}),
+    ...(EFFORTS.includes(top) && effortOk(model) ? { output_config: { effort: top } } : {}),
+    // Pas de relais avec un changement d'effort : le modèle de secours pourrait ne pas le prendre en charge.
+    ...(fallback && !marks && fallbackOk(model) ? { fallbacks: 'default' } : {}),
     ...(stream ? { stream: true } : {})
   };
 };
@@ -91,12 +119,14 @@ export async function keepWarm() {
   const p = S.provider,
     k = S.keys[p];
   if (!LAST || LAST.p !== p || !ANT(p) || !k) return false;
-  const { stream, ...b } = LAST.body;
+  // Sans relais (rien à relayer, et hors du préfixe) ; un changement d'effort, lui, fait partie du préfixe.
+  const { stream, fallbacks, ...b } = LAST.body,
+    bt = antBetas(b);
   LAST.at = Date.now();
   try {
     const r = await fetch(PROVIDERS[p].u + '/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authH(p, k) },
+      headers: { 'Content-Type': 'application/json', ...authH(p, k), ...(bt ? { 'anthropic-beta': bt } : {}) },
       body: JSON.stringify({ ...b, max_tokens: 0 })
     });
     if (!r.ok) return false;
@@ -108,6 +138,25 @@ export async function keepWarm() {
     return false;
   }
 }
+// Refus de Claude (stop_reason « refusal », réponse 200) ou filtre de contenu d'un fournisseur compatible
+// OpenAI (finish_reason « content_filter »). Erreur marquée refusal : l'envoi propose une indication plutôt
+// que de renvoyer la même requête, qui serait refusée de même.
+const WHY = {
+  cyber: 'cybersécurité',
+  bio: 'biologie',
+  general_harms: 'contenu sensible',
+  frontier_llm: 'développement d’IA',
+  reasoning_extraction: 'raisonnement interne'
+};
+export const refusal = (sd, A) => {
+  const c = A && sd?.category,
+    e = new Error(
+      (A ? 'Claude a refusé d’écrire cette réponse' : 'Le fournisseur a bloqué cette réponse (filtre de contenu)') +
+        (c ? ' (motif : ' + (WHY[c] || c) + ')' : '')
+    );
+  e.refusal = true;
+  return e;
+};
 // Erreurs passagères du fournisseur (surcharge, passerelle) : on retente, sans toucher à la jauge de débit.
 export const BUSY = new Set([500, 502, 503, 504, 529]);
 export const TRIES = 3;
@@ -126,12 +175,14 @@ export const lastTurn = () => TURN;
 const track = (ms, out, u, key, primary) => {
   try {
     const x = usageOf(u);
+    // Haiku 5.5 coûte plus cher au-delà de 100 000 tokens de prompt : ces requêtes ont leur propre ligne.
+    if (x && base(key) == 'claude/claude-haiku-5-5' && x[0] > HAIKU_LONG) key = base(key) + LONG;
     if (x) {
       const [cr, cw] = cacheOf(u),
         h1 = ANT(key.split('/')[0]) && S.c1h,
         ca = [cr, h1 ? 0 : cw, h1 ? cw : 0];
-      if (primary) TURN = { key, e: [x[0], x[1], 1, 0, ...ca] };
-      return record(key, x[0], x[1], false, Date.now(), ca);
+      if (primary) TURN = { key, e: [x[0], x[1], 1, u.est ? 1 : 0, ...ca] };
+      return record(key, x[0], x[1], !!u.est, Date.now(), ca);
     }
     const p = ms.reduce((a, m) => a + estTok(m.content) + 4, 0),
       c = estTok(out);
@@ -145,11 +196,10 @@ const calib = (ms, u) => {
   if (!pt || pt <= ov) return;
   const r = ms.reduce((a, m) => a + m.content.length, 0) / (pt - ov);
   if (r > 2 && r < 6) S.cpt = +((S.cpt || 3.4) * 0.75 + r * 0.25).toFixed(3);
-  app.pt = pt;
 };
 export async function chat(
   ms,
-  { max = 0, ac = new AbortController(), od = null, temp = null, top = null, model = '', effort = '', json = false, onWait = null, primary = false, timeout = 120000 } = {}
+  { max = 0, ac = new AbortController(), od = null, temp = null, top = null, model = '', effort = '', effBase = '', json = false, onWait = null, primary = false, timeout = 120000 } = {}
 ) {
   const p = S.provider,
     k = S.keys[p];
@@ -184,7 +234,7 @@ export async function chat(
     for (let a = 0; ; a++) {
       let r;
       const body = A
-        ? toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort })
+        ? toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary })
         : {
             model: mdl,
             messages: toOai(ms),
@@ -196,11 +246,12 @@ export async function chat(
           };
       // La dernière requête de narration Claude sert de modèle au maintien du cache (keepWarm).
       if (A && primary) LAST = { p, body, at: Date.now() };
+      const bt = A ? antBetas(body) : '';
       try {
         r = await fetch(PROVIDERS[p].u + (A ? '/messages' : '/chat/completions'), {
           method: 'POST',
           signal: ac.signal,
-          headers: { 'Content-Type': 'application/json', ...authH(p, k) },
+          headers: { 'Content-Type': 'application/json', ...authH(p, k), ...(bt ? { 'anthropic-beta': bt } : {}) },
           body: JSON.stringify(body)
         });
       } catch (e) {
@@ -219,7 +270,11 @@ export async function chat(
           part = false,
           n = 0,
           us = null,
-          ex = '';
+          ex = '',
+          et = '',
+          // Modèle qui a vraiment répondu (relais en cas de refus) et détail d'un refus.
+          served = '',
+          sd = null;
         const feed = l => {
           if (!l.startsWith('data:')) return;
           const d = l.slice(5).trim();
@@ -227,18 +282,22 @@ export async function chat(
             try {
               const o = JSON.parse(d),
                 dl = o.delta;
-              if (o.type == 'message_start') us = { ...o.message?.usage };
-              else if (o.type == 'content_block_delta' && dl?.type == 'text_delta') {
+              if (o.type == 'message_start') {
+                us = { ...o.message?.usage };
+                served = o.message?.model || served;
+              } else if (o.type == 'content_block_delta' && dl?.type == 'text_delta') {
                 tt += dl.text;
                 n++;
                 od(tt);
               } else if (o.type == 'content_block_delta' && dl?.type == 'thinking_delta') od(tt, true);
               else if (o.type == 'message_delta') {
                 if (dl?.stop_reason) fr = dl.stop_reason;
+                sd = dl?.stop_details || o.stop_details || sd;
                 us = { ...us, ...o.usage };
               } else if (o.type == 'message_stop') fin = true;
               else if (o.type == 'error') {
                 ex = o.error?.message || 'erreur du fournisseur';
+                et = o.error?.type || '';
                 fin = true;
               }
             } catch (e) {}
@@ -273,26 +332,53 @@ export async function chat(
           }
           if (!fin && buf) feed(buf);
           rd.cancel().catch(() => {});
-          if (ex && !tt) throw new Error(ex);
-          if (ex) part = true;
+          if (ex && !tt) {
+            // Surcharge annoncée dans le flux avant tout texte (Claude répond 200 puis envoie l'erreur) :
+            // rien n'a été écrit, on retente comme pour un 529.
+            if (/^(overloaded|api)_error$/.test(et) && a < TRIES) {
+              await retry(backoff(a), 'busy');
+              continue;
+            }
+            throw new Error(ex);
+          }
+          // Flux fermé sans fin annoncée (ni message_stop, ni [DONE], ni raison d'arrêt) : réponse incomplète.
+          if (ex || (!fin && !fr)) part = true;
         } catch (e) {
-          if (!(tt && (ac.signal.reason == 'timeout' || ac.signal.reason == 'stop'))) throw e;
+          // Coupure après du texte (réseau, délai, Arrêter) : le texte reçu est gardé.
+          if (!tt) throw e;
           part = true;
+        }
+        const key = p + '/' + (served || mdl);
+        // Refus (relais compris) : le texte déjà reçu est jeté, il n'est pas une réponse complète. Ce qui a été
+        // facturé est compté quand même.
+        if (fr == 'refusal' || fr == 'content_filter') {
+          us = normU(us);
+          note(r.headers, us, mdl, primary);
+          track(ms, strip(tt), us, key, primary);
+          throw refusal(sd, A);
         }
         const out = strip(tt);
         if (!out)
           throw new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)');
         us = normU(us);
+        // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de
+        // sortie). La sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
+        if (part && us) {
+          const c = estTok(out);
+          if ((us.completion_tokens || 0) < c)
+            us = { ...us, completion_tokens: c, total_tokens: (us.prompt_tokens || 0) + c, est: true };
+        }
         if (primary) calib(ms, us);
         note(r.headers, us, mdl, primary);
-        track(ms, out, us, p + '/' + mdl, primary);
+        track(ms, out, us, key, primary);
         return {
           t: out,
           cut: fr == 'length' || fr == 'max_tokens',
           mode: 'stream',
           chunks: n,
           ms: Date.now() - t0,
-          partial: part
+          partial: part,
+          pt: us?.prompt_tokens || 0
         };
       }
       const j = await r.json().catch(() => ({}));
@@ -336,7 +422,8 @@ export async function chat(
               .join('')
           : (ch?.message?.content ?? '')
       );
-      track(ms, out, u, p + '/' + mdl, primary);
+      track(ms, out, u, p + '/' + ((A && j.model) || mdl), primary);
+      if (A ? j.stop_reason == 'refusal' : ch?.finish_reason == 'content_filter') throw refusal(j.stop_details, A);
       if (!out)
         throw new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)');
       return {
@@ -344,7 +431,8 @@ export async function chat(
         cut: A ? j.stop_reason == 'max_tokens' : ch?.finish_reason == 'length',
         mode: 'block',
         chunks: 1,
-        ms: Date.now() - t0
+        ms: Date.now() - t0,
+        pt: u?.prompt_tokens || 0
       };
     }
   } catch (e) {
@@ -395,13 +483,22 @@ const absorb = (s, x) => {
   if (Object.keys(x.relations).length)
     s.mem.relations = mergeRel(s.mem.relations, x.relations, known());
 };
+// Histoire ouverte : on l'enregistre telle quelle, une copie relue en base pourrait dater d'avant la
+// réponse que l'envoi est en train d'enregistrer. Pendant un tour, rien : la mémoire est sur le même objet
+// et la fin du tour l'enregistrera (Régénérer a retiré la réponse en mémoire seulement, l'enregistrer ici
+// la perdrait). Histoire fermée : seulement si la base n'a pas changé depuis (synchronisation).
 const persist = async s => {
+  if (app.cur?.id == s.id) {
+    app.cur.mem = s.mem;
+    if (!app.busy) await save(app.cur);
+    return;
+  }
   const f = await getOne(s.id);
-  if (f) {
+  if (f && f.updated === s.updated) {
     f.mem = s.mem;
     await save(f);
+    s.updated = f.updated;
   }
-  if (app.cur && app.cur.id == s.id && app.cur !== s) app.cur.mem = s.mem;
 };
 export const asJson = t => {
   const b = t.lastIndexOf('}');
@@ -439,10 +536,30 @@ const addLines = (s, ln, n) => {
       ...ln.map((t, k) => ({ i: ln.length == n ? s.mem.upto + k : -1, t: unnum(t) }))
     ].slice(-LINES_MAX);
 };
+// Instantané d'un lot de n messages à résumer. Pendant l'appel, le joueur peut supprimer ou modifier un
+// message du lot, corriger la mémoire à la main, ou l'histoire être rechargée depuis un autre appareil
+// (cur : l'histoire ouverte) : la fonction rendue dit alors que le résultat ne vaut plus, il est abandonné
+// (nouvel essai au prochain tour).
+export const batchGuard = (s, n) => {
+  const u0 = s.mem.upto,
+    src = s.messages.slice(u0, u0 + n),
+    c0 = src.map(m => m.content),
+    { summary, memories } = s.mem;
+  return cur =>
+    s.mem.upto !== u0 ||
+    s.mem.summary !== summary ||
+    s.mem.memories !== memories ||
+    (cur?.id == s.id && cur !== s) ||
+    src.some((m, k) => s.messages[u0 + k] !== m || m.content !== c0[k]);
+};
 export async function summarize(s) {
   if (!s || SUMS.has(s.id)) return;
   SUMS.add(s.id);
-  let shown = false;
+  // État de la mémoire dans la bande #err : seulement si elle est vide ou porte encore notre message, pour ne
+  // jamais écrire ni effacer celui d'un tour (échec avec Réessayer, réponse coupée, attente de débit).
+  let said = '';
+  const mine = () => app.cur === s && !app.busy && [said, ''].includes($('#err').textContent);
+  const say = t => mine() && err((said = t));
   try {
     const big = ANT(S.provider) && !S.ctxLim;
     let go = false;
@@ -451,10 +568,7 @@ export async function summarize(s) {
       return go || (S.ctxLim && omittedCount(s) >= 6);
     };
     while (need()) {
-      if (app.cur === s && !app.busy) {
-        err('Mise à jour de la mémoire…');
-        shown = true;
-      }
+      say('Mise à jour de la mémoire…');
       const pr = splitSummary(s.mem.summary);
       if (pr.summary && pr.summary !== (s.mem.summary || '').trim()) {
         absorb(s, pr);
@@ -474,6 +588,7 @@ export async function summarize(s) {
         parts.push(x);
         acc += estTok(x);
       }
+      const stale = batchGuard(s, parts.length);
       const useJson = !S.nj?.[S.provider];
       const { t } = await chat(
         [
@@ -501,11 +616,11 @@ export async function summarize(s) {
           json: useJson,
           timeout: 300000,
           onWait: (w, why) => {
-            if (app.cur === s && !app.busy)
-              err(w ? 'Mémoire : ' + waitMsg(w, why) : 'Mise à jour de la mémoire…');
+            if (said) say(w ? 'Mémoire : ' + waitMsg(w, why) : 'Mise à jour de la mémoire…');
           }
         }
       );
+      if (stale(app.cur)) break;
       const j = useJson ? asJson(t) : null;
       if (useJson && !j) {
         S.jf = (S.jf || 0) + 1;
@@ -533,16 +648,15 @@ export async function summarize(s) {
       s.mem.upto += parts.length;
       await persist(s);
     }
-    if (shown && !app.busy) err('');
+    if (said && mine()) err('');
   } catch (e) {
-    if (app.cur === s)
-      err(
-        'Mémoire non mise à jour (' +
-          (/^réponse vide/.test(e.message)
-            ? 'le modèle a raisonné sans donner de réponse : choisissez un modèle sans raisonnement dans « Modèle pour la mémoire »'
-            : e.message) +
-          ') : nouvel essai au prochain tour.'
-      );
+    say(
+      'Mémoire non mise à jour (' +
+        (/^réponse vide/.test(e.message)
+          ? 'le modèle a raisonné sans donner de réponse : choisissez un modèle sans raisonnement dans « Modèle pour la mémoire »'
+          : e.message) +
+        ') : nouvel essai au prochain tour.'
+    );
   } finally {
     SUMS.delete(s.id);
   }

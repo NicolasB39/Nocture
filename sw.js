@@ -1,4 +1,4 @@
-const C = 'nocturne-dfc7f88297',
+const C = 'nocturne-ff7233a413',
   A = [
     './',
     'index.html',
@@ -44,11 +44,27 @@ const C = 'nocturne-dfc7f88297',
   ],
   MAX = 120;
 const SH = new Set(A.map(a => new URL(a, self.registration.scope).href));
+// Fichiers demandés avec ?v=<version> (rangés sous leur adresse) : les copies encore en cache chez
+// l'hébergeur juste après un déploiement sont contournées. Installation refusée si la page (sous ses deux
+// adresses, ./ étant celle de démarrage) ou les scripts ne portent pas cette version : le navigateur
+// retentera, l'ancienne version reste en place.
+const V = C.slice('nocturne-'.length);
 self.addEventListener('install', e =>
   e.waitUntil(
-    caches
-      .open(C)
-      .then(c => Promise.all(A.map(u => c.add(new Request(u, { cache: 'reload' })))))
+    caches.open(C).then(async c => {
+      await Promise.all(
+        A.map(async u => {
+          const x = await fetch(u + (u.includes('?') ? '&' : '?') + 'v=' + V, { cache: 'reload' });
+          if (!x.ok) throw new Error(u + ' : ' + x.status);
+          await c.put(u, x);
+        })
+      );
+      for (const [u, t] of [['./', 'content="' + V + '"'], ['index.html', 'content="' + V + '"'], ['js/main.js', "VERSION = '" + V + "'"]])
+        if (!(await (await c.match(u))?.text())?.includes(t)) {
+          await caches.delete(C);
+          throw new Error('version mélangée : ' + u);
+        }
+    })
   )
 );
 self.addEventListener('message', e => {
@@ -75,6 +91,9 @@ const store = (r, x) => {
     .then(k => k.put(r, c))
     .then(() => (SH.has(r.url) ? 0 : trim()));
 };
+// Fichiers de l'application : seulement ceux de l'installation, jamais rafraîchis un par un dans ce cache
+// (un rafraîchissement partiel mélangerait deux versions). Une nouvelle version passe par un nouveau worker.
+const shell = r => caches.match(r, { ignoreSearch: true }).then(m => m || fetch(r));
 const swr = (e, r) => {
   const ps = [];
   const n = fetch(r.url, { cache: 'no-cache' }).then(x => {
@@ -102,5 +121,5 @@ self.addEventListener('fetch', e => {
   const r = e.request,
     u = new URL(r.url);
   if (r.method != 'GET' || u.origin != location.origin) return;
-  e.respondWith(SH.has(u.href) || r.destination == 'image' ? swr(e, r) : nf(e, r));
+  e.respondWith(SH.has(u.href) ? shell(r) : r.destination == 'image' ? swr(e, r) : nf(e, r));
 });

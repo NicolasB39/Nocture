@@ -4,7 +4,7 @@ import { jump, render, tk } from './view.js';
 import { money, priceOf } from './cost.js';
 import { fr } from './format.js';
 import { draw, showList } from './list.js';
-import { extrasOf, statOn } from './prompt.js';
+import { effortSet, extrasOf, statOn } from './prompt.js';
 import { DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
 import { fillLec, setReading } from './read.js';
 import { reset as rlReset } from './rate.js';
@@ -202,12 +202,20 @@ const memView = () => {
       : [el('p', { class: 'note', text: 'Aucun souvenir pour le moment.' })])
   );
 };
-$('#mb').onclick = () => {
-  $('#dmn').close();
-  $('#msu').value = app.cur.mem.summary;
-  MM = [...app.cur.mem.memories];
+// Mémoire telle qu'à l'ouverture de la feuille : une mise à jour faite entre-temps (summarize, ai.js) ne doit
+// pas être écrasée par la copie affichée.
+let MO = null;
+const memOpen = () => {
+  const m = app.cur.mem;
+  MO = { c: app.cur, summary: m.summary, memories: m.memories, upto: m.upto };
+  $('#msu').value = m.summary;
+  MM = [...m.memories];
   $('#mmi').value = '';
   memView();
+};
+$('#mb').onclick = () => {
+  $('#dmn').close();
+  memOpen();
   $('#dm').showModal();
 };
 $('#mma').onclick = () => {
@@ -219,8 +227,22 @@ $('#mma').onclick = () => {
 };
 $('#dmc').onclick = () => $('#dm').close();
 $('#dms').onclick = async () => {
-  app.cur.mem.summary = $('#msu').value;
-  app.cur.mem.memories = MM;
+  const m = app.cur.mem;
+  if (MO.c !== app.cur || m.summary !== MO.summary || m.memories !== MO.memories || m.upto !== MO.upto) {
+    // Feuille par-dessus la feuille Mémoire : un toast resterait dessous. Le texte saisi reste en place tant
+    // qu'on ne choisit pas de relire.
+    if (
+      await dlg('Mémoire mise à jour entre-temps', {
+        m: 'Vos modifications ne sont pas enregistrées. « Relire » affiche la nouvelle version et remplace votre texte : copiez-le d’abord si besoin.',
+        ok: 'Relire',
+        no: 'Garder mon texte'
+      })
+    )
+      memOpen();
+    return;
+  }
+  m.summary = $('#msu').value;
+  m.memories = MM;
   await save();
   render();
   $('#dm').close();
@@ -247,7 +269,7 @@ $('#dss').onclick = async () => {
   app.cur.cover = COVER;
   app.cur.accent = ACC;
   app.cur.maxTok = +$('#smx').value || 0;
-  app.cur.effort = $('#sef').value;
+  effortSet(app.cur, $('#sef').value);
   const mo = $('#smo').value.trim();
   app.cur.models ??= {};
   if (mo) app.cur.models[S.provider] = mo;
@@ -395,7 +417,20 @@ $('#imf').onchange = async e => {
       }))
     )
       return;
-    for (const x of a) await put(x);
+    // Date d'origine gardée (une vieille sauvegarde ne doit pas passer pour la version la plus récente),
+    // mais repère « vu » oublié : si la version en ligne diffère, la synchronisation suivante garde l'une
+    // des deux en copie « (conflit) » au lieu d'écraser l'autre. Histoire supprimée puis restaurée : datée
+    // juste après sa marque de suppression, sinon elle serait de nouveau effacée.
+    for (const x of a) {
+      const tb = S.tomb?.[x.id];
+      if (tb) {
+        x.updated = Math.max(x.updated, tb + 1);
+        delete S.tomb[x.id];
+      }
+      if (S.bkSeen) delete S.bkSeen[x.id];
+      await put(x);
+    }
+    await saveSet();
     $('#dc').close();
     showList();
   } catch (x) {

@@ -97,3 +97,16 @@ test('le crochet de sauvegarde est appelé à chaque enregistrement', () => {
   record('groq/a', 1, 1);
   assert.equal(n, 2);
 });
+
+test('shift fusionne les comptes de deux fenêtres sans toucher l’original', async () => {
+  const { shift } = await import('../js/stats.js');
+  const base = { '2026-10-30': { 'groq/m': [100, 10, 1, 0] } },
+    mine = { '2026-10-30': { 'groq/m': [300, 30, 3, 1] }, '2026-10-31': { 'groq/m': [5, 5, 1, 0] } },
+    saved = { '2026-10-30': { 'groq/m': [150, 15, 2, 0], 'claude/x': [9, 9, 1, 0, 4] } };
+  const r = shift(saved, shift(mine, base, -1));
+  assert.deepEqual(r, {
+    '2026-10-30': { 'groq/m': [350, 35, 4, 1], 'claude/x': [9, 9, 1, 0, 4] },
+    '2026-10-31': { 'groq/m': [5, 5, 1, 0] }
+  });
+  assert.deepEqual(saved['2026-10-30']['groq/m'], [150, 15, 2, 0]);
+});

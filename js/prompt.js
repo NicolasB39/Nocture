@@ -1,7 +1,7 @@
 import { SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, modelOf, protocol } from './protocol.js';
 import { RECALL_N, recall, recallTag } from './recall.js';
-import { S, ctx } from './state.js';
+import { PROVIDERS, S, ctx } from './state.js';
 import { nz } from './util.js';
 
 export const estTok = t => Math.ceil(t.length / (S.cpt || 3.4)) + 4;
@@ -25,18 +25,30 @@ const textOf = ms =>
       .join('\n')
   );
 const loreTag = a => (a.length ? '\n\n<lorebook>\n' + a.map(e => e.text).join('\n\n') + '\n</lorebook>' : '');
-const lorePerm = () => (ctx.lore || []).filter(e => e.always).sort((x, y) => y.pr - x.pr);
+// Avec Claude (sans limite de tokens), la partie fixe du prompt est relue en cache à un dixième du prix d'entrée
+// au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est
+// payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie
+// fixe que par morceaux en fin de requête ; au-delà de CACHED_FREE, ou sans cache, seuls les actifs partent.
+const CACHED_FREE = 3000;
+const cached = () => PROVIDERS[S.provider]?.fmt == 'anthropic' && !S.ctxLim;
+// Rapport fixe, pas S.cpt : recalibré à chaque réponse, il ferait basculer fiches et lorebook d'un tour à l'autre
+// entre la partie fixe du prompt et la fin du dernier message, et réécrire tout le cache de Claude.
+const toks = L => L.reduce((a, x) => a + Math.ceil(x.text.length / 3.4) + 4, 0);
+// Lorebook entier en partie fixe, sauf limite d'entrées choisie dans le scénario.
+const loreAll = max => cached() && !max && toks(ctx.lore || []) <= CACHED_FREE;
+const lorePerm = max => (ctx.lore || []).filter(e => e.always || loreAll(max)).sort((x, y) => y.pr - x.pr);
 const loreFor = (ms, max) => {
+  if (loreAll(max)) return '';
   const t = textOf(ms);
   let a = (ctx.lore || []).filter(e => !e.always && e.keys.some(r => r.test(t))).sort((x, y) => y.pr - x.pr);
-  if (max) a = a.slice(0, Math.max(0, max - lorePerm().length));
+  if (max) a = a.slice(0, Math.max(0, max - lorePerm(max).length));
   return loreTag(a);
 };
 export const inScene = ms => {
   const t = textOf(ms);
   return (ctx.chars || []).filter(c => (c.keys || []).some(r => r.test(t)));
 };
-const small = C => C.reduce((a, c) => a + estTok(c.text), 0) <= CAST_FREE;
+const small = C => toks(C) <= (cached() ? CACHED_FREE : CAST_FREE);
 const charsPerm = () => {
   const C = (ctx.chars || []).filter(c => c.text);
   return small(C) ? C : C.filter(c => c.always);
@@ -47,14 +59,14 @@ const charsFor = ms => {
   const t = textOf(ms);
   return C.filter(c => !c.always && c.keys.some(r => r.test(t)));
 };
-const permBlock = () => {
+const permBlock = loreMax => {
   const C = charsPerm(),
     im = (ctx.chars || []).filter(c => c.images?.length);
   return (
     (C.length
       ? '\n\n<personnages>' + C.map(x => '\n\n## ' + x.name + '\n' + x.text).join('') + '\n</personnages>'
       : '') +
-    loreTag(lorePerm()) +
+    loreTag(lorePerm(loreMax)) +
     (im.length
       ? '\n\n<images_disponibles>\n' +
         im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +
@@ -63,11 +75,15 @@ const permBlock = () => {
   );
 };
 const castBlock = () => {
-  const C = ctx.chars || [];
+  const C = ctx.chars || [],
+    W = C.filter(c => c.text);
   return C.length
     ? '\n\n# Personnages du monde\n' +
         C.map(c => '- ' + c.name + (c.sum ? ' : ' + c.sum : '')).join('\n') +
-        "\nTu peux faire intervenir n'importe lequel d'entre eux. Leur fiche détaillée t'est fournie quand ils sont en scène."
+        "\nTu peux faire intervenir n'importe lequel d'entre eux. " +
+        (W.length && small(W)
+          ? 'Leurs fiches détaillées suivent.'
+          : "Leur fiche détaillée t'est fournie quand ils sont en scène.")
     : '';
 };
 const memBlock = s => {
@@ -95,6 +111,50 @@ const relOf = (mem, name) => {
       return '\nRelation (état enregistré, peut dater ; les événements récents priment) : ' + mem.relations[r];
   return '';
 };
+// Changements d'effort de l'histoire, s.effLog : [indice du premier message concerné, effort]. Avec Claude, l'effort
+// de premier niveau reste celui du premier message envoyé, et les changements suivants deviennent des messages
+// d'effort dans l'historique (toAnt, ai.js) : changer l'effort en cours de partie ne réécrit plus le cache.
+// Un changement vaut à partir du prochain tour du joueur : le dernier message s'il attend encore sa réponse.
+export const effortSet = (s, e) => {
+  if ((s.effort || '') === e) return;
+  const n = s.messages.length,
+    at = s.messages.at(-1)?.role == 'user' ? n - 1 : n,
+    u = Math.min(s.mem?.upto || 0, at),
+    log = (s.effLog?.length ? s.effLog : [[0, s.effort || '']]).filter(([k]) => k < at);
+  // Les changements déjà résumés ne servent plus qu'à donner l'effort de départ : fondus en une entrée, pour
+  // que le journal ne grossisse pas avec la partie.
+  const old = log.filter(([k]) => k <= u);
+  s.effLog = [...(old.length ? [[0, old.at(-1)[1]]] : []), ...log.filter(([k]) => k > u), [at, e]];
+  s.effort = e;
+};
+// Messages retirés à partir de n (suppression, renvoi, bifurcation) : un changement fait plus loin vaut dès n.
+export const effortCut = (s, n) => {
+  if (!s.effLog?.length) return;
+  const m = new Map();
+  for (const [k, v] of s.effLog) m.set(Math.min(k, n), v);
+  s.effLog = [...m].sort((a, b) => a[0] - b[0]);
+};
+// Effort de premier niveau (celui en vigueur au message first, le premier envoyé) et changements à placer
+// devant des messages plus loin. Un changement placé après le dernier tour du joueur (réponse régénérée) est
+// ramené devant lui : un message d'effort ne vaut qu'à partir du tour du joueur qui le suit.
+export const effortPlan = (s, first) => {
+  const log = s.effLog?.length ? s.effLog : [[0, s.effort || '']],
+    lu = s.messages.findLastIndex(m => m.role == 'user'),
+    marks = [];
+  let base = log[0][1] || 'low';
+  for (const [k, e] of log) {
+    const at = lu < 0 ? k : Math.min(k, lu),
+      v = e || 'low';
+    if (at <= first) {
+      base = v;
+      continue;
+    }
+    // Deux changements ramenés au même message : le dernier l'emporte ; aucun message s'il ne change rien.
+    if (marks.at(-1)?.[0] === at) marks.pop();
+    if (v !== (marks.at(-1)?.[1] ?? base)) marks.push([at, v]);
+  }
+  return { base, marks };
+};
 export function buildInfo(s, cont, hint) {
   const nm = s.pname?.trim() || '';
   const U = t => t.replace(/\{\{user\}\}/gi, nm || 'Joueur');
@@ -102,7 +162,7 @@ export function buildInfo(s, cont, hint) {
   const av = (nm ? 'Nom : ' + nm + '\n' : '') + (c.avatar || '');
   let sys = c.system || '';
   if (!s.noPre && S.pre?.trim()) sys += '\n\n' + S.pre.trim();
-  sys += castBlock() + permBlock();
+  sys += castBlock() + permBlock(s.loreMax);
   const P = protocol({
     model: modelOf(s),
     stat: statOn(s),
@@ -186,8 +246,11 @@ export function buildInfo(s, cont, hint) {
       if (ms[from].role == 'assistant') from = g;
     } else if (from > g + 2 * WIN_STEP) from = g;
   }
+  const eff = effortPlan(s, start + from);
+  for (const [at, v] of eff.marks) if (at - start < ms.length) ms[at - start].effBefore = v;
   return {
     msgs: [...sysMsg, ...ms.slice(from)],
+    effort: eff.base,
     used: fits(from),
     budget: B,
     omitted: from,

@@ -69,21 +69,24 @@ export function tk(info) {
       ' tokens) : réduisez le prompt système, le lorebook ou la mémoire.';
   else {
     // Pastille courte (tokens et coût du dernier tour) ; le détail s'ouvre en la touchant.
+    // Compteurs réels du dernier envoi : seulement s'il venait de cette histoire.
     const c = app.turn?.id == app.cur.id ? app.turn.cost : null,
+      mine = app.pt?.id == app.cur.id,
+      pt = mine ? app.pt.n : 0,
       long =
         '≈ ' +
         f(r.used) +
         (r.budget ? ' / ' + f(r.budget) : '') +
         ' tokens envoyés' +
-        (app.pt ? ' (réel : ' + f(app.pt) + ')' : '') +
-        (rlLast.cached ? ' · ' + f(rlLast.cached) + ' lus en cache' : '') +
-        (rlLast.wrote ? ' · ' + f(rlLast.wrote) + ' mis en cache' : '') +
+        (pt ? ' (réel : ' + f(pt) + ')' : '') +
+        (mine && rlLast.cached ? ' · ' + f(rlLast.cached) + ' lus en cache' : '') +
+        (mine && rlLast.wrote ? ' · ' + f(rlLast.wrote) + ' mis en cache' : '') +
         (n ? ' · ' + sentN + (sentN > 1 ? ' messages envoyés' : ' message envoyé') + ' sur ' + n : '');
     e.replaceChildren(
       el(
         'button',
         { class: 'tks', 'aria-expanded': String(e.classList.contains('open')), 'aria-label': 'Détail des compteurs' },
-        '≈ ' + k(app.pt || r.used) + ' tokens' + (c != null ? ' · ' + money(c, S.fx) + ' ce tour' : '')
+        '≈ ' + k(pt || r.used) + ' tokens' + (c != null ? ' · ' + money(c, S.fx) + ' ce tour' : '')
       ),
       el('span', { class: 'tkl', text: long })
     );
@@ -281,9 +284,24 @@ const msgNode = (i, m, last, d = '') => {
     stCard(i, m),
     act(i, m, last)
   );
-  n._k = { c: m.content, a: m.ai, l: last, n: m.alts?.length || 0, s: sig(m.state), d, t, p, f: !!app.cur.fullBody };
+  n._k = keyOf(m, last, d, t, p);
   return n;
 };
+// Tout ce dont dépend le rendu d'un message : panneau d'état affiché ou non, et index des images (ctx.iv,
+// changé par « Recharger l'index ») pour qu'une image ajoutée remplace son repère « image introuvable ».
+const keyOf = (m, l, d, t, p) => ({
+  c: m.content,
+  a: m.ai,
+  l,
+  n: m.alts?.length || 0,
+  s: sig(m.state),
+  d,
+  t,
+  p,
+  f: !!app.cur.fullBody,
+  o: statOn(app.cur),
+  g: ctx.iv
+});
 const same = (a, b) =>
   a &&
   a.c === b.c &&
@@ -294,7 +312,9 @@ const same = (a, b) =>
   a.d === b.d &&
   a.t === b.t &&
   a.p === b.p &&
-  a.f === b.f;
+  a.f === b.f &&
+  a.o === b.o &&
+  a.g === b.g;
 const dayOf = t => new Date(t).toDateString();
 const cut6h = (t, p) => dayOf(t) !== dayOf(p) || t - p > 216e5;
 const dayLab = (t, p) => {
@@ -349,17 +369,7 @@ export function render(sc) {
   const fresh = [];
   for (const e of cur) {
     const i = +e.dataset.i,
-      k = {
-        c: ms[i].content,
-        a: ms[i].ai,
-        l: i == n - 1,
-        n: ms[i].alts?.length || 0,
-        s: sig(ms[i].state),
-        d: D[i],
-        t: LT.has(i),
-        p: ms[i].role == 'assistant' ? LIEU[i] || '' : '',
-        f: !!app.cur.fullBody
-      };
+      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), ms[i].role == 'assistant' ? LIEU[i] || '' : '');
     if (!same(e._k, k)) {
       const x = msgNode(i, ms[i], k.l, D[i]);
       e.replaceWith(x);

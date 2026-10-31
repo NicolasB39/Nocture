@@ -76,7 +76,10 @@ const stub = x => ({
   updated: x.updated,
   remote: !!x.remote,
   n: x.n ?? x.messages?.length ?? 0,
-  cv: x.cv ?? cvh(x.cover)
+  cv: x.cv ?? cvh(x.cover),
+  // sha du fichier à son écriture : voir syncOnce.
+  ...(x.fs ? { fs: x.fs } : {}),
+  ...(x.reset ? { reset: x.reset } : {})
 });
 const GH = {
   file: B => (B.path || FN).trim(),
@@ -175,15 +178,40 @@ const bkMsg = t => {
           : '');
 };
 let bkBusy = false;
-async function syncOnce(B) {
+async function syncOnce(B, gone) {
+  // Repères « vu » et marques de suppression propres au dépôt : ceux d'un autre dépôt y feraient supprimer
+  // des histoires ou manquer des conflits. Pour un autre dépôt, cette passe part de zéro ; S ne change
+  // qu'à la fin d'une passe réussie (une faute de frappe dans le nom ne doit rien effacer).
+  const at = (B.repo.trim() + '/' + GH.dir(B)).toLowerCase(),
+    moved = !!S.bkAt && S.bkAt !== at,
+    tStart = { ...(S.tomb || {}) };
   const L = await GH.list(B),
     idx = (L.has(IDX) && (await GH.read(B, IDX)).data) || {};
   const all = await getAll(),
+    t0 = moved ? {} : tStart,
     ls = all.map(stub),
     LC = new Map(all.map((x, i) => [x.id, [x.cover || '', ls[i].cv]])),
-    items = Array.isArray(idx.items) ? idx.items.filter(x => x && typeof x.id == 'string') : [],
-    R = new Map(items.map(x => [x.id, x])),
-    m = merge(ls, items, S.tomb || {}, idx.tomb || {}, { seen: S.bkSeen || {} });
+    items = Array.isArray(idx.items) ? idx.items.filter(x => x && typeof x.id == 'string') : [];
+  // Fichier réécrit depuis l'index (fs : son sha à l'écriture) : un autre appareil synchronise, ou s'est
+  // arrêté avant d'écrire l'index. Le fichier fait foi, sinon on écraserait sa version sans conflit ;
+  // l'index est alors réécrit.
+  let fixed = false;
+  for (const x of items) {
+    const f = fname(x.id);
+    if (!x.fs || !L.has(f) || L.get(f) === x.fs) continue;
+    const d = (await GH.read(B, f)).data || {};
+    Object.assign(x, {
+      updated: +d.updated || x.updated,
+      name: typeof d.name == 'string' ? d.name : x.name,
+      n: d.messages?.length ?? x.n,
+      cv: d.cv ?? x.cv,
+      reset: +d.reset || 0,
+      fs: L.get(f)
+    });
+    fixed = true;
+  }
+  const R = new Map(items.map(x => [x.id, x])),
+    m = merge(ls, items, t0, idx.tomb || {}, { seen: (!moved && S.bkSeen) || {} });
   const remote = async id => {
     const f = fname(id);
     if (!L.has(f)) throw new Error('Sauvegarde incomplète : fichier ' + f + ' manquant.');
@@ -207,14 +235,48 @@ async function syncOnce(B) {
     const x = fromR ? await remote(src) : await getOne(src);
     made.set(c.id, { ...x, id: c.id, name: c.name, updated: c.updated });
   }
-  for (const x of m.toLocal) await put(made.get(x.id) || (await remote(x.id)));
-  for (const id of m.delLocal) await del(id);
+  // Histoire jouée ici pendant la synchronisation (instantané dépassé, ou réponse en cours) : la version
+  // distante ne l'écrase pas. Le repère « vu » revient à l'instantané pour que la synchronisation suivante
+  // voie les deux versions modifiées et en fasse une copie « (conflit) ». L'histoire ouverte est rechargée
+  // aussitôt écrite, pas à la fin : un tour joué pendant l'envoi vers GitHub partirait de l'ancienne version.
+  const U = new Map(all.map(x => [x.id, x.updated])),
+    busyOn = id => app.busy && app.cur?.id == id,
+    hold = id => U.has(id) && (m.seen[id] = U.get(id));
+  for (const x of m.toLocal) {
+    const v = made.get(x.id) || (await remote(x.id));
+    if (busyOn(x.id) || (await getOne(x.id))?.updated !== U.get(x.id)) {
+      hold(x.id);
+      continue;
+    }
+    await put(v, true);
+    if (app.cur?.id != x.id) continue;
+    // L'histoire ouverte n'a pas pris la version distante (tour lancé, ou autre écriture locale pendant
+    // l'écriture) : la version locale l'a écrasée, ce sera un conflit au passage suivant.
+    if (busyOn(x.id) || (await emit('cur:remote', 'updated', v.updated))[0] !== true) hold(x.id);
+  }
+  // Même garde pour une suppression venue d'ailleurs : modifiée ici entre-temps, l'histoire est plus récente
+  // que la suppression, elle reste et repart au passage suivant.
+  for (const id of m.delLocal) {
+    if (busyOn(id) || (await getOne(id))?.updated !== U.get(id)) continue;
+    await del(id, true);
+    gone.push(id);
+  }
   let n = 0;
+  const lost = new Set();
   for (const x of m.keep) {
     const f = fname(x.id),
       g = cname(x.id);
-    if (L.has(f) && R.get(x.id)?.updated === x.updated) continue;
-    const { cover = '', ...rest } = made.get(x.id) || (await getOne(x.id)),
+    if (L.has(f) && R.get(x.id)?.updated === x.updated) {
+      x.fs ??= R.get(x.id).fs;
+      continue;
+    }
+    const one = made.get(x.id) || (await getOne(x.id));
+    // Supprimée ici pendant la synchronisation : rien à envoyer, sa marque part au passage suivant.
+    if (!one) {
+      lost.add(x.id);
+      continue;
+    }
+    const { cover = '', ...rest } = one,
       h = cvh(cover);
     x.cv = h;
     if (h && !(L.has(g) && R.get(x.id)?.cv === h)) {
@@ -224,7 +286,7 @@ async function syncOnce(B) {
       await GH.remove(B, g, L.get(g));
       n++;
     }
-    await GH.write(B, f, JSON.stringify({ ...rest, cv: h }), L.get(f));
+    x.fs = (await GH.write(B, f, JSON.stringify({ ...rest, cv: h }), L.get(f))).content?.sha;
     n++;
   }
   const live = new Set(m.keep.map(x => x.id));
@@ -235,8 +297,13 @@ async function syncOnce(B) {
           await GH.remove(B, f, L.get(f));
           n++;
         }
-  if (n || m.up || !L.has(IDX)) {
-    await GH.write(B, IDX, JSON.stringify({ v: 2, saved: Date.now(), items: m.keep.map(stub), tomb: m.tomb }), L.get(IDX));
+  if (n || m.up || fixed || !L.has(IDX)) {
+    await GH.write(
+      B,
+      IDX,
+      JSON.stringify({ v: 2, saved: Date.now(), items: m.keep.filter(x => !lost.has(x.id)).map(stub), tomb: m.tomb }),
+      L.get(IDX)
+    );
     n++;
   }
   // Historique compacté tous les SQ fichiers écrits, pour que le dépôt ne grossisse pas indéfiniment.
@@ -251,12 +318,12 @@ async function syncOnce(B) {
         B.cc = 0;
       }
   }
-  S.tomb = m.tomb;
+  // Suppressions faites ici pendant la synchronisation (list.js) : gardées, elles partent au passage suivant.
+  const tb = { ...m.tomb };
+  for (const k in S.tomb || {}) if ((S.tomb[k] || 0) > (tStart[k] || 0)) tb[k] = S.tomb[k];
+  S.tomb = tb;
   S.bkSeen = m.seen;
-  const id = app.cur?.id;
-  if (!id) return;
-  if (m.delLocal.includes(id)) await emit('cur:remote', 'deleted');
-  else if (m.toLocal.some(s => s.id == id)) await emit('cur:remote', 'updated');
+  S.bkAt = at;
 }
 export async function sync(manual) {
   const B = bkOn();
@@ -264,10 +331,15 @@ export async function sync(manual) {
   bkBusy = true;
   $('#sy').classList.add('spin');
   bkMsg('Synchronisation…');
+  // Repère « à synchroniser » (posé à chaque enregistrement, store.js) : effacé seulement si rien n'a été
+  // enregistré pendant la synchronisation, sinon la sortie ou la mise en veille ne relanceraient plus rien.
+  const d0 = LS.get('bkd'),
+    // Histoires supprimées ici par la synchronisation, sur toutes les tentatives (un 409 relance la passe).
+    gone = [];
   try {
     for (let a = 0; ; a++) {
       try {
-        await syncOnce(B);
+        await syncOnce(B, gone);
         break;
       } catch (e) {
         if (e.conflict && a < 2) continue;
@@ -277,11 +349,15 @@ export async function sync(manual) {
     B.last = Date.now();
     B.err = '';
     LS.set('bk', Date.now());
-    LS.del('bkd');
+    if (LS.get('bkd') === d0) LS.del('bkd');
   } catch (e) {
     const n = e instanceof TypeError;
     if (!(n && !manual)) B.err = n ? 'Réseau indisponible.' : e.message;
   }
+  // Réglages relus entre-temps (autre fenêtre, store.js) : S.bk n'est plus B, l'état y est recopié.
+  if (S.bk && S.bk !== B) for (const k of ['last', 'err', 'cc', 'nosq']) if (k in B) S.bk[k] = B[k];
+  const id = app.cur?.id;
+  if (id && gone.includes(id)) await emit('cur:remote', 'deleted');
   await saveSet();
   bkBusy = false;
   $('#sy').classList.remove('spin');

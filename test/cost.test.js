@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
-import { costMap, costOf, money, parsePrice, priceOf } from '../js/cost.js';
+import { costMap, costOf, money, parseAmount, parsePrice, priceOf } from '../js/cost.js';
 import { SESSION, cacheOf, clear, merge, record, total, watch } from '../js/stats.js';
 import { normU } from '../js/ai.js';
 
@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 test('priceOf : tarif personnalisé, puis public, y compris pour un identifiant daté', () => {
-  assert.deepEqual(priceOf('claude/claude-sonnet-5-5'), [2, 10, 0.2]);
+  assert.deepEqual(priceOf('claude/claude-sonnet-5-5'), [2, 10, 0.1]);
   assert.deepEqual(priceOf('claude/claude-haiku-4-5-20251001'), [1, 5, 0.1]);
   assert.deepEqual(priceOf('claude/claude-opus-5-5', { 'claude/claude-opus-5-5': [1, 2] }), [1, 2]);
   assert.equal(priceOf('groq/llama-3.3-70b-versatile'), null);
@@ -71,4 +71,16 @@ test('cacheOf lit l’usage normalisé de Claude comme celui des autres', () => 
   assert.deepEqual(cacheOf(u), [3000, 120]);
   assert.deepEqual(cacheOf({ prompt_tokens: 50, prompt_tokens_details: { cached_tokens: 20 } }), [20, 0]);
   assert.deepEqual(cacheOf(null), [0, 0]);
+});
+
+test('montants : unités et espaces acceptés, illisible ou nul refusé', () => {
+  assert.equal(parseAmount(''), null);
+  assert.equal(parseAmount('15 €'), 15);
+  assert.equal(parseAmount('1 000'), 1000);
+  assert.equal(parseAmount('1 000,50 €'), 1000.5);
+  assert.equal(parseAmount('0,92'), 0.92);
+  assert.equal(parseAmount('$7.5'), 7.5);
+  assert.equal(parseAmount('dix'), undefined);
+  assert.equal(parseAmount('0'), undefined);
+  assert.equal(parseAmount('2 / 10'), undefined);
 });

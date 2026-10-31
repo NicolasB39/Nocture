@@ -74,11 +74,20 @@ for (const a of assets) {
   let b = readFileSync(a);
   if (/\.(html|js|css|json)$/.test(a)) {
     let t = b.toString('utf8');
+    // Même version sous Windows (CRLF) qu'en CI (LF).
+    t = t.replace(/\r\n/g, '\n');
     for (const r of RV) t = t.replace(r, '$1');
     b = Buffer.from(t);
   }
   h.update(b);
 }
+// Le service worker compte aussi, sans son nom de cache ni sa liste (réécrits plus bas) : modifié seul, il
+// doit changer de cache, sinon une installation refusée effacerait celui du worker en place.
+h.update(
+  readFileSync('sw.js', 'utf8')
+    .replace(/\r\n/g, '\n')
+    .replace(/const C = '[^']*',\n {2}A = \[[\s\S]*?\n {2}\],/, '')
+);
 const V = h.digest('hex').slice(0, 10);
 
 html = html.replace(
@@ -93,14 +102,16 @@ html = html.replace(
 );
 writeFileSync('index.html', html);
 
-const list = ["'./'", ...assets.map(a => `'${a}'`)].join(',\n    ');
-writeFileSync(
-  'sw.js',
-  readFileSync('sw.js', 'utf8').replace(
-    /const C = '[^']*',\n {2}A = \[[\s\S]*?\n {2}\],/,
-    `const C = 'nocturne-${V}',\n  A = [\n    ${list}\n  ],`
-  )
-);
+// Fins de ligne du fichier gardées (CRLF sous Windows avec core.autocrlf) : sinon rien ne correspond.
+const sw = readFileSync('sw.js', 'utf8'),
+  nl = sw.includes('\r\n') ? '\r\n' : '\n',
+  list = ["'./'", ...assets.map(a => `'${a}'`)].join(',' + nl + '    '),
+  sw2 = sw.replace(
+    /const C = '[^']*',\r?\n {2}A = \[[\s\S]*?\r?\n {2}\],/,
+    `const C = 'nocturne-${V}',${nl}  A = [${nl}    ${list}${nl}  ],`
+  );
+if (sw2 === sw && !sw.includes(`'nocturne-${V}'`)) throw new Error('sw.js : liste des fichiers introuvable');
+writeFileSync('sw.js', sw2);
 
 writeFileSync(
   'js/main.js',

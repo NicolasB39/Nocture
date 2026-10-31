@@ -113,7 +113,8 @@ let delay = 0,
   groqFail = false,
   groqN = 0,
   groqReq = null;
-const browser = await chromium.launch();
+// PW_CHANNEL=msedge (ou chrome) : navigateur déjà installé, sans le Chromium de Playwright.
+const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
 const errors = [];
 const watch = pg => pg.on('pageerror', e => errors.push(e.message));
 const step = async (name, fn) => {
@@ -252,6 +253,38 @@ try {
     assert.equal(tops.length, 1, 'positions : ' + tops);
   });
 
+  // Longue histoire : seuls les app.LIM derniers messages sont affichés, et le plus ancien sort par le haut
+  // quand la réponse arrive. Fenêtre réduite à 4 pour le provoquer avec peu de messages.
+  await step('longue histoire : l’écran ne bouge pas quand un message sort par le haut', async () => {
+    delay = 2500;
+    await pg.evaluate(async () => {
+      (await import('/js/state.js')).app.LIM = 4;
+      window.T = [];
+      window.iv = setInterval(() => {
+        const u = [...document.querySelectorAll('#msgs .m.user')].at(-1);
+        if (u) T.push(Math.round(u.getBoundingClientRect().top));
+      }, 50);
+    });
+    await pg.fill('#inp', 'J’attends.');
+    await pg.click('#send');
+    await wait(400);
+    const first = await pg.evaluate(() => document.querySelector('#msgs .m[data-i]').dataset.i);
+    await pg.evaluate(() => (T.length = 0));
+    await done();
+    await wait(500);
+    const r = await pg.evaluate(async () => {
+      clearInterval(iv);
+      const out = { tops: [...new Set(T)], first: document.querySelector('#msgs .m[data-i]').dataset.i };
+      (await import('/js/state.js')).app.LIM = 50;
+      (await import('/js/view.js')).render();
+      return out;
+    });
+    delay = 0;
+    assert.notEqual(r.first, first, 'un message est bien sorti par le haut');
+    // Calage sur un élément : positions fractionnaires, défilement arrondi au pixel selon le navigateur.
+    assert.ok(Math.max(...r.tops) - Math.min(...r.tops) <= 1, 'positions : ' + r.tops);
+  });
+
   const db = () =>
     pg.evaluate(async () => {
       const st = await import('/js/store.js');
@@ -378,6 +411,9 @@ try {
     for (const k of ['temperature', 'top_p', 'top_k']) assert.ok(!(k in b), k + ' envoyé à Claude');
     assert.equal(h['anthropic-dangerous-direct-browser-access'], 'true');
     assert.equal(b.model, 'claude-sonnet-5-5');
+    // Relais en cas de refus, avec son en-tête bêta.
+    assert.equal(b.fallbacks, 'default');
+    assert.equal(h['anthropic-beta'], 'server-side-fallback-2026-07-01');
     assert.ok(b.system.length >= 1 && b.system.every(x => x.cache_control?.type == 'ephemeral'));
     assert.ok(
       [...b.system, ...b.messages.flatMap(m => (Array.isArray(m.content) ? m.content : []))].filter(x => x.cache_control).length <= 4
@@ -397,6 +433,10 @@ try {
     await pg.click('#tk .tkl');
     assert.ok(await pg.isVisible('#tk .tks'));
     assert.match(await pg.locator('#msgs .m.assistant[data-i]').last().textContent(), /pluie/);
+    // Statistiques : la part de l'entrée lue et écrite en cache est affichée.
+    await pg.evaluate(async () => (await import('/js/statview.js')).openStats('session'));
+    assert.match(await pg.textContent('#usv'), /dont [\d\s  ]+ lus en cache, [\d\s  ]+ mis en cache/);
+    await pg.click('#usc');
   });
 
   const syncDone = () => until(pg, () => !document.querySelector('#sy').classList.contains('spin'));

@@ -1,7 +1,24 @@
 (function () {
   var probs = [];
   var box = null;
+  // Hors ligne, vider les caches et retirer le service worker rendrait l'application inutilisable jusqu'au
+  // retour du réseau : on vérifie d'abord que le serveur répond (le vrai sw.js, pas la page d'un portail
+  // Wi-Fi), sinon simple rechargement.
   function repair() {
+    return fetch('sw.js', { cache: 'no-store' })
+      .then(function (r) {
+        return r.ok ? r.text() : '';
+      })
+      .then(
+        function (t) {
+          return t.indexOf("'nocturne-") >= 0 ? clear() : location.reload();
+        },
+        function () {
+          location.reload();
+        }
+      );
+  }
+  function clear() {
     var tasks = [];
     if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
       tasks.push(

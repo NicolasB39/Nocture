@@ -1,4 +1,4 @@
-import { costMap, costOf, money, parsePrice, priceOf } from './cost.js';
+import { costMap, costOf, money, parseAmount, parsePrice, priceOf } from './cost.js';
 import { PROVIDERS, S } from './state.js';
 import { saveSet } from './store.js';
 import {
@@ -31,6 +31,13 @@ const step = d => {
 const atNow = () =>
   mode == 'day' ? dayKey(cur) >= dayKey() : monthKey(dayKey(cur)) >= monthKey(dayKey());
 
+// Part de l'entrée lue ou écrite en cache (e[4] lu, e[5] et e[6] écrits 5 min et 1 h), quand le fournisseur
+// la donne : c'est ce qui dit si le cache joue son rôle.
+const cacheTxt = e => {
+  const r = e[4] || 0,
+    w = (e[5] || 0) + (e[6] || 0);
+  return r || w ? ' (dont ' + fmt(r) + ' lus en cache, ' + fmt(w) + ' mis en cache)' : '';
+};
 const rows = map => {
   const ks = Object.keys(map).sort((a, b) => map[b][0] + map[b][1] - (map[a][0] + map[a][1])),
     top = ks.length ? map[ks[0]][0] + map[ks[0]][1] : 1;
@@ -57,7 +64,9 @@ const rows = map => {
         el('small', {
           text:
             fmt(e[0]) +
-            ' en entrée · ' +
+            ' en entrée' +
+            cacheTxt(e) +
+            ' · ' +
             fmt(e[1]) +
             ' en sortie · ' +
             fmt(e[2]) +
@@ -201,7 +210,9 @@ export function view() {
         text:
           'tokens · ' +
           fmt(t[0]) +
-          ' en entrée · ' +
+          ' en entrée' +
+          cacheTxt(t) +
+          ' · ' +
           fmt(t[1]) +
           ' en sortie · ' +
           fmt(t[2]) +
@@ -271,9 +282,15 @@ $('#usk').onclick = async () => {
       ok: 'Enregistrer'
     });
   if (v === null) return;
-  const n = +v.trim().replace(',', '.');
-  S.cap = v.trim() && n > 0 ? n / fx : 0;
-  LS.del('cap:' + monthKey(dayKey()));
+  const n = parseAmount(v);
+  if (n === undefined) {
+    await dlg('Montant illisible', { m: 'Écrivez un nombre, par exemple 15 ou 7,50.', no: 'Fermer' });
+    return;
+  }
+  const cap = n ? n / fx : 0;
+  // Repère du mois (avertissement déjà donné) remis à zéro seulement si le plafond change.
+  if (Math.abs(cap - (S.cap || 0)) > 1e-9) LS.del('cap:' + monthKey(dayKey()));
+  S.cap = cap;
   await saveSet();
   view();
   capCheck();
@@ -305,8 +322,12 @@ $('#usf').onclick = async () => {
     ok: 'Enregistrer'
   });
   if (v === null) return;
-  const n = +v.trim().replace(',', '.');
-  S.fx = v.trim() && n > 0 ? n : 0;
+  const n = parseAmount(v);
+  if (n === undefined) {
+    await dlg('Taux illisible', { m: 'Écrivez un nombre, par exemple 0,92.', no: 'Fermer' });
+    return;
+  }
+  S.fx = n || 0;
   await saveSet();
   view();
 };

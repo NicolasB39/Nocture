@@ -118,11 +118,26 @@ const fiche = t => {
   };
 };
 let gen = 0;
+// Version de l'index des images (ctx.iv), dans la clé de rendu des messages (view.js) : elle ne change que
+// si l'index change, pour qu'une histoire locale rouverte garde ses messages déjà construits.
+let ivK = '',
+  ivN = 0;
+const imgVer = im => {
+  const k = Object.entries(im)
+    .map(e => e.join('='))
+    .sort()
+    .join('\n');
+  if (k !== ivK) {
+    ivK = k;
+    ivN++;
+  }
+  return ivN;
+};
 export async function loadCtx() {
   const g = ++gen,
     im = {};
   for (const k in IMG) delete IMG[k];
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', decors: [], decorDef: '', intro: '' });
+  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', decors: [], decorDef: '', intro: '', iv: imgVer({}) });
   if (!app.cur.remote) return;
   const base = 'scenarios/' + app.cur.folder + '/',
     pb = base + 'personnages/';
@@ -233,5 +248,5 @@ export async function loadCtx() {
     decorDef = def?.url || '';
   if (g !== gen) return;
   Object.assign(IMG, im);
-  Object.assign(ctx, { system, avatar, chars, lore, images, stat, decors, decorDef, intro });
+  Object.assign(ctx, { system, avatar, chars, lore, images, stat, decors, decorDef, intro, iv: imgVer(im) });
 }

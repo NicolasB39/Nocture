@@ -1,7 +1,7 @@
 import { sync } from './backup.js';
 import { showList } from './list.js';
-import { STATS, load as loadUsage, watch } from './stats.js';
-import { loadSet, loadStats, openDB, saveStats } from './store.js';
+import { STATS, load as loadUsage, shift, watch } from './stats.js';
+import { loadSet, loadStats, onPeer, openDB, saveStats } from './store.js';
 import { capCheck } from './statview.js';
 import './cast.js';
 import { LS, toast } from './util.js';
@@ -12,7 +12,7 @@ import './nav.js';
 import './settings.js';
 import './backup.js';
 
-const VERSION = 'dfc7f88297';
+const VERSION = 'ff7233a413';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(
@@ -55,12 +55,35 @@ openDB()
   .then(loadSet)
   .then(() => loadStats().then(loadUsage, () => {}))
   .then(() => {
-    let t = 0;
+    let t = 0,
+      base = structuredClone(STATS.d),
+      q = Promise.resolve();
+    // Lectures et écritures des statistiques l'une après l'autre : deux écritures mêlées perdraient des comptes.
+    const queue = fn => (q = q.then(fn).catch(() => {}));
+    // Écriture par différence : ce que cette fenêtre a compté depuis sa dernière lecture (base), ajouté à ce
+    // qu'une autre fenêtre de l'application a pu enregistrer entre-temps.
     const flush = () => {
       clearTimeout(t);
       t = 0;
-      saveStats(STATS).catch(() => {});
+      return queue(async () => {
+        const saved = (await loadStats())?.d || {};
+        loadUsage({ d: shift(saved, shift(STATS.d, base, -1)) });
+        base = structuredClone(STATS.d);
+        await saveStats(STATS);
+      });
     };
+    // Une autre fenêtre a enregistré : réglages relus ; statistiques relues si rien n'a été compté ici
+    // depuis (sinon la prochaine écriture fusionne).
+    onPeer(k => {
+      if (k == 'set') loadSet().catch(() => {});
+      if (k == 'stats')
+        queue(async () => {
+          const v = await loadStats();
+          if (t || JSON.stringify(STATS.d) !== JSON.stringify(base)) return;
+          loadUsage(v);
+          base = structuredClone(STATS.d);
+        });
+    });
     watch(() => {
       if (!t) t = setTimeout(flush, 1500);
       capCheck();
