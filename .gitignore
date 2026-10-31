@@ -1,0 +1,5 @@
+# Dépendances de développement (Playwright, test de bout en bout) : installées à la demande, jamais publiées.
+node_modules/
+package-lock.json
+# Capture laissée par un échec du test de bout en bout.
+e2e-echec.png

@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 test('priceOf : tarif personnalisé, puis public, y compris pour un identifiant daté', () => {
-  assert.deepEqual(priceOf('claude/claude-sonnet-5-5'), [2, 10, 0.2]);
+  assert.deepEqual(priceOf('claude/claude-sonnet-5-5'), [2, 10, 0.1]);
   assert.deepEqual(priceOf('claude/claude-haiku-4-5-20251001'), [1, 5, 0.1]);
   assert.deepEqual(priceOf('claude/claude-opus-5-5', { 'claude/claude-opus-5-5': [1, 2] }), [1, 2]);
   assert.equal(priceOf('groq/llama-3.3-70b-versatile'), null);
