@@ -433,6 +433,10 @@ try {
     await pg.click('#tk .tkl');
     assert.ok(await pg.isVisible('#tk .tks'));
     assert.match(await pg.locator('#msgs .m.assistant[data-i]').last().textContent(), /pluie/);
+    // Statistiques : la part de l'entrée lue et écrite en cache est affichée.
+    await pg.evaluate(async () => (await import('/js/statview.js')).openStats('session'));
+    assert.match(await pg.textContent('#usv'), /dont [\d\s  ]+ lus en cache, [\d\s  ]+ mis en cache/);
+    await pg.click('#usc');
   });
 
   const syncDone = () => until(pg, () => !document.querySelector('#sy').classList.contains('spin'));
