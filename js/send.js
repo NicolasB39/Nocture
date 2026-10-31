@@ -1,4 +1,4 @@
-import { chat, keepWarm, lastTurn, lastWarmable, summarize, waitMsg, WARM_AT } from './ai.js';
+import { chat, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, waitMsg, WARM_AT } from './ai.js';
 import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
@@ -7,7 +7,7 @@ import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
-import { app, S } from './state.js';
+import { app, PROVIDERS, S } from './state.js';
 import { save, saveSet } from './store.js';
 import { $, dlg, el, err, fit, LS, strip } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
@@ -23,6 +23,21 @@ export async function regenHint() {
   });
   if (h !== null && !app.busy) regen(h);
 }
+// Début de séance : le cache de Claude a expiré (rien envoyé ni relancé pour cette histoire depuis sa durée de
+// vie), le premier envoi réécrira donc tout le prompt. C'est le moment de faire avancer la mémoire jusqu'à
+// SUM_KEEP messages gardés (summarize, ai.js) : la réécriture porte directement le prompt raccourci, et la mise à
+// jour ne coûte qu'un appel au modèle de mémoire. Lancé à l'ouverture de l'histoire ; l'envoi l'attend au plus
+// SUM_WAIT. HOT : dernière requête de narration ou relance du cache par histoire, pendant cette visite.
+const HOT = new Map(),
+  SUM_WAIT = 30000;
+const cold = (s, old) => {
+  const t = Math.max(HOT.get(s.id) || 0, old?.t || 0, s.messages.findLast(m => m.role == 'assistant')?.t || 0);
+  return Date.now() - t > (S.c1h ? 3600e3 : 300e3);
+};
+export const sessionSum = (s, old) =>
+  PROVIDERS[S.provider]?.fmt == 'anthropic' && !S.ctxLim && s.messages.length - s.mem.upto >= SUM_START && cold(s, old)
+    ? summarize(s, true)
+    : null;
 function setBusy(b) {
   app.busy = b;
   $('#send').hidden = b;
@@ -100,10 +115,25 @@ export async function ask(old, cont, hint) {
     if (!pend[0] && !raf) paint();
   }, 1000);
   try {
+    const ac = (app.ctl = new AbortController()),
+      sp = sessionSum(s, old);
+    // Début de séance : la mémoire avance d'abord (au plus SUM_WAIT ; Arrêter coupe l'attente).
+    if (sp) {
+      err('Mise à jour de la mémoire avant l’envoi…');
+      await Promise.race([
+        sp,
+        new Promise(r => {
+          setTimeout(r, SUM_WAIT);
+          ac.signal.addEventListener('abort', r, { once: true });
+        })
+      ]);
+      if (app.cur === s) err('');
+    }
+    HOT.set(s.id, Date.now());
     const info = buildInfo(s, cont, hint);
     const r = await chat(info.msgs, {
       max: +s.maxTok || 0,
-      ac: (app.ctl = new AbortController()),
+      ac,
       od: S.ns?.[p] ? null : live,
       temp: s.temp ?? S.temp,
       top: s.top ?? S.top,
@@ -258,7 +288,10 @@ function warmArm(s) {
     warmT = 0;
     if (app.busy || app.cur !== s || $('#chat').hidden || document.hidden) return;
     warmN++;
-    if (await keepWarm()) warmArm(s);
+    if (await keepWarm()) {
+      HOT.set(s.id, Date.now());
+      warmArm(s);
+    }
   }, Math.max(0, WARM_AT - age));
 }
 document.addEventListener('visibilitychange', () => {
