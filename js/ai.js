@@ -8,7 +8,14 @@ import { getOne, save } from './store.js';
 import { $, err, strip } from './util.js';
 
 const ANT = p => PROVIDERS[p]?.fmt == 'anthropic';
-export const sumGate = (u, big, go) => (big ? u >= 80 || (go && u > 40) : u >= 40);
+// Claude sans limite de tokens : la mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
+// le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
+// cache a expiré et sera réécrit de toute façon, elle part dès SUM_START (sessionSum, send.js), avant le premier
+// envoi, qui écrit alors directement le prompt raccourci.
+export const SUM_KEEP = 40;
+export const SUM_PLAY = 120;
+export const SUM_START = 50;
+export const sumGate = (u, big, go, hi = SUM_PLAY) => (big ? u >= hi || (go && u > SUM_KEEP) : u >= 40);
 // Messages par appel de résumé. Avec Claude, deux paquets de 20 (au lieu de quatre de 10) : moitié moins
 // d'appels, et le résumé, les relations et les souvenirs ne repartent que deux fois. Pas plus de 20 : le
 // modèle doit rendre une ligne par message, et un compte faux fait perdre le lien des lignes à leur message.
@@ -469,7 +476,7 @@ const SUMJ =
   ' "lignes": ["une entrée par message fourni, dans l\'ordre, une phrase courte et factuelle"]}\n' +
   'Les tableaux et objets peuvent être vides. Écris en français.\n' +
   "Pour les relations : uniquement les personnages récurrents, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.";
-const SUMS = new Set();
+const SUMS = new Map();
 const LINES_MAX = 24;
 export const sect = (t, n) => {
   const m = t.match(
@@ -552,9 +559,14 @@ export const batchGuard = (s, n) => {
     (cur?.id == s.id && cur !== s) ||
     src.some((m, k) => s.messages[u0 + k] !== m || m.content !== c0[k]);
 };
-export async function summarize(s) {
-  if (!s || SUMS.has(s.id)) return;
-  SUMS.add(s.id);
+// Une seule mise à jour à la fois par histoire ; un second appel rend celle en cours, que l'envoi peut attendre.
+// start : début de séance, la mémoire avance dès SUM_START messages en attente.
+export function summarize(s, start = false) {
+  if (!s) return Promise.resolve();
+  if (!SUMS.has(s.id)) SUMS.set(s.id, sumRun(s, start).finally(() => SUMS.delete(s.id)));
+  return SUMS.get(s.id);
+}
+async function sumRun(s, start) {
   // État de la mémoire dans la bande #err : seulement si elle est vide ou porte encore notre message, pour ne
   // jamais écrire ni effacer celui d'un tour (échec avec Réessayer, réponse coupée, attente de débit).
   let said = '';
@@ -564,7 +576,7 @@ export async function summarize(s) {
     const big = ANT(S.provider) && !S.ctxLim;
     let go = false;
     const need = () => {
-      go = sumGate(s.messages.length - s.mem.upto, big, go);
+      go = sumGate(s.messages.length - s.mem.upto, big, go, start ? SUM_START : SUM_PLAY);
       return go || (S.ctxLim && omittedCount(s) >= 6);
     };
     while (need()) {
@@ -575,7 +587,8 @@ export async function summarize(s) {
         s.mem.summary = pr.summary;
       }
       const om = S.ctxLim ? omittedCount(s) : 0,
-        n = Math.min(sumBatch(big, om), s.messages.length - s.mem.upto),
+        // Avec Claude, jamais en dessous de SUM_KEEP messages gardés mot pour mot.
+        n = Math.min(sumBatch(big, om), s.messages.length - s.mem.upto - (big ? SUM_KEEP : 0)),
         room = S.ctxLim
           ? Math.max(400, budgetOf(s) - estTok(SUMP) - estTok(s.mem.summary || '') - 300)
           : Infinity,
@@ -657,7 +670,5 @@ export async function summarize(s) {
           : e.message) +
         ') : nouvel essai au prochain tour.'
     );
-  } finally {
-    SUMS.delete(s.id);
   }
 }

@@ -2,7 +2,7 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { clean } from '../js/store.js';
 import { buildInfo } from '../js/prompt.js';
-import { sumBatch, sumGate, toAnt } from '../js/ai.js';
+import { SUM_KEEP, SUM_START, sumBatch, sumGate, toAnt } from '../js/ai.js';
 import { S, ctx } from '../js/state.js';
 
 const sc = (o = {}) => clean({ id: 's', name: 'S', system: 'SYS', remote: true, noChoices: true, messages: [], ...o });
@@ -95,25 +95,30 @@ test('toAnt : sans mémoire, un seul bloc système', () => {
   assert.equal(b.system.length, 1);
 });
 
-test('sumGate : avec Claude, la mémoire attend 80 messages puis en résume 40 d’un coup', () => {
-  const run = (big, us) => {
+test('sumGate : avec Claude, en jeu la mémoire attend 120 messages, en début de séance 50, et en garde 40', () => {
+  const run = (big, us, hi) => {
     let go = false;
-    return us.map(u => (go = sumGate(u, big, go)));
+    return us.map(u => (go = sumGate(u, big, go, hi)));
   };
-  assert.deepEqual(run(true, [79, 80, 70, 60, 50, 40]), [false, true, true, true, true, false]);
+  assert.deepEqual(run(true, [119, 120, 100, 60, 41, 40]), [false, true, true, true, true, false]);
+  assert.deepEqual(run(true, [49, 50, 45, 40], SUM_START), [false, true, true, false], 'début de séance');
   assert.deepEqual(run(false, [39, 40, 30]), [false, true, false]);
 });
 
-test('sumBatch : avec Claude, les 40 messages partent en deux appels de 20', () => {
-  let u = 80,
-    go = false,
-    calls = 0;
-  while ((go = sumGate(u, true, go))) {
-    u -= sumBatch(true);
-    calls++;
-  }
-  assert.equal(calls, 2);
-  assert.equal(u, 40);
+test('sumBatch : avec Claude, paquets de 20, sans descendre sous 40 messages gardés', () => {
+  // Même calcul que summarize : jamais plus que ce qui dépasse SUM_KEEP.
+  const drain = (u, hi) => {
+    let go = false,
+      calls = 0;
+    while ((go = sumGate(u, true, go, hi))) {
+      u -= Math.min(sumBatch(true), u - SUM_KEEP);
+      calls++;
+    }
+    return [calls, u];
+  };
+  assert.deepEqual(drain(120), [4, 40]);
+  assert.deepEqual(drain(75, SUM_START), [2, 40], 'début de séance : 20 puis 15');
+  assert.deepEqual(drain(45, SUM_START), [0, 45], 'moins de 50 en attente : rien');
   assert.equal(sumBatch(false), 10, 'autres fournisseurs : paquets de 10');
   assert.equal(sumBatch(true, 8), 8, 'messages sortis de la fenêtre : résumés en priorité');
 });

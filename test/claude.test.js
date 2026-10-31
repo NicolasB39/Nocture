@@ -193,3 +193,40 @@ test('maintien du cache avec un message d’effort : en-tête bêta gardé, sans
   assert.equal(req.b.max_tokens, 0);
   assert.ok(req.b.messages.some(m => m.output_config?.effort == 'high'));
 });
+
+test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un second appel attend la même mise à jour', async () => {
+  const { app } = await import('../js/state.js');
+  const { summarize } = await import('../js/ai.js');
+  let calls = 0;
+  globalThis.fetch = async (u, o) => {
+    calls++;
+    const n = (JSON.parse(o.body).messages.at(-1).content.match(/^\d+\. /gm) || []).length;
+    const t = JSON.stringify({ resume: 'Résumé ' + calls, souvenirs: [], relations: {}, lignes: Array.from({ length: n }, (_, i) => 'ligne ' + i) });
+    return new Response(JSON.stringify({ model: 'claude-haiku-5-5', content: [{ type: 'text', text: t }], stop_reason: 'end_turn', usage: { input_tokens: 900, output_tokens: 200 } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' }
+    });
+  };
+  const s = {
+    id: 'seance',
+    messages: Array.from({ length: 75 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'message ' + i })),
+    mem: { summary: '', memories: [], relations: {}, lines: [], upto: 0 }
+  };
+  const cur = app.cur,
+    busy = app.busy;
+  try {
+    // Envoi en cours : la mémoire n'est pas enregistrée ici (persist), la fin du tour s'en charge.
+    Object.assign(app, { cur: s, busy: true });
+    const p = summarize(s, true);
+    assert.equal(summarize(s), p, 'même mise à jour, que l’envoi attend');
+    await p;
+    assert.equal(s.mem.upto, 35, '75 messages en attente : 35 résumés, 40 gardés');
+    assert.equal(calls, 2, 'paquets de 20 puis 15');
+    // En jeu, 40 messages en attente ne déclenchent rien (seuil 120).
+    calls = 0;
+    await summarize(s);
+    assert.equal(calls, 0);
+  } finally {
+    Object.assign(app, { cur, busy });
+  }
+});
