@@ -281,7 +281,8 @@ try {
     });
     delay = 0;
     assert.notEqual(r.first, first, 'un message est bien sorti par le haut');
-    assert.equal(r.tops.length, 1, 'positions : ' + r.tops);
+    // Calage sur un élément : positions fractionnaires, défilement arrondi au pixel selon le navigateur.
+    assert.ok(Math.max(...r.tops) - Math.min(...r.tops) <= 1, 'positions : ' + r.tops);
   });
 
   const db = () =>

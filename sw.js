@@ -1,4 +1,4 @@
-const C = 'nocturne-b529c58e5b',
+const C = 'nocturne-e3a49358f4',
   A = [
     './',
     'index.html',
