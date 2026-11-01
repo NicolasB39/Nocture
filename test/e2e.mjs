@@ -27,7 +27,7 @@ const base = 'http://localhost:' + srv.address().port;
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
 // Comme la vraie API : un message qui porte un champ inconnu (un repère interne, cut ou effBefore) fait refuser
 // la requête.
-const FIELDS = ['role', 'content', 'output_config'];
+const FIELDS = ['role', 'content'];
 const strict = q => {
   const i = (JSON.parse(q.postData() || '{}').messages || []).findIndex(m => Object.keys(m).some(k => !FIELDS.includes(k)));
   return i < 0
@@ -189,9 +189,20 @@ try {
     assert.ok(top, 'le toast n’est pas sous la feuille');
     assert.match(await pg.textContent('#toast'), /Passager/);
     await until(pg, () => /Version/.test(document.querySelector('#toast').textContent), null, 5000);
+    assert.ok(
+      await pg.evaluate(() => {
+        const t = document.querySelector('#toast');
+        return t.closest('dialog') && t.parentNode.lastElementChild !== t;
+      }),
+      'le toast ne prend pas la place de la barre du bas'
+    );
+    await pg.click('#dcc');
+    await until(pg, () => {
+      const t = document.querySelector('#toast');
+      return !t.closest('dialog:not([open])') && t.matches(':popover-open') && /Version/.test(t.textContent);
+    }, null, 3000);
     await pg.click('#toast button');
     assert.ok(await pg.evaluate(() => document.querySelector('#toast').hidden));
-    await pg.click('#dcc');
   });
 
   await step('envoi, réponse et choix', async () => {

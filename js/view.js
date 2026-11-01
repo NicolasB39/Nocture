@@ -38,7 +38,7 @@ export const infoOf = () => {
   return IV;
 };
 // Compteurs sous la conversation. Masqués, le prompt n'est pas reconstruit (recherche des passages anciens
-// comprise) : la jauge de débit garde la dernière estimation.
+// comprise).
 export function tk() {
   const e = $('#tk');
   if (!app.cur || !S.counters) {

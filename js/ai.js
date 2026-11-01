@@ -133,7 +133,7 @@ export const refusal = sd => {
   e.refusal = true;
   return e;
 };
-// Erreurs passagères de l'API (surcharge, passerelle) : on retente, sans toucher à la jauge de débit.
+// Erreurs passagères de l'API (surcharge, passerelle) : on retente.
 export const BUSY = new Set([500, 502, 503, 504, 529]);
 export const TRIES = 3;
 // Délai avant l'essai a + 1, en secondes : celui qu'annonce l'API (retry-after), sinon base × 2, 4, 8…, plafonné.
@@ -169,7 +169,7 @@ const track = (u, key, primary) => {
   record(key, e);
   return { key, e };
 };
-// Journal des appels (Réglages, Compteurs et débit ; journal.js) : la requête telle qu'envoyée, sans la clé, ce
+// Journal des appels (Réglages, Compteurs et journal ; journal.js) : la requête telle qu'envoyée, sans la clé, ce
 // qu'elle a coûté (key et e, au format des statistiques, rendus par track) et comment elle s'est terminée.
 // sid : l'histoire de l'appel. Rien si la case est décochée.
 const journal = (kind, body, x) => {

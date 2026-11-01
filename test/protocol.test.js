@@ -36,9 +36,15 @@ test('la balise <lieu> est lue puis retirée du texte', async () => {
     assert.equal(split(b + '\n\nUn volcan gronde.\n\nIl fait chaud.').content, 'Un volcan gronde.\n\nIl fait chaud.', b);
 });
 
-test('aucun format n’est émis pour ce qui est désactivé', () => {
+test('aucun format n’est émis pour ce qui est désactivé ; les conseils de narration restent', () => {
   const p = protocol({ stat: false, choices: false, images: false, style: false });
-  assert.equal(p, '');
+  assert.doesNotMatch(p, /<etat>|<choix>|\{\{img::|astérisques/);
+  assert.match(p, /# Narration/);
+});
+
+test('les choix par défaut demandent des registres différents', () => {
+  assert.match(protocol({ choices: true }), /registres différents/);
+  assert.match(protocol({ choices: true, style: false }), /registres différents/);
 });
 
 test('la consigne d’images demande de les placer dans le récit, pas en tête', () => {

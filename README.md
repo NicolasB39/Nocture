@@ -112,6 +112,7 @@ Conséquences :
 
 - Faire évoluer un format se fait en un seul endroit, pour tous les scénarios à la fois.
 - Les consignes de format sont concises, les mêmes pour tous les modèles : elles décrivent les blocs <etat> et <choix>, le style et les images sans rappel en fin de requête.
+- Un court bloc « Narration » part aussi pour tous les scénarios : des personnages qui agissent sans attendre le joueur et réagissent entre eux, une voix par personnage, des détails concrets, le retour de ce qui a déjà eu lieu, des tours construits différemment. Les choix par défaut demandent trois registres différents (audacieux, prudent, inattendu).
 - Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Scénario : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
 
 Le **préambule commun** (Réglages) est votre texte à vous, ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
@@ -195,12 +196,12 @@ Les statistiques sont enregistrées sur l'appareil, dans un enregistrement à pa
 
 ### Journal des appels
 
-Pour comprendre où partent les tokens, cochez « Journal des appels » (Réglages, section « Compteurs et débit ») : l'application garde alors, sur l'appareil, les **100 dernières requêtes envoyées à Claude**, texte compris, avec leur type (tour, régénérer, indication, continuer, mémoire, relance du cache), le modèle qui a répondu, les tokens envoyés, lus et écrits en cache, la sortie, le coût estimé et la raison de fin, ou l'erreur. Le bouton « Journal des appels » de la feuille Statistiques les liste, du plus récent au plus ancien ; touchez un appel pour son détail :
+Pour comprendre où partent les tokens, cochez « Journal des appels » (Réglages, section « Compteurs et journal ») : l'application garde alors, sur l'appareil, les **100 dernières requêtes envoyées à Claude**, texte compris, avec leur type (tour, régénérer, indication, continuer, mémoire, relance du cache), le modèle qui a répondu, les tokens envoyés, lus et écrits en cache, la sortie, le coût estimé et la raison de fin, ou l'erreur. Le bouton « Journal des appels » de la feuille Statistiques les liste, du plus récent au plus ancien ; touchez un appel pour son détail :
 
 - **Hors cache** : la part de l'entrée payée plein tarif.
 - **Cache** (requêtes de narration) : le préfixe comparé à la requête réussie précédente de la même histoire. Trois cas : le cache a expiré (plus de 5 minutes, ou une heure, sans lecture ni relance), et tout le prompt est réécrit ; le préfixe est identique et seule la suite est nouvelle ; ou le journal nomme le premier bloc qui a changé (modèle ou effort, partie fixe du prompt, mémoire, ou tel message), à partir duquel tout a été réécrit en cache.
 - **Composition** : partie fixe, mémoire, historique et fin de requête, en tokens estimés.
-- **Fin de requête, hors cache** : le dernier message découpé en blocs (votre message, lorebook déclenché, fiches des personnages en scène, passages anciens, état précédent, indication, rappel des formats) avec leur taille. C'est là qu'on voit ce qui gagnerait à passer dans la partie fixe.
+- **Fin de requête, hors cache** : le dernier message découpé en blocs (votre message, lorebook déclenché, fiches des personnages en scène, passages anciens, état précédent, indication) avec leur taille. C'est là qu'on voit ce qui gagnerait à passer dans la partie fixe.
 - **Requête complète**, telle qu'envoyée.
 
 « Exporter » enregistre le journal en JSON (pour l'analyser ailleurs) et « Vider » l'efface. Avec la sauvegarde GitHub configurée, « Envoyer sur GitHub » dépose ce même fichier dans le dépôt de sauvegarde, sous `<dossier de sauvegarde>/journal/journal-AAAA-MM-JJ-HHMMSS.json` : un nouveau fichier à chaque envoi, que la synchronisation des histoires ignore (elle ne lit que la racine du dossier). Sinon, le journal reste sur l'appareil : il n'est ni synchronisé ni sauvegardé automatiquement, et la clé API n'y figure jamais. Une requête de narration pèse de quelques dizaines à quelques centaines de kilo-octets ; décochez la case une fois l'analyse faite.
@@ -241,9 +242,9 @@ Section « Lecture » des Réglages (roue dentée de la liste, ou menu « … »
 
 Limites : la synthèse vocale est celle de l'appareil, donc les voix disponibles et leur qualité varient. Elle se met en pause en coupant puis en relisant le morceau en cours (phrase ou deux), ce qui fonctionne partout. Sur iPhone, le navigateur exige un premier toucher pour parler : la lecture automatique peut rester muette tant que vous n'avez pas lancé une lecture une fois.
 
-## Prompt, cache et débit
+## Prompt et cache
 
-Les Réglages sont groupés : clé API Claude, modèles et cache en haut, puis « Lecture », « Narration », « Compteurs et débit » et « GitHub et sauvegarde » dans des sections repliées.
+Les Réglages sont groupés : clé API Claude, modèles et cache en haut, puis « Lecture », « Narration », « Compteurs et journal » et « GitHub et sauvegarde » dans des sections repliées.
 
 À chaque envoi partent le prompt système, la mémoire et tous les messages que la mémoire n'a pas encore résumés (voir « Mémoire »).
 
@@ -258,16 +259,16 @@ système  prompt du scénario, préambule, casting, fiches et lorebook « toujou
          codes d'images, protocole, avatar               ← fixe
          résumé, lignes récentes, souvenirs, relations, note   ← change par paliers
 historique
-queue    dernier message, lorebook déclenché, fiches en scène, passages anciens, état précédent, rappel
+queue    dernier message, lorebook déclenché, fiches en scène, passages anciens, état précédent
 ```
 
 Le choix du niveau suit un arbitrage simple. Un bloc placé avant l'historique est gratuit les tours où il ne bouge pas, mais le tour où il change, il invalide aussi tout l'historique. Pour un bloc de C tokens qui change tous les K tours avec un historique de H tokens, le remonter vaut le coup si `(C + H) / K < C`.
 
-La mémoire ne change que par paliers, surtout en début de séance (voir « API Claude ») : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou tout un lorebook et des fiches modestes, voir « Fiches de personnages ») montent dans la partie fixe. L'état précédent et le rappel changent à chaque tour par nature.
+La mémoire ne change que par paliers, surtout en début de séance (voir « API Claude ») : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou tout un lorebook et des fiches modestes, voir « Fiches de personnages ») montent dans la partie fixe. L'état précédent change à chaque tour par nature.
 
 Le compteur sous la conversation indique par exemple « ≈ 6 953 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 », et une ligne « l'IA lit à partir d'ici » marque dans le fil le premier message envoyé tel quel : au-dessus, l'IA n'a plus que la mémoire.
 
-Le compteur est **masqué par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Compteurs et débit ») le rend permanent.
+Le compteur est **masqué par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Compteurs et journal ») le rend permanent.
 
 ### API Claude
 
@@ -294,7 +295,7 @@ Les résumés partent par appels de 20 messages. Sur une séance mesurée de 13 
 
 **Changer l'effort en cours de partie** change l'effort en tête de requête, ce qui réécrit le cache une fois (quelques centimes sur une longue histoire).
 
-**Refus.** Claude peut refuser d'écrire une réponse, y compris au milieu du texte, notamment sur des scènes très sombres. L'application l'affiche clairement (« Claude a refusé d'écrire cette réponse », avec le motif quand l'API le donne), ne garde pas le texte déjà reçu, qui n'est pas une réponse complète, et propose « Indication… » pour orienter la scène plutôt que de renvoyer la même requête, qui serait refusée de même. Pour la narration avec Fable 5.1, Opus 5.5, Opus 5 et Sonnet 5.5, l'application demande aussi le **relais** d'Anthropic (`fallbacks: "default"`, bêta `server-side-fallback-2026-07-01`) : une requête refusée est reprise côté serveur par un autre modèle choisi selon le motif. Avec Sonnet 5.5, seuls les refus « cybersécurité » et « développement d'IA » sont relayés ; les refus « contenu sensible », les plus probables en fiction, reviennent comme refus. Haiku 5.5 n'a pas de relais. Une requête qui porte un changement d'effort part sans relais, car le modèle de secours pourrait ne pas le prendre en charge.
+**Refus.** Claude peut refuser d'écrire une réponse, y compris au milieu du texte, notamment sur des scènes très sombres. L'application l'affiche clairement (« Claude a refusé d'écrire cette réponse », avec le motif quand l'API le donne), ne garde pas le texte déjà reçu, qui n'est pas une réponse complète, et propose « Indication… » pour orienter la scène plutôt que de renvoyer la même requête, qui serait refusée de même. Pour la narration avec Fable 5.1, Opus 5.5, Opus 5 et Sonnet 5.5, l'application demande aussi le **relais** d'Anthropic (`fallbacks: "default"`, bêta `server-side-fallback-2026-07-01`) : une requête refusée est reprise côté serveur par un autre modèle choisi selon le motif. Avec Sonnet 5.5, seuls les refus « cybersécurité » et « développement d'IA » sont relayés ; les refus « contenu sensible », les plus probables en fiction, reviennent comme refus. Haiku 5.5 n'a pas de relais.
 
 **Mémoire sur Haiku 5.5.** Quand « Modèle pour la mémoire » est vide, les résumés partent vers `claude-haiku-5-5` (0,10 $ / 0,50 $ par million de tokens, une vingtaine de fois moins que Sonnet 5.5) plutôt que vers le modèle de narration. Renseigner le champ reprend la main.
 
@@ -330,7 +331,7 @@ Les modèles reformulent : « Alice », « alice », « Alice, l'herboriste » d
 
 Les deux listes sont plafonnées : 12 relations, 60 souvenirs. Au-delà, les entrées les moins récemment mises à jour disparaissent, sauf les personnages qui ont une fiche dans `personnages/`, qui ne sont jamais évincés. Les figurants de passage finissent donc par sortir d'eux-mêmes. Le résumeur reçoit en plus la liste de ce qu'il connaît déjà, avec la consigne de reprendre les noms tels quels et de ne pas répéter les souvenirs acquis.
 
-Certains modèles recopient pourtant ces sections dans le résumé, surtout quand ils décorent leurs intitulés (`**Souvenirs**`, `## Relations`). Comme le résumé est renvoyé au modèle à chaque mise à jour, l'erreur s'entretenait d'elle-même, et les mêmes souvenirs et relations partaient deux fois dans le prompt. L'application coupe désormais le résumé au premier intitulé Souvenirs, Relations, Lignes ou Objectif, y compris sous une forme qualifiée (« Lignes récentes », « Objectif actuel », « Souvenirs durables »…), et verse les souvenirs et relations trouvés dans leurs listes (les doublons sont fusionnés comme d'habitude) ; Lignes et Objectif sont simplement écartés. Cela s'applique à la réponse du modèle comme au résumé existant, qui est nettoyé à la prochaine mise à jour de la mémoire. Une phrase qui commence par « Relations tendues… » sans être un intitulé est laissée intacte.
+Le résumé, les souvenirs, les relations et les lignes récentes arrivent dans des champs séparés (sorties structurées, voir « API Claude ») : le modèle ne peut plus recopier les souvenirs ou les relations dans le résumé, ce qui les faisait partir deux fois dans le prompt.
 
 Une relation enregistrée peut dater : la mémoire ne résume les messages qu'avec un retard de 40 à 120 messages (par lots de 20, voir « API Claude »), et l'IA lit pourtant la relation d'un personnage en scène en fin de prompt, juste avant d'écrire. Pour qu'elle ne l'emporte pas sur une évolution récente, cette ligne est envoyée sous la forme « Relation (état enregistré, peut dater ; les événements récents priment) : … », et le bloc `<relations>` de la mémoire porte la même mise en garde en tête. La liste complète ne change qu'à chaque mise à jour de la mémoire, comme le résumé : elle est donc relue depuis le cache sans le réécrire d'un tour à l'autre, quel que soit le personnage en scène.
 
@@ -391,9 +392,9 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 - Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut).
 - Modèle et effort par scénario (section Génération des réglages du scénario). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les statistiques.
 - Coût des extras affiché sous les cases Choix et Panneau d'état (section Narration) : taille moyenne d'un bloc, part de la sortie et coût pour 100 réponses, mesurés sur les dernières réponses de l'histoire. Ces blocs sont réécrits par l'IA à chaque réponse et payés comme sortie : décochez ceux qui ne servent pas.
-- Protocole de sortie centralisé, adapté au modèle, et préambule commun à tous les scénarios.
+- Protocole de sortie centralisé, conseils de narration communs et préambule commun à tous les scénarios.
 - Modèles proposés dans les champs Modèle : ceux dont le tarif est connu (`js/cost.js`) ; un autre se tape à la main.
-- Compteurs : estimation des tokens envoyés, cache et coût du dernier tour sous la conversation (voir « Prompt, cache et débit »).
+- Compteurs : estimation des tokens envoyés, cache et coût du dernier tour sous la conversation (voir « Prompt et cache »).
 - Recherche dans la liste, export d'une histoire en `.md`, sauvegarde JSON (clés API exclues) avec rappel tous les 30 jours, synchronisation en ligne sur un dépôt GitHub privé.
 - Bouton retour du téléphone géré, y compris pour fermer une feuille ouverte depuis la liste, fonctionnement hors ligne : les fichiers des scénarios, images comprises, restent en cache d'une version de l'application à l'autre (400 au plus).
 
@@ -498,7 +499,7 @@ Règles du projet :
 - Quand vous ajoutez un fichier JavaScript dans `js/`, il est repris automatiquement par `npm run build` (service worker et `modulepreload`). Rien à déclarer à la main.
 - Les numéros de version sont calculés à partir du contenu des fichiers par `npm run build`, lancé par le workflow à chaque déploiement. Ne les modifiez pas à la main.
 - La logique sans DOM (fusion, validation, construction du prompt) doit rester testable : ajoutez un test dans `test/` quand vous la touchez.
-- Les messages construits par `prompt.js` peuvent porter des repères internes (`cut` sur le message système : la fin de la partie fixe, que `toAnt` utilise pour placer les marqueurs de cache ; `effBefore` sur un message : un changement d'effort à glisser juste avant lui). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role`, `content` et `output_config`.
+- Les messages construits par `prompt.js` peuvent porter des repères internes (`cut` sur le message système : la fin de la partie fixe, que `toAnt` utilise pour placer les marqueurs de cache). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role` et `content`.
 
 ### Historique : autres fournisseurs
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="80ca2919cd">
+<meta name="app-version" content="fb6eccf84a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -197,7 +197,7 @@
 <p class="note">Vide : le modèle des Réglages.</p>
 <label for="sef">Effort</label>
 <select id="sef"><option value="">Faible (recommandé)</option><option value="medium">Moyen</option><option value="high">Élevé</option></select>
-<p id="sefn" class="note">Règle la réflexion que Claude mène, et facture, avant chaque réponse. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. Changer le modèle en cours de partie fait réécrire le cache une fois ; changer l'effort aussi, sauf avec Sonnet 5.5, Opus 5 et 5.5, Haiku 5.5, Fable 5.1 et Mythos 5.1.</p>
+<p id="sefn" class="note">Règle la réflexion que Claude mène, et facture, avant chaque réponse. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. Changer le modèle ou l'effort en cours de partie fait réécrire le cache une fois.</p>
 <label for="smx">Longueur maximale de la réponse (tokens, vide = par défaut)</label>
 <input id="smx" type="number" min="1" inputmode="numeric">
 </details>
@@ -310,7 +310,7 @@
 <datalist id="cml"></datalist>
 <label for="cmm">Modèle pour la mémoire</label>
 <input id="cmm" list="cml" autocomplete="off" autocapitalize="off">
-<p class="note">Vide : Haiku 5.5. Les résumés de mémoire ne demandent pas votre meilleur modèle, un plus petit coûte moins cher et consomme moins de quota.</p>
+<p class="note">Vide : Haiku 5.5. Les résumés de mémoire ne demandent pas votre meilleur modèle, un plus petit coûte moins cher.</p>
 <label><input id="cch" type="checkbox">Garder le cache une heure au lieu de 5 minutes</label>
 <p class="note">Utile si vous faites souvent des pauses de plus de 20 minutes entre deux tours. L’écriture en cache coûte alors 2 fois le prix normal au lieu de 1,25 fois ; la relecture reste au tarif réduit.</p>
 <label><input id="cwa" type="checkbox">Garder le cache au chaud pendant les pauses</label>
@@ -345,15 +345,15 @@
 <summary>Narration</summary>
 <label for="cpre">Préambule commun à tous les scénarios</label>
 <textarea id="cpre" style="min-height:90px" placeholder="Vos préférences de narration : longueur, rythme, registre…"></textarea>
-<p class="note">Les formats de l'état, des choix et des images sont produits par l'application, pas par les scénarios. « Concises » économise des tokens sur les modèles qui suivent bien les consignes.</p>
+<p class="note">Les formats de l'état, des choix et des images sont produits par l'application, pas par les scénarios.</p>
 </details>
 
 <details>
-<summary>Compteurs et débit</summary>
+<summary>Compteurs et journal</summary>
 <label><input id="ctc" type="checkbox">Afficher les compteurs sous la conversation</label>
 <p class="note">Tokens envoyés, cache et coût du dernier tour.</p>
 <label><input id="cjr" type="checkbox">Journal des appels</label>
-<p class="note">Garde sur cet appareil les 100 dernières requêtes envoyées à Claude, texte compris, avec ce qu'elles ont coûté et ce qui est parti hors cache : Statistiques, puis « Journal des appels ». Jamais synchronisé ni sauvegardé ; la clé API n'y figure pas.</p>
+<p class="note">Garde sur cet appareil les 100 dernières requêtes envoyées à Claude, texte compris, avec ce qu'elles ont coûté et ce qui est parti hors cache : Statistiques, puis « Journal des appels ». Ni synchronisé ni sauvegardé automatiquement : « Envoyer sur GitHub » le dépose à la demande dans le dépôt de sauvegarde. La clé API n'y figure pas.</p>
 </details>
 
 <details>

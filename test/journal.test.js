@@ -37,12 +37,6 @@ test('ce qui réécrit le cache est nommé : mémoire, modèle, message modifié
   assert.equal(prefixDiff(p, req([u('un'), a('A1 modifiée'), u('deux')], { mem: 'M1' })), 'du message 2');
 });
 
-test('un message d’effort placé après le marqueur de cache n’en fait pas partie', () => {
-  const p = req([u('un'), a('A1'), u('deux')]);
-  p.messages.splice(-1, 0, { role: 'system', content: [], output_config: { effort: 'high' } });
-  assert.equal(prefixDiff(p, req([u('un'), a('A1'), u('deux')])), null);
-});
-
 test('la fin de requête est découpée en blocs ajoutés par l’application', () => {
   const b = req([u('Je pousse la porte.', '\n\n<lorebook>\n' + 'L'.repeat(340) + '\n</lorebook>\n\n<etat_precedent>\nLieu: Quai\n</etat_precedent>')]);
   const t = Object.fromEntries(tailParts(b));

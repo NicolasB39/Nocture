@@ -16,17 +16,14 @@ const txt = c => (typeof c == 'string' ? c : (c || []).map(b => b.text || '').jo
 export const blocks = b => [
   ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null])],
   ...(b.system || []).map((x, i) => [i ? 'de la mémoire (résumé, souvenirs, relations, note)' : 'de la partie fixe du prompt', x.text]),
-  ...(b.messages || []).map((m, i) => ['du message ' + (i + 1), m.role + JSON.stringify(m.output_config || null) + txt(m.content)])
+  ...(b.messages || []).map((m, i) => ['du message ' + (i + 1), m.role + txt(m.content)])
 ];
-// Le cache de la requête prev couvre jusqu'à son dernier message non système avant le dernier (marqueur posé par
-// toAnt ; un message d'effort qui le suit n'en fait pas partie). Rend null si cur relit tout ce préfixe, sinon
-// le premier bloc changé.
+// Le cache de la requête prev couvre tout jusqu'à son avant-dernier message (marqueur posé par toAnt). Rend null
+// si cur relit tout ce préfixe, sinon le premier bloc changé.
 export const prefixDiff = (prev, cur) => {
   const a = blocks(prev),
     b = blocks(cur),
-    ms = prev.messages || [],
-    j = ms.slice(0, -1).findLastIndex(m => m.role != 'system'),
-    n = 1 + (prev.system || []).length + j + 1;
+    n = (prev.system || []).length + (prev.messages || []).length;
   for (let i = 0; i < n; i++) if (a[i][1] !== b[i]?.[1]) return b[i]?.[0] || a[i][0];
   return null;
 };
@@ -116,7 +113,7 @@ const draw = () => {
     ? CALLS.length + (CALLS.length > 1 ? ' appels, du plus récent au plus ancien.' : ' appel.') + (S.journal ? '' : ' Journal en pause : cochez « Journal des appels » dans les Réglages.')
     : S.journal
       ? 'Aucun appel pour le moment.'
-      : 'Journal désactivé : cochez « Journal des appels » dans Réglages, section Compteurs et débit.';
+      : 'Journal désactivé : cochez « Journal des appels » dans Réglages, section Compteurs et journal.';
   $('#jrg').hidden = !CALLS.length || !bkOn();
   $('#jrl').replaceChildren(
     ...CALLS.map((c, i) => {

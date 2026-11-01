@@ -21,19 +21,24 @@ const stateBlock = (fields, choices) =>
   lieuBlock(fields);
 const choiceBlock = prompt =>
   '\n\n# Choix\nTermine par un bloc <choix> de trois actions numérotées pour le personnage du joueur. ' + prompt;
+// Conseils de narration, communs à tous les scénarios : le scénario donne le monde et le ton, ceci le mouvement.
+const NARRATION =
+  "\n\n# Narration\n- Le monde et ses personnages vivent sans attendre le joueur : ils prennent des initiatives, poursuivent leurs propres buts et réagissent entre eux, pas seulement à {{user}}. L'histoire avance même quand le joueur hésite.\n- Chaque personnage a sa voix : son vocabulaire, son rythme, ce qu'il tait. Ses répliques portent des intentions, pas des explications.\n- Un ou deux détails concrets (un son, une odeur, un objet) valent mieux que des adjectifs généraux.\n- Fais revenir ce qui a déjà eu lieu : un objet, une promesse, une blessure, une phrase dite plus tôt. Les souvenirs fournis servent à cela.\n- Varie la construction des tours : ouvre sur une action, une réplique ou un détail, et ne termine pas toujours de la même façon.\n- Montre les émotions des personnages par leurs gestes et leurs réactions plutôt que de les nommer.";
 const STYLE =
   '\n\n# Style\nGestes et actions entre astérisques (*il repose sa tasse*), paroles en texte simple. Dans un tour, le geste précède la parole.';
 const IMAGES =
   '\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la au fil du récit, là où elle illustre le texte, pas par défaut en tête de réponse.';
 
 export const DEFAULT_CHOICE =
-  'Trois propositions courtes et variées, écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage.';
-export const DEFAULT_CHOICE_PLAIN = 'Trois propositions courtes et variées, écrites à la première personne.';
+  'Trois propositions courtes, de registres différents (par exemple une audacieuse, une prudente, une inattendue), écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage.';
+export const DEFAULT_CHOICE_PLAIN =
+  'Trois propositions courtes, de registres différents (par exemple une audacieuse, une prudente, une inattendue), écrites à la première personne.';
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
 // Formats de sortie imposés par l'application (partie fixe du prompt système).
 export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false, style = true } = {}) {
   return (
+    NARRATION +
     (style ? STYLE : '') +
     (images ? IMAGES : '') +
     (stat ? stateBlock(fields || DEFAULT_FIELDS, choices) : '') +
