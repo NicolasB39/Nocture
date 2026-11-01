@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="bf8d6c610a">
+<meta name="app-version" content="5b252d741e">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -381,8 +381,7 @@
 
 <dialog id="dbk" aria-labelledby="hdbk">
 <h2 id="hdbk">Sauvegarde en ligne</h2>
-<label for="bp">Service</label>
-<select id="bp"><option value="">Désactivée</option><option value="gh">GitHub (dépôt privé)</option></select>
+<label><input id="bp" type="checkbox">Sauvegarder sur GitHub (dépôt privé)</label>
 <div id="bgh" hidden>
 <label for="bgr">Dépôt privé (proprietaire/depot)</label>
 <input id="bgr" placeholder="proprietaire/sauvegardes" autocomplete="off" autocapitalize="off">

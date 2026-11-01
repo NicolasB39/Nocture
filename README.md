@@ -306,7 +306,7 @@ Les appels partent directement du navigateur avec l'en-tête `anthropic-dangerou
 
 Le compteur affiche aussi les tokens lus et mis en cache. C'est le moyen de vérifier que le préfixe stable du prompt est bien réutilisé.
 
-En cas de refus pour dépassement (429), l'application relance jusqu'à trois fois. Le délai est lu dans l'en-tête `retry-after`, à défaut 15, 30 puis 45 secondes, avec un minimum de 3 secondes et un plafond de 90. Le décompte est affiché pendant l'attente, y compris pour la requête de mémoire.
+En cas de refus pour dépassement (429), l'application relance jusqu'à trois fois. Le délai est lu dans l'en-tête `retry-after`, à défaut 15, 30 puis 60 secondes, avec un plafond de 90. Le décompte est affiché pendant l'attente, y compris pour la requête de mémoire.
 
 Les **erreurs passagères** sont relancées de la même façon, jusqu'à trois fois : surcharge ou panne de l'API (500, 502, 503, 504, 529) et coupure réseau avant toute réponse. L'attente double à chaque essai (2, 4 puis 8 secondes), sauf si l'API indique elle-même un délai (`retry-after`, plafonné à 60 secondes). Le message dit la cause (« Claude est surchargé ou en panne », « connexion perdue ») et le bouton d'arrêt annule l'attente. Une erreur de requête (400, clé refusée…) n'est jamais relancée, et une coupure au milieu d'une réponse diffusée garde le texte reçu, que « Continuer » peut prolonger, plutôt que de tout redemander. Le délai maximal sans réponse repart de zéro après chaque attente.
 
@@ -436,7 +436,7 @@ Tous vos appareils doivent utiliser la même version de l'application. En partic
 
 1. Créez un dépôt **privé** dédié, par exemple `sauvegardes`, avec un fichier README pour l'initialiser.
 2. GitHub, Settings, Developer settings, Personal access tokens, Fine-grained tokens : créez un jeton limité à ce seul dépôt, permission **Contents : Read and write**.
-3. Dans l'application : service GitHub, dépôt `proprietaire/sauvegardes`, jeton, Enregistrer.
+3. Dans l'application : cochez « Sauvegarder sur GitHub », puis dépôt `proprietaire/sauvegardes`, jeton, Enregistrer.
 
 Le jeton est stocké en clair dans le navigateur de l'appareil, comme les clés API. Un jeton limité à un dépôt de sauvegarde ne donne accès à rien d'autre. Chaque synchronisation avec changement crée un commit dans ce dépôt. Pour que le dépôt ne grossisse pas sans fin, l'application compacte l'historique en un seul commit tous les 100 commits environ (les fichiers ne changent pas, seules les anciennes versions disparaissent, GitHub les nettoie ensuite à son rythme). Par sécurité, elle ne le fait que si le dépôt ne contient que la sauvegarde (plus un README, une licence ou des fichiers `.git*`) : si vous l'avez pointée vers un dépôt qui contient autre chose, l'historique n'est jamais touché. Une branche protégée contre la réécriture empêche aussi le compactage, sans gêner la synchronisation.
 

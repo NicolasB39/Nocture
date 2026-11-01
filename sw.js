@@ -1,4 +1,4 @@
-const C = 'nocturne-bf8d6c610a',
+const C = 'nocturne-5b252d741e',
   A = [
     './',
     'index.html',
@@ -94,22 +94,22 @@ const store = (r, x) => {
 // Fichiers de l'application : seulement ceux de l'installation, jamais rafraîchis un par un dans ce cache
 // (un rafraîchissement partiel mélangerait deux versions). Une nouvelle version passe par un nouveau worker.
 const shell = r => caches.match(r, { ignoreSearch: true }).then(m => m || fetch(r));
-const swr = (e, r) => {
+// Réseau, réponse mise en cache : le worker reste actif jusqu'à la fin de l'enregistrement.
+const net = (e, r) => {
   const ps = [];
   const n = fetch(r.url, { cache: 'no-cache' }).then(x => {
     ps.push(store(r, x));
     return x;
   });
   e.waitUntil(n.then(() => Promise.all(ps)).catch(() => {}));
+  return n;
+};
+const swr = (e, r) => {
+  const n = net(e, r);
   return caches.match(r, { ignoreSearch: true }).then(m => m || n);
 };
 const nf = (e, r) => {
-  const ps = [];
-  const n = fetch(r.url, { cache: 'no-cache' }).then(x => {
-    ps.push(store(r, x));
-    return x;
-  });
-  e.waitUntil(n.then(() => Promise.all(ps)).catch(() => {}));
+  const n = net(e, r);
   return Promise.race([n, new Promise((_, j) => setTimeout(j, 4000))]).catch(() =>
     caches
       .match(r, { ignoreSearch: true })

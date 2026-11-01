@@ -32,6 +32,7 @@ beforeEach(() => {
 
 test('backoff double à chaque essai, borné, et suit retry-after', () => {
   assert.deepEqual([0, 1, 2].map(a => backoff(a)), [2, 4, 8]);
+  assert.deepEqual([0, 1, 2].map(a => backoff(a, null, 7.5, 90)), [15, 30, 60], 'limite de débit');
   assert.equal(backoff(9), 60);
   assert.equal(backoff(0, '7'), 7);
   assert.equal(backoff(0, 'n’importe quoi'), 2);
@@ -67,7 +68,7 @@ test('une erreur 400 part tout de suite, sans nouvel essai', async () => {
   assert.equal(calls.length, 1);
 });
 
-test('un 429 attend le délai de retry-after (entre 3 et 90 s), sinon 15 s', async () => {
+test('un 429 attend le délai de retry-after (90 s au plus), sinon 15 s', async () => {
   const first = async h => {
     const ac = new AbortController();
     let w0 = 0;
@@ -89,7 +90,7 @@ test('un 429 attend le délai de retry-after (entre 3 et 90 s), sinon 15 s', asy
     return w0;
   };
   assert.equal(await first({ 'retry-after': '7' }), 7);
-  assert.equal(await first({ 'retry-after': '1' }), 3);
+  assert.equal(await first({ 'retry-after': '1' }), 1);
   assert.equal(await first({ 'retry-after': '600' }), 90);
   assert.equal(await first({}), 15);
 });

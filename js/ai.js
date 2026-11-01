@@ -98,19 +98,14 @@ export const WARM_AT = 270000;
 export const lastWarmable = () => LAST;
 export async function keepWarm() {
   if (!LAST || !S.key) return false;
-  // Sans relais (rien à relayer, et hors du préfixe) ; un changement d'effort, lui, fait partie du préfixe.
+  // Sans relais (rien à relayer, et hors du préfixe) ni streaming (refusé avec max_tokens: 0).
   const { stream, fallbacks, ...b } = LAST.body,
-    bt = antBetas(b),
     w = { ...b, max_tokens: 0 },
     key = b.model,
     { sid } = LAST,
     t0 = (LAST.at = Date.now());
   try {
-    const r = await fetch(API.u + '/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authH(S.key), ...(bt ? { 'anthropic-beta': bt } : {}) },
-      body: JSON.stringify(w)
-    });
+    const r = await post(w);
     if (!r.ok) {
       journal('relance', w, { sid, key, err: 'Erreur ' + r.status, ms: Date.now() - t0 });
       return false;
@@ -141,7 +136,18 @@ export const refusal = sd => {
 // Erreurs passagères de l'API (surcharge, passerelle) : on retente, sans toucher à la jauge de débit.
 export const BUSY = new Set([500, 502, 503, 504, 529]);
 export const TRIES = 3;
-export const backoff = (a, ra) => Math.min(60, Math.max(1, Math.round(+ra || 2 ** (a + 1))));
+// Délai avant l'essai a + 1, en secondes : celui qu'annonce l'API (retry-after), sinon base × 2, 4, 8…, plafonné.
+export const backoff = (a, ra, base = 1, max = 60) => Math.min(max, Math.max(1, Math.round(+ra || base * 2 ** (a + 1))));
+// Requête à l'API Messages : clé, version, et en-tête bêta du relais s'il est demandé.
+const post = (body, signal) => {
+  const bt = antBetas(body);
+  return fetch(API.u + '/messages', {
+    method: 'POST',
+    signal,
+    headers: { 'Content-Type': 'application/json', ...authH(S.key), ...(bt ? { 'anthropic-beta': bt } : {}) },
+    body: JSON.stringify(body)
+  });
+};
 const pause = (ms, sig) =>
   new Promise(r => {
     const t = setTimeout(r, ms);
@@ -200,7 +206,7 @@ export async function chat(
   let body = null;
   // Fin commune des deux lectures (flux ou bloc) : compte l'usage, journalise, puis rend la réponse ou lève
   // l'erreur. Un refus (relais compris) jette le texte déjà reçu, mais ce qui a été facturé est compté.
-  const finish = ({ text, stop, sd, served, u, part = false, mode, chunks }) => {
+  const finish = ({ text, stop, sd, served, u, part = false }) => {
     const key = served || mdl,
       out = text.trim();
     // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de sortie). La
@@ -216,7 +222,7 @@ export async function chat(
       throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
     }
     journal(kind, body, x);
-    return { t: out, cut: stop == 'max_tokens', mode, chunks, ms: Date.now() - t0, partial: part };
+    return { t: out, cut: stop == 'max_tokens', partial: part };
   };
   const retry = async (secs, why) => {
     let left = secs;
@@ -229,14 +235,8 @@ export async function chat(
       body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, fallback: primary, schema });
       // La dernière requête de narration sert de modèle au maintien du cache (keepWarm).
       if (primary) LAST = { body, at: Date.now(), sid };
-      const bt = antBetas(body);
       try {
-        r = await fetch(API.u + '/messages', {
-          method: 'POST',
-          signal: ac.signal,
-          headers: { 'Content-Type': 'application/json', ...authH(S.key), ...(bt ? { 'anthropic-beta': bt } : {}) },
-          body: JSON.stringify(body)
-        });
+        r = await post(body, ac.signal);
       } catch (e) {
         // Coupure réseau avant toute réponse : rien n'a été facturé, on peut retenter.
         if (ac.signal.aborted || !(e instanceof TypeError) || a >= TRIES) throw e;
@@ -251,7 +251,6 @@ export async function chat(
           fr = '',
           fin = false,
           part = false,
-          n = 0,
           us = null,
           ex = '',
           et = '',
@@ -268,7 +267,6 @@ export async function chat(
               served = o.message?.model || served;
             } else if (o.type == 'content_block_delta' && dl?.type == 'text_delta') {
               tt += dl.text;
-              n++;
               od(tt);
             } else if (o.type == 'content_block_delta' && dl?.type == 'thinking_delta') od(tt, true);
             else if (o.type == 'message_delta') {
@@ -311,13 +309,12 @@ export async function chat(
           if (!tt) throw e;
           part = true;
         }
-        return finish({ text: tt, stop: fr, sd, served, u: usageOf(us), part, mode: 'stream', chunks: n });
+        return finish({ text: tt, stop: fr, sd, served, u: usageOf(us), part });
       }
       const j = await r.json().catch(() => ({}));
       const er = j.error;
       if (r.status == 429 && a < TRIES) {
-        const secs = Math.min(90, Math.max(3, Math.round(+r.headers.get('retry-after') || (a + 1) * 15)));
-        await retry(secs, 'retry');
+        await retry(backoff(a, r.headers.get('retry-after'), 7.5, 90), 'retry');
         continue;
       }
       if (BUSY.has(r.status) && a < TRIES) {
@@ -333,9 +330,7 @@ export async function chat(
         stop: j.stop_reason || '',
         sd: j.stop_details,
         served: j.model,
-        u: usageOf(j.usage),
-        mode: 'block',
-        chunks: 1
+        u: usageOf(j.usage)
       });
     }
   } catch (e) {

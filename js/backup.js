@@ -359,12 +359,11 @@ export async function sync(manual) {
   emit('list:stale');
 }
 const bkShow = () => {
-  const p = $('#bp').value;
-  $('#bgh').hidden = $('#bkn').hidden = !p;
+  $('#bgh').hidden = $('#bkn').hidden = !$('#bp').checked;
 };
 function openBk() {
   const B = S.bk || {};
-  $('#bp').value = B.p || '';
+  $('#bp').checked = B.p == 'gh';
   $('#bgr').value = B.repo || '';
   $('#bgt').value = B.tok || '';
   $('#bgf').value = B.path || '';
@@ -375,7 +374,7 @@ function openBk() {
 async function bkSave() {
   const o = S.bk || {},
     n = {
-      p: $('#bp').value,
+      p: $('#bp').checked ? 'gh' : '',
       repo: $('#bgr').value.trim(),
       tok: $('#bgt').value.trim(),
       path: $('#bgf').value.trim()

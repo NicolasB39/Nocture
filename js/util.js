@@ -184,15 +184,16 @@ export const err = (t, bad, a) => {
   const e = $('#err');
   e.textContent = t;
   e.className = t && bad ? 'e' : '';
-  if (t && a) {
-    const b = document.createElement('button');
-    b.textContent = a.label;
-    b.onclick = () => {
-      err('');
-      a.fn();
-    };
-    e.append(b);
-  }
+  if (t && a)
+    e.append(
+      el('button', {
+        text: a.label,
+        onclick: () => {
+          err('');
+          a.fn();
+        }
+      })
+    );
 };
 export const num = s => ($(s).value === '' ? null : +$(s).value);
 export const fit = () => {
@@ -231,16 +232,17 @@ export const saveFile = async f => {
 export const toast = (t, a) => {
   const e = $('#toast');
   e.textContent = t;
-  if (a) {
-    const b = document.createElement('button');
-    b.textContent = a.label;
-    b.onclick = () => {
-      e.hidden = true;
-      clearTimeout(toastT);
-      a.fn();
-    };
-    e.append(b);
-  }
+  if (a)
+    e.append(
+      el('button', {
+        text: a.label,
+        onclick: () => {
+          e.hidden = true;
+          clearTimeout(toastT);
+          a.fn();
+        }
+      })
+    );
   e.hidden = false;
   clearTimeout(toastT);
   if (a?.keep) return;

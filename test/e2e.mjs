@@ -478,7 +478,7 @@ try {
     await pg.click('#cfg');
     await pg.click('summary:has-text("GitHub et sauvegarde")');
     await pg.click('#bko');
-    await pg.selectOption('#bp', 'gh');
+    await pg.check('#bp');
     await pg.fill('#bgr', 'me/bk');
     await pg.fill('#bgt', 'tok');
     await pg.click('#bkv');
