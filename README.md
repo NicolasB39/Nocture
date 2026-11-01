@@ -193,6 +193,18 @@ La feuille affiche aussi un **coût estimé**, pour la période et par modèle. 
 
 Les statistiques sont enregistrées sur l'appareil, dans un enregistrement à part des réglages, écrit avec un léger différé et à chaque mise en arrière-plan. Elles ne font partie ni de l'export en fichier ni de la sauvegarde en ligne, et ne se synchronisent donc pas entre appareils. Entre deux fenêtres de l'application ouvertes sur le même appareil (onglet et application installée), elles s'additionnent : chaque fenêtre n'écrit que ce qu'elle a compté depuis sa dernière lecture. Les réglages, eux, sont relus par les autres fenêtres à chaque enregistrement, pour qu'aucune ne réécrive une clé ou un tarif périmé. « Effacer » les remet à zéro, sans toucher aux histoires. Un jour et un modèle occupent une centaine d'octets : l'historique n'est pas purgé.
 
+### Journal des appels
+
+Pour comprendre où partent les tokens, cochez « Journal des appels » (Réglages, section « Compteurs et débit ») : l'application garde alors, sur l'appareil, les **100 dernières requêtes envoyées à Claude**, texte compris, avec leur type (tour, régénérer, indication, continuer, mémoire, relance du cache), le modèle qui a répondu, les tokens envoyés, lus et écrits en cache, la sortie, le coût estimé et la raison de fin, ou l'erreur. Le bouton « Journal des appels » de la feuille Statistiques les liste, du plus récent au plus ancien ; touchez un appel pour son détail :
+
+- **Hors cache** : la part de l'entrée payée plein tarif.
+- **Cache** (requêtes de narration) : le préfixe comparé à la requête réussie précédente de la même histoire. Trois cas : le cache a expiré (plus de 5 minutes, ou une heure, sans lecture ni relance), et tout le prompt est réécrit ; le préfixe est identique et seule la suite est nouvelle ; ou le journal nomme le premier bloc qui a changé (modèle ou effort, partie fixe du prompt, mémoire, ou tel message), à partir duquel tout a été réécrit en cache.
+- **Composition** : partie fixe, mémoire, historique et fin de requête, en tokens estimés.
+- **Fin de requête, hors cache** : le dernier message découpé en blocs (votre message, lorebook déclenché, fiches des personnages en scène, passages anciens, état précédent, indication, rappel des formats) avec leur taille. C'est là qu'on voit ce qui gagnerait à passer dans la partie fixe.
+- **Requête complète**, telle qu'envoyée.
+
+« Exporter » enregistre le journal en JSON (pour l'analyser ailleurs) et « Vider » l'efface. Le journal reste sur l'appareil : il n'est ni synchronisé ni sauvegardé, et la clé API n'y figure jamais. Une requête de narration pèse de quelques dizaines à quelques centaines de kilo-octets ; décochez la case une fois l'analyse faite.
+
 ### Repères dans le fil
 
 Chaque message est horodaté à l'écriture. Quand plus de six heures ou un changement de jour séparent deux messages, une ligne discrète marque la coupure : une heure pour une reprise dans la journée, « hier », « aujourd'hui » ou la date pour un retour plus tardif. Les histoires écrites avant cette version n'ont pas d'horodatage et n'affichent donc aucune coupure tant qu'on ne les reprend pas.
@@ -470,6 +482,7 @@ js/
   stats.js          statistiques d'usage en tokens (sans DOM, testé unitairement)
   cost.js           tarifs et coût estimé (sans DOM, testé unitairement)
   statview.js       feuille Statistiques
+  journal.js        journal des appels : liste, analyse du cache, export
   boot.js           garde-fou de démarrage : alerte et bouton Réparer si un fichier manque
   reparer.js        script de la page reparer.html
 reparer.html        page de réparation (vide les caches, garde les histoires)

@@ -300,6 +300,7 @@ function openCfg() {
   $('#cwa').checked = S.warm !== false;
   $('#cn').checked = !!S.ns?.[p];
   $('#cch').checked = !!S.c1h;
+  $('#cjr').checked = !!S.journal;
   fillLec();
   $('#cst').textContent =
     streamInfo() +
@@ -416,6 +417,7 @@ $('#dcs').onclick = async () => {
   S.proto = $('#cpr').value;
   S.tpm = +$('#ctpm').value || 0;
   S.counters = $('#ctc').checked;
+  S.journal = $('#cjr').checked;
   await saveSet();
   $('#dc').close();
   if (app.cur) tk();

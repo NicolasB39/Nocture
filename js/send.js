@@ -138,6 +138,8 @@ export async function ask(old, cont, hint) {
       effort: s.effort || 'low',
       effBase: info.effort,
       primary: true,
+      kind: cont ? 'continuer' : hint ? 'indication' : old ? 'régénérer' : 'tour',
+      sid: s.id,
       onWait: (w, why) => {
         if (app.cur !== s) return;
         if (w) {

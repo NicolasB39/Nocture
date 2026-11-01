@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="3c0f6a1410">
+<meta name="app-version" content="edf6d7243d">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -25,6 +25,7 @@
 <link rel="modulepreload" href="js/chat.js">
 <link rel="modulepreload" href="js/cost.js">
 <link rel="modulepreload" href="js/format.js">
+<link rel="modulepreload" href="js/journal.js">
 <link rel="modulepreload" href="js/list.js">
 <link rel="modulepreload" href="js/main.js">
 <link rel="modulepreload" href="js/memory.js">
@@ -243,8 +244,16 @@
 <div id="ust" role="radiogroup" aria-label="Période"><button role="radio" data-m="session" aria-checked="true">Session</button><button role="radio" data-m="day" aria-checked="false">Jour</button><button role="radio" data-m="month" aria-checked="false">Mois</button></div>
 <div id="usn"><button id="usp" aria-label="Période précédente"><svg class="i"><use href="#i-chevl"/></svg></button><span id="usl" aria-live="polite"></span><button id="usx" aria-label="Période suivante"><svg class="i"><use href="#i-chevr"/></svg></button></div>
 <div id="usv"></div>
-<div class="row l"><button id="usf">Devise</button><button id="usk">Plafond mensuel</button></div>
+<div class="row l"><button id="usf">Devise</button><button id="usk">Plafond mensuel</button><button id="usj">Journal des appels</button></div>
 <div class="row"><button id="usr">Effacer</button><button id="usc" class="primary">Fermer</button></div>
+</dialog>
+
+<dialog id="djr" aria-labelledby="hdjr">
+<h2 id="hdjr">Journal des appels</h2>
+<p id="jrn" class="note"></p>
+<div id="jrl"></div>
+<div class="row l"><button id="jre">Exporter</button><button id="jrx">Vider</button></div>
+<div class="row"><button id="jrc" class="primary">Fermer</button></div>
 </dialog>
 
 <dialog id="dsm" aria-labelledby="hdsm">
@@ -353,6 +362,8 @@
 <p class="note">Vide : aucune jauge. Sert de repli tant qu'aucune réponse n'a donné la limite de débit de votre compte. La valeur se corrige toute seule dès qu'une réponse la contient.</p>
 <label><input id="ctc" type="checkbox">Afficher les compteurs sous la conversation</label>
 <p class="note">Tokens envoyés et jauge de débit. Masqués, la jauge réapparaît quand un envoi doit attendre.</p>
+<label><input id="cjr" type="checkbox">Journal des appels</label>
+<p class="note">Garde sur cet appareil les 100 dernières requêtes envoyées à Claude, texte compris, avec ce qu'elles ont coûté et ce qui est parti hors cache : Statistiques, puis « Journal des appels ». Jamais synchronisé ni sauvegardé ; la clé API n'y figure pas.</p>
 </details>
 
 <details>

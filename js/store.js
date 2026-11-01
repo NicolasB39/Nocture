@@ -147,13 +147,16 @@ const range = (id, from = 0) => IDBKeyRange.bound([id, from], [id, Infinity]);
 export const openDB = () =>
   new Promise((res, rej) => {
     // Nom historique de la base : le renommer reviendrait à repartir d'une base vide.
-    const r = indexedDB.open('histoires', 4);
-    // Création d'une base neuve. Les bases des versions 1 à 3 (histoire d'un seul bloc) ne sont plus
-    // converties : tous les appareils sont passés à la version 4.
+    const r = indexedDB.open('histoires', 5);
+    // Création d'une base neuve, ou ajout du journal des appels (version 5). Les bases des versions 1 à 3
+    // (histoire d'un seul bloc) ne sont plus converties : tous les appareils sont passés à la version 4.
     r.onupgradeneeded = () => {
       const d = r.result;
       for (const [n, k] of [['scenarios', 'id'], ['settings', 'key'], ['meta', 'id'], ['chunks', 'k'], ['covers', 'id']])
         if (!d.objectStoreNames.contains(n)) d.createObjectStore(n, { keyPath: k });
+      // Journal : l'en-tête de chaque appel d'un côté, sa requête complète de l'autre, sous la même clé.
+      if (!d.objectStoreNames.contains('calls')) d.createObjectStore('calls', { autoIncrement: true });
+      if (!d.objectStoreNames.contains('bodies')) d.createObjectStore('bodies');
     };
     r.onblocked = () =>
       rej(new Error('Une autre fenêtre de l’application est ouverte : fermez-la, puis rechargez cette page.'));
@@ -276,6 +279,49 @@ const told = k => r => {
   bc?.postMessage(k);
   return r;
 };
+// Journal des appels (journal.js) : les CALLS_MAX derniers, dans l'ordre d'envoi, sur cet appareil seulement.
+export const CALLS_MAX = 100;
+export const addCall = ({ body, ...e }) =>
+  new Promise((res, rej) => {
+    const t = db.transaction(['calls', 'bodies'], 'readwrite'),
+      s = t.objectStore('calls'),
+      b = t.objectStore('bodies');
+    s.add(e).onsuccess = ev => b.put(body, ev.target.result);
+    const c = s.count();
+    c.onsuccess = () => {
+      let n = c.result - CALLS_MAX;
+      if (n > 0)
+        s.openCursor().onsuccess = ev => {
+          const k = ev.target.result;
+          if (k && n-- > 0) {
+            b.delete(k.primaryKey);
+            k.delete();
+            k.continue();
+          }
+        };
+    };
+    t.oncomplete = () => res();
+    fail(t, rej);
+  });
+// En-têtes seulement (k : la clé de la requête complète) ; les requêtes, lourdes, se lisent à la demande.
+export const getCalls = () =>
+  new Promise((res, rej) => {
+    const t = db.transaction('calls', 'readonly'),
+      s = t.objectStore('calls'),
+      v = s.getAll(),
+      k = s.getAllKeys();
+    t.oncomplete = () => res(v.result.map((x, i) => ({ ...x, k: k.result[i] })));
+    fail(t, rej);
+  });
+export const getCallBody = k => tx('bodies', 'readonly', s => s.get(k));
+export const clearCalls = () =>
+  new Promise((res, rej) => {
+    const t = db.transaction(['calls', 'bodies'], 'readwrite');
+    t.objectStore('calls').clear();
+    t.objectStore('bodies').clear();
+    t.oncomplete = () => res();
+    fail(t, rej);
+  });
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);

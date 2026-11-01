@@ -2,7 +2,7 @@ import { emit } from './bus.js';
 import { merge } from './merge.js';
 import { S, app } from './state.js';
 import { clean, del, getAll, getFull, getOne, put, saveSet } from './store.js';
-import { $, LS, ago, dlg, toast } from './util.js';
+import { $, LS, ago, dlg, saveFile, toast } from './util.js';
 
 async function doExport() {
   const f = new File(
@@ -10,20 +10,7 @@ async function doExport() {
     'nocturne-' + new Date().toISOString().slice(0, 10) + '.json',
     { type: 'application/json' }
   );
-  const dl = () => {
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(f);
-    a.download = f.name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1e4);
-  };
-  try {
-    if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f] });
-    else dl();
-  } catch (e) {
-    if (e.name == 'AbortError') return;
-    dl();
-  }
+  if (!(await saveFile(f))) return;
   LS.set('bk', Date.now());
   $('#bk').hidden = true;
 }

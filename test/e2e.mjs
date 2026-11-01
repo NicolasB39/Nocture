@@ -431,7 +431,45 @@ try {
     await pg.click('#usc');
   });
 
-  const syncDone = () => until(pg, () => !document.querySelector('#sy').classList.contains('spin'));
+  await step('journal des appels : requêtes gardées, cache relu, fin de requête détaillée', async () => {
+    await pg.click('#mo');
+    await pg.click('#cfg2');
+    await pg.evaluate(() => (document.querySelector('#cjr').checked = true));
+    await pg.click('#dcs');
+    await pg.waitForSelector('#dc', { state: 'hidden' });
+    await send('Premier tour journalisé.');
+    await send('Second tour journalisé.');
+    await pg.evaluate(async () => (await import('/js/statview.js')).openStats('session'));
+    await pg.click('#usj');
+    await pg.waitForSelector('#djr[open]');
+    await until(pg, () => document.querySelectorAll('#jrl .scg').length >= 2);
+    assert.match(await pg.textContent('#jrl .scg .sct'), /tour · sonnet-5-5/);
+    assert.match(await pg.textContent('#jrl .scg .scm'), /lus en cache/);
+    await pg.click('#jrl .scg .sch');
+    const d = await pg.textContent('#jrl .scg .scb');
+    assert.match(d, /préfixe identique/);
+    assert.match(d, /Dernier message du joueur/);
+    const raw = await pg.evaluate(async () => {
+      const st = await import('/js/store.js');
+      return JSON.stringify([await st.getCalls(), await st.getCallBody((await st.getCalls()).at(-1).k)]);
+    });
+    assert.ok(raw.includes('Second tour journalisé.'), 'requête gardée en entier');
+    assert.ok(!raw.includes('sk-test'), 'jamais la clé API');
+    // Au-delà de 100 appels, les plus anciens partent, requête comprise.
+    const kept = await pg.evaluate(async () => {
+      const st = await import('/js/store.js');
+      const k0 = (await st.getCalls())[0].k;
+      for (let i = 0; i < 101; i++) await st.addCall({ t: i, kind: 'test', body: { i } });
+      const c = await st.getCalls();
+      return [c.length, c[0].t, await st.getCallBody(c[0].k), (await st.getCallBody(k0)) ?? null];
+    });
+    assert.deepEqual(kept, [100, 1, { i: 1 }, null]);
+    await pg.evaluate(async () => (await import('/js/store.js')).clearCalls());
+    await pg.click('#jrc');
+    await pg.click('#usc');
+  });
+
+  const syncDone =() => until(pg, () => !document.querySelector('#sy').classList.contains('spin'));
   await step('synchronisation : envoi des histoires locales, réception de la distante', async () => {
     await pg.click('#back');
     await pg.waitForSelector('#list:not([hidden])');

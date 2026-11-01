@@ -1,4 +1,4 @@
-const C = 'nocturne-3c0f6a1410',
+const C = 'nocturne-edf6d7243d',
   A = [
     './',
     'index.html',
@@ -20,6 +20,7 @@ const C = 'nocturne-3c0f6a1410',
     'js/chat.js',
     'js/cost.js',
     'js/format.js',
+    'js/journal.js',
     'js/list.js',
     'js/main.js',
     'js/memory.js',

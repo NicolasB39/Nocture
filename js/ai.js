@@ -4,7 +4,7 @@ import { SUM_MAX, clip, mergeMem, mergeRel, splitSummary, unnum } from './memory
 import { hit429, note, wait } from './rate.js';
 import { cacheOf, record, usageOf } from './stats.js';
 import { API, S, app, ctx } from './state.js';
-import { getOne, save } from './store.js';
+import { addCall, getOne, save } from './store.js';
 import { $, err, strip } from './util.js';
 
 // La mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
@@ -119,20 +119,27 @@ export async function keepWarm() {
   if (!LAST || !k) return false;
   // Sans relais (rien à relayer, et hors du préfixe) ; un changement d'effort, lui, fait partie du préfixe.
   const { stream, fallbacks, ...b } = LAST.body,
-    bt = antBetas(b);
-  LAST.at = Date.now();
+    bt = antBetas(b),
+    w = { ...b, max_tokens: 0 },
+    key = API.k + '/' + b.model,
+    { sid } = LAST,
+    t0 = (LAST.at = Date.now());
   try {
     const r = await fetch(API.u + '/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...authH(k), ...(bt ? { 'anthropic-beta': bt } : {}) },
-      body: JSON.stringify({ ...b, max_tokens: 0 })
+      body: JSON.stringify(w)
     });
-    if (!r.ok) return false;
+    if (!r.ok) {
+      journal('relance', w, { sid, key, err: 'Erreur ' + r.status, ms: Date.now() - t0 });
+      return false;
+    }
     const u = normU((await r.json().catch(() => ({}))).usage);
     note(r.headers, u, b.model, false);
-    track([], '', u, API.k + '/' + b.model);
+    journal('relance', w, { sid, ...track([], '', u, key), ms: Date.now() - t0 });
     return true;
   } catch (e) {
+    journal('relance', w, { sid, key, err: e.message, ms: Date.now() - t0 });
     return false;
   }
 }
@@ -175,15 +182,29 @@ const track = (ms, out, u, key, primary) => {
       const [cr, cw] = cacheOf(u),
         h1 = S.c1h,
         ca = [cr, h1 ? 0 : cw, h1 ? cw : 0];
-      if (primary) TURN = { key, e: [x[0], x[1], 1, u.est ? 1 : 0, ...ca] };
-      return record(key, x[0], x[1], !!u.est, Date.now(), ca);
+      const e = [x[0], x[1], 1, u.est ? 1 : 0, ...ca];
+      if (primary) TURN = { key, e };
+      record(key, x[0], x[1], !!u.est, Date.now(), ca);
+      return { key, e };
     }
     const p = ms.reduce((a, m) => a + estTok(m.content) + 4, 0),
       c = estTok(out);
     if (primary) TURN = { key, e: [p, c, 1, 1] };
     record(key, p, c, true);
+    return { key, e: [p, c, 1, 1] };
   } catch (e) {}
 };
+// Journal des appels (Réglages, Compteurs et débit ; journal.js) : la requête telle qu'envoyée, sans la clé, ce
+// qu'elle a coûté (key et e, au format des statistiques, rendus par track) et comment elle s'est terminée.
+// sid : l'histoire de l'appel. Rien si la case est décochée.
+const journal = (kind, body, x) => {
+  if (!S.journal) return;
+  try {
+    addCall({ t: Date.now(), kind, body, ...x }).catch(() => {});
+  } catch (e) {}
+};
+// Erreur déjà journalisée avec ce qu'elle a coûté : le catch de chat() ne l'ajoute pas une seconde fois.
+const logged = e => Object.assign(e, { logged: true });
 const calib = (ms, u) => {
   const pt = u?.prompt_tokens,
     ov = 4 * ms.length;
@@ -193,7 +214,7 @@ const calib = (ms, u) => {
 };
 export async function chat(
   ms,
-  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000 } = {}
+  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000, kind = '', sid = '' } = {}
 ) {
   const p = API.k,
     k = S.keys[p];
@@ -217,6 +238,8 @@ export async function chat(
   };
   arm();
   const t0 = Date.now();
+  // Dernière requête envoyée, pour le journal des appels, même en cas d'échec.
+  let body = null;
   const retry = async (secs, why) => {
     let left = secs;
     await hold(() => left--, why);
@@ -225,9 +248,9 @@ export async function chat(
   try {
     for (let a = 0; ; a++) {
       let r;
-      const body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary });
+      body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary });
       // La dernière requête de narration sert de modèle au maintien du cache (keepWarm).
-      if (primary) LAST = { body, at: Date.now() };
+      if (primary) LAST = { body, at: Date.now(), sid };
       const bt = antBetas(body);
       try {
         r = await fetch(API.u + '/messages', {
@@ -316,12 +339,14 @@ export async function chat(
         if (fr == 'refusal') {
           us = normU(us);
           note(r.headers, us, mdl, primary);
-          track(ms, strip(tt), us, key, primary);
-          throw refusal(sd);
+          journal(kind, body, { sid, ...track(ms, strip(tt), us, key, primary), stop: fr, ms: Date.now() - t0 });
+          throw logged(refusal(sd));
         }
         const out = strip(tt);
-        if (!out)
-          throw new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)');
+        if (!out) {
+          journal(kind, body, { sid, key, err: 'réponse vide', stop: fr, ms: Date.now() - t0 });
+          throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
+        }
         us = normU(us);
         // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de
         // sortie). La sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
@@ -332,7 +357,7 @@ export async function chat(
         }
         if (primary) calib(ms, us);
         note(r.headers, us, mdl, primary);
-        track(ms, out, us, key, primary);
+        journal(kind, body, { sid, ...track(ms, out, us, key, primary), stop: fr || (part ? 'coupée' : ''), ms: Date.now() - t0 });
         return {
           t: out,
           cut: fr == 'max_tokens',
@@ -365,10 +390,13 @@ export async function chat(
           .map(b => b.text)
           .join('')
       );
-      track(ms, out, u, p + '/' + (j.model || mdl), primary);
-      if (j.stop_reason == 'refusal') throw refusal(j.stop_details);
-      if (!out)
-        throw new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)');
+      const x = { sid, ...track(ms, out, u, p + '/' + (j.model || mdl), primary), stop: j.stop_reason || '', ms: Date.now() - t0 };
+      if (j.stop_reason == 'refusal') {
+        journal(kind, body, x);
+        throw logged(refusal(j.stop_details));
+      }
+      journal(kind, body, out ? x : { ...x, err: 'réponse vide' });
+      if (!out) throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
       return {
         t: out,
         cut: j.stop_reason == 'max_tokens',
@@ -379,6 +407,9 @@ export async function chat(
       };
     }
   } catch (e) {
+    // Échec sans réponse comptée (erreur de l'API, réseau, arrêt) ; un refus ou une réponse vide l'est déjà.
+    if (body && !e.logged)
+      journal(kind, body, { sid, key: p + '/' + mdl, err: ac.signal.aborted ? String(ac.signal.reason || 'arrêt') : e.message, ms: Date.now() - t0 });
     if (ac.signal.aborted)
       throw new Error(
         ac.signal.reason == 'timeout'
@@ -548,6 +579,8 @@ async function sumRun(s, start) {
         {
           model: memModel(),
           effort: 'low',
+          kind: 'mémoire',
+          sid: s.id,
           timeout: 300000,
           onWait: (w, why) => {
             if (said) say(w ? 'Mémoire : ' + waitMsg(w, why) : 'Mise à jour de la mémoire…');

@@ -215,6 +215,25 @@ export const ikey = s =>
   nz(s)
     .replace(/[\s_.\-]+/g, '_')
     .replace(/^_+|_+$/g, '');
+// Fichier à garder : partagé sur mobile, téléchargé ailleurs (ou si le partage échoue). false si le partage est
+// annulé.
+export const saveFile = async f => {
+  const dl = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(f);
+    a.download = f.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1e4);
+  };
+  try {
+    if (navigator.canShare?.({ files: [f] })) await navigator.share({ files: [f] });
+    else dl();
+  } catch (e) {
+    if (e.name == 'AbortError') return false;
+    dl();
+  }
+  return true;
+};
 export const toast = (t, a) => {
   const e = $('#toast');
   e.textContent = t;

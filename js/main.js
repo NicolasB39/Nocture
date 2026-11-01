@@ -11,8 +11,9 @@ import './chat.js';
 import './nav.js';
 import './settings.js';
 import './backup.js';
+import './journal.js';
 
-const VERSION = '3c0f6a1410';
+const VERSION = 'edf6d7243d';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(

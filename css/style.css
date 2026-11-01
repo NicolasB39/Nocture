@@ -1923,6 +1923,21 @@ dialog input[type='range'] {
   color: var(--mu);
   font-size: 12px;
 }
+/* Journal des appels : mêmes en-têtes repliables que le sommaire ; détail de la fin de requête et requête brute. */
+.jrt {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--mu2);
+  font-size: 13px;
+}
+.jrr {
+  max-height: 50vh;
+  overflow: auto;
+  margin: 6px 0 0;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 .scg.cur .scm {
   color: var(--ac);
 }
