@@ -4,6 +4,14 @@ export const REL_MAX = 12;
 export const MEM_MAX = 60;
 // Taille du résumé, gardé et envoyé : la consigne en demande 1200 caractères, un peu de marge en plus.
 export const SUM_MAX = 1400;
+// Chapitres : un résumé figé par arc terminé, jamais réécrit ensuite. Un chapitre se clôt entre CH_MIN et
+// CH_MAX messages ; seuls les CH_FULL derniers partent en entier au narrateur, les plus anciens par leur titre.
+export const CH_MIN = 60;
+export const CH_MAX = 200;
+export const CH_SUM = 700;
+export const CH_FULL = 12;
+// Premier message du chapitre en cours : la fin du dernier chapitre clos.
+export const chStart = mem => Math.min(mem.chapters?.at(-1)?.upto || 0, mem.upto);
 
 const key = s =>
   nz(String(s))
@@ -64,6 +72,10 @@ export function mergeMem(cur = [], inc = [], max = MEM_MAX) {
 }
 
 export const cutLines = (lines, i) => (lines || []).filter(l => l.i < i);
+// Chapitres d'une histoire coupée au message i : ceux qui commencent après disparaissent, celui qui contient i
+// finit en i (son résumé, comme celui de la mémoire, garde la trace de la suite).
+export const cutChapters = (C, i) =>
+  (C || []).filter((c, k) => (k ? C[k - 1].upto : 0) < i).map(c => (c.upto > i ? { ...c, upto: i } : c));
 // Les messages partent numérotés vers la mémoire (« 1. Joueur : … ») et le modèle recopie souvent ce numéro en
 // tête de ligne : « 3. », « 3) », « 3 : », éventuellement en gras. « 12:30 » ou « 3 gardes » restent intacts.
 export const unnum = t => t.replace(/^[\s*_]*\d{1,2}\s*[.):][\s*_]+/, '').trim();

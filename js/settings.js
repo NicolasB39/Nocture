@@ -190,12 +190,45 @@ const memView = () => {
       : [el('p', { class: 'note', text: 'Aucun souvenir pour le moment.' })])
   );
 };
+let MC = [];
+// Chapitres clos : titre et résumé modifiables.
+const chView = () =>
+  $('#mch').replaceChildren(
+    ...(MC.length
+      ? MC.map((c, i) =>
+          el(
+            'div',
+            { class: 'chp' },
+            el(
+              'div',
+              { class: 'row l' },
+              el('input', { 'aria-label': 'Titre du chapitre ' + (i + 1), value: c.t, oninput: e => (c.t = e.target.value) }),
+              el(
+                'button',
+                {
+                  'aria-label': 'Retirer le chapitre ' + (i + 1),
+                  onclick: () => {
+                    MC.splice(i, 1);
+                    chView();
+                  }
+                },
+                ic('x', 14)
+              )
+            ),
+            el('textarea', { 'aria-label': 'Résumé du chapitre ' + (i + 1), text: c.s, oninput: e => (c.s = e.target.value) })
+          )
+        )
+      : [el('p', { class: 'note', text: 'Aucun chapitre clos. Un chapitre se clôt de lui-même à la fin d’un arc, après 60 messages au moins.' })])
+  );
 // Mémoire telle qu'à l'ouverture de la feuille : une mise à jour faite entre-temps (summarize, ai.js) ne doit
 // pas être écrasée par la copie affichée.
 let MO = null;
 const memOpen = () => {
   const m = app.cur.mem;
-  MO = { c: app.cur, summary: m.summary, memories: m.memories, upto: m.upto };
+  MO = { c: app.cur, summary: m.summary, memories: m.memories, chapters: m.chapters, upto: m.upto };
+  MC = (m.chapters || []).map(c => ({ ...c }));
+  chView();
+  $('#msul').textContent = MC.length ? 'Résumé du chapitre en cours' : "Résumé de l'histoire";
   $('#msu').value = m.summary;
   MM = [...m.memories];
   $('#mmi').value = '';
@@ -216,7 +249,7 @@ $('#mma').onclick = () => {
 $('#dmc').onclick = () => $('#dm').close();
 $('#dms').onclick = async () => {
   const m = app.cur.mem;
-  if (MO.c !== app.cur || m.summary !== MO.summary || m.memories !== MO.memories || m.upto !== MO.upto) {
+  if (MO.c !== app.cur || m.summary !== MO.summary || m.memories !== MO.memories || m.chapters !== MO.chapters || m.upto !== MO.upto) {
     // Feuille par-dessus la feuille Mémoire : un toast resterait dessous. Le texte saisi reste en place tant
     // qu'on ne choisit pas de relire.
     if (
@@ -231,6 +264,7 @@ $('#dms').onclick = async () => {
   }
   m.summary = $('#msu').value;
   m.memories = MM;
+  m.chapters = MC.map(c => ({ ...c, t: c.t.trim() || 'Sans titre' }));
   await save();
   render();
   $('#dm').close();
@@ -435,6 +469,16 @@ $('#msm').onclick = () => {
   $('#dmn').close();
   const L = app.cur.mem.lines || [],
     T = tocOf(app.cur.messages, L, app.cur.pname?.trim() || ''),
+    // Titres des chapitres, chacun avant la première scène (ou ligne) qui suit son début ; le dernier est celui
+    // en cours.
+    C = app.cur.mem.chapters || [],
+    H = C.length ? [...C.map((c, k) => ({ from: k ? C[k - 1].upto : 0, t: c.t })), { from: C.at(-1).upto, t: 'en cours' }] : [];
+  let hk = 0;
+  const heads = i => {
+      const h = [];
+      for (; hk < H.length && H[hk].from <= i; hk++) h.push(el('p', { class: 'chh', text: 'Chapitre ' + (hk + 1) + ' · ' + H[hk].t }));
+      return h;
+    },
     go = i => () => {
       $('#dsm').close();
       if (i >= 0) jump(i);
@@ -452,7 +496,9 @@ $('#msm').onclick = () => {
     : 'Une ligne par message déjà résumé. Touchez pour y aller. Avec un champ « Lieu » dans le panneau d’état, le sommaire se range par scènes.';
   if (T) {
     const loose = L.filter(x => x.i < 0),
-      G = T.map(s =>
+      // Titre d'un chapitre devant la scène où il commence, même si elle a commencé avant lui.
+      G = T.flatMap((s, j) => [
+        ...heads(j + 1 < T.length ? T[j + 1].from - 1 : Infinity),
         fold(
           'scg' + (s.cur ? ' cur' : ''),
           [
@@ -466,7 +512,7 @@ $('#msm').onclick = () => {
           s.lines.length && el('div', { class: 'scl' }, s.lines.map(line)),
           el('button', { class: 'scgo', onclick: go(s.from) }, 'Aller à cette scène')
         )
-      );
+      ]);
     if (loose.length)
       G.push(
         fold('scg', [el('span', { class: 'sct' }, 'Autres lignes', el('span', { class: 'scv' }))], el('div', { class: 'scl' }, loose.map(line)))
@@ -475,7 +521,10 @@ $('#msm').onclick = () => {
   } else
     $('#sml').replaceChildren(
       ...(L.length
-        ? L.map(x => hit('assistant', x.t, go(x.i)))
+        ? L.flatMap((x, j) => [
+            ...(x.i >= 0 ? heads((L.slice(j + 1).find(y => y.i >= 0)?.i ?? Infinity) - 1) : []),
+            hit('assistant', x.t, go(x.i))
+          ])
         : [el('p', { class: 'note', text: 'Le sommaire se remplit à mesure que la mémoire résume les messages.' })])
     );
   $('#dsm').showModal();

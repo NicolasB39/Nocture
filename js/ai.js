@@ -1,7 +1,7 @@
 import { HAIKU_LONG, LONG } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
-import { SUM_MAX, clip, mergeMem, mergeRel, unnum } from './memory.js';
+import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { addCall, getOne, save } from './store.js';
@@ -360,12 +360,15 @@ export const waitMsg = (w, why) =>
   ' s…';
 const SUMJ =
   "Tu mets à jour la mémoire d'une histoire interactive. Écris en français.\n" +
-  "- resume : récit condensé et mis à jour de toute l'histoire, 1200 caractères maximum, en deux parties (Événements, Situation actuelle) ; la Situation actuelle nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
+  "- resume : récit condensé et mis à jour du chapitre en cours (toute l'histoire depuis le dernier chapitre clos), 1200 caractères maximum, en deux parties (Événements, Situation actuelle) ; la Situation actuelle nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
   '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
   "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.\n" +
-  "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.";
-// Réponse de la mémoire, garantie conforme par l'API (sorties structurées).
-const SCHEMA = {
+  "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.\n" +
+  "- chapitre (seulement quand il est demandé) : clos vaut true seulement si ces messages terminent un arc (lieu quitté pour de bon, quête achevée, ellipse). titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier, et le resume principal ne garde que la Situation actuelle, point de départ du chapitre suivant. Sinon clos vaut false, titre et resume vides.";
+// Réponse de la mémoire, garantie conforme par l'API (sorties structurées). Le champ chapitre n'existe que si
+// le chapitre en cours est assez long pour être clos : un modèle qui le clôturerait trop tôt ne ramènerait
+// pas pour autant le résumé principal à la seule Situation actuelle.
+const SCHEMA = ch => ({
   type: 'object',
   properties: {
     resume: { type: 'string' },
@@ -379,11 +382,19 @@ const SCHEMA = {
         additionalProperties: false
       }
     },
-    lignes: { type: 'array', items: { type: 'string' } }
+    lignes: { type: 'array', items: { type: 'string' } },
+    ...(ch && {
+      chapitre: {
+        type: 'object',
+        properties: { clos: { type: 'boolean' }, titre: { type: 'string' }, resume: { type: 'string' } },
+        required: ['clos', 'titre', 'resume'],
+        additionalProperties: false
+      }
+    })
   },
-  required: ['resume', 'souvenirs', 'relations', 'lignes'],
+  required: ['resume', 'souvenirs', 'relations', 'lignes', ...(ch ? ['chapitre'] : [])],
   additionalProperties: false
-};
+});
 const SUMS = new Map();
 const LINES_MAX = 24;
 // Histoire ouverte : on l'enregistre telle quelle, une copie relue en base pourrait dater d'avant la
@@ -418,11 +429,12 @@ export const batchGuard = (s, n) => {
   const u0 = s.mem.upto,
     src = s.messages.slice(u0, u0 + n),
     c0 = src.map(m => m.content),
-    { summary, memories } = s.mem;
+    { summary, memories, chapters } = s.mem;
   return cur =>
     s.mem.upto !== u0 ||
     s.mem.summary !== summary ||
     s.mem.memories !== memories ||
+    s.mem.chapters !== chapters ||
     (cur?.id == s.id && cur !== s) ||
     src.some((m, k) => s.messages[u0 + k] !== m || m.content !== c0[k]);
 };
@@ -451,7 +463,10 @@ async function sumRun(s, start) {
         parts = s.messages
           .slice(s.mem.upto, s.mem.upto + n)
           .map(m => (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + m.content.replace(/\{\{img::[^}]*\}\}/g, '').trim());
-      const stale = batchGuard(s, parts.length);
+      const stale = batchGuard(s, parts.length),
+        // Messages du chapitre en cours une fois ce lot résumé : dit au modèle s'il peut, ou doit, le clore.
+        k = s.mem.upto + parts.length - chStart(s.mem),
+        chs = s.mem.chapters || [];
       const { t, cut } = await chat(
         [
           { role: 'system', content: SUMJ },
@@ -466,6 +481,16 @@ async function sumRun(s, start) {
                 .join('\n') || '(aucune)') +
               '\n\nSouvenirs déjà retenus (ne les répète pas) :\n' +
               ((s.mem.memories || []).slice(-20).map(x => '- ' + x).join('\n') || '(aucun)') +
+              '\n\nChapitres déjà clos :\n' +
+              (chs.map((c, i) => i + 1 + '. ' + c.t).join('\n') || '(aucun)') +
+              '\n\nChapitre en cours : ' +
+              k +
+              ' messages avec ce lot. ' +
+              (k < CH_MIN
+                ? 'Trop court pour être clos.'
+                : k >= CH_MAX
+                  ? 'Il est temps de le clore : clos = true.'
+                  : 'Clos-le seulement si ces messages terminent un arc.') +
               '\n\nMessages à intégrer (' +
               parts.length +
               ') :\n' +
@@ -479,7 +504,7 @@ async function sumRun(s, start) {
           effort: 'low',
           kind: 'mémoire',
           sid: s.id,
-          schema: SCHEMA,
+          schema: SCHEMA(k >= CH_MIN),
           timeout: 300000,
           onWait: (w, why) => {
             if (said) say(w ? 'Mémoire : ' + waitMsg(w, why) : 'Mise à jour de la mémoire…');
@@ -492,6 +517,14 @@ async function sumRun(s, start) {
       const j = JSON.parse(t),
         list = a => a.map(x => x.trim()).filter(Boolean);
       if (!j.resume.trim()) throw new Error('résumé vide');
+      const ch = k >= CH_MIN && j.chapitre;
+      // Clos sans résumé, le chapitre perdrait ses Événements, déjà retirés du résumé principal.
+      if (ch?.clos && !ch.resume.trim()) throw new Error('chapitre clos sans résumé');
+      if (ch?.clos)
+        s.mem.chapters = [
+          ...chs,
+          { t: ch.titre.trim() || 'Chapitre ' + (chs.length + 1), s: clip(ch.resume.trim(), CH_SUM), upto: s.mem.upto + parts.length }
+        ];
       s.mem.summary = clip(j.resume.trim(), SUM_MAX);
       s.mem.memories = mergeMem(s.mem.memories, list(j.souvenirs));
       s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), keep);

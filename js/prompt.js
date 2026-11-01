@@ -1,5 +1,5 @@
 import { lastEtat } from './format.js';
-import { SUM_MAX, clip, sameName } from './memory.js';
+import { CH_FULL, SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, protocol } from './protocol.js';
 import { RECALL_N, recall, recallTag } from './recall.js';
 import { S, ctx } from './state.js';
@@ -78,6 +78,16 @@ const castBlock = () => {
           : "Leur fiche détaillée t'est fournie quand ils sont en scène.")
     : '';
 };
+// Chapitres clos : figés, ils ne changent qu'à la clôture d'un chapitre. Ils ferment donc la partie fixe, au
+// lieu de se faire réécrire en cache avec le résumé à chaque mise à jour de la mémoire.
+const chBlock = s => {
+  const ch = s.mem.chapters || [];
+  return ch.length
+    ? '\n\n<chapitres>\n' +
+        ch.map((c, i) => 'Chapitre ' + (i + 1) + ' : ' + c.t + (i >= ch.length - CH_FULL ? '\n' + c.s : '')).join('\n\n') +
+        '\n</chapitres>'
+    : '';
+};
 const memBlock = s => {
   let t = '';
   if (s.mem.summary.trim())
@@ -120,6 +130,7 @@ export function buildInfo(s, cont, hint) {
     images: (ctx.images || []).length > 0
   });
   if (av.trim()) sys += '\n\n# Avatar du joueur\n' + av;
+  sys += chBlock(s);
   const cut = U(sys).length;
   sys = U(sys + memBlock(s));
 

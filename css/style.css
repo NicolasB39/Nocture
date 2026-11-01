@@ -1867,6 +1867,23 @@ dialog input[type='range'] {
 .scg.cur .sch {
   border-color: var(--acb);
 }
+/* Titre de chapitre dans le Sommaire, au-dessus de ses scènes. */
+.chh {
+  margin: 18px 2px 8px;
+  color: var(--mu2);
+  font-size: 13px;
+  font-weight: 600;
+}
+.chh:first-child {
+  margin-top: 0;
+}
+/* Chapitre clos dans la feuille Mémoire : titre puis résumé. */
+.chp + .chp {
+  margin-top: 12px;
+}
+.chp textarea {
+  margin-top: 6px;
+}
 .sct {
   display: flex;
   align-items: baseline;

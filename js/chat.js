@@ -1,7 +1,7 @@
 import { on } from './bus.js';
 import { raw, setBody, split } from './format.js';
 import { showList } from './list.js';
-import { cutLines } from './memory.js';
+import { cutChapters, cutLines } from './memory.js';
 import { conflicts } from './protocol.js';
 import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js';
 import { loadCtx, TERR } from './scenarios.js';
@@ -95,9 +95,11 @@ async function delFrom(i) {
   const c = app.cur,
     upto = c.mem.upto,
     lines = c.mem.lines || [],
+    chapters = c.mem.chapters,
     removed = c.messages.splice(i);
   c.mem.upto = Math.min(upto, i);
   c.mem.lines = cutLines(lines, i);
+  c.mem.chapters = cutChapters(chapters, i);
   // Histoire GitHub vidée pour recommencer : à synchroniser quand même (syncable, merge.js).
   const r0 = c.reset;
   if (!i && c.remote) c.reset = Date.now();
@@ -116,6 +118,7 @@ async function delFrom(i) {
         c.messages.push(...removed);
         c.mem.upto = upto;
         c.mem.lines = lines;
+        c.mem.chapters = chapters;
         c.reset = r0;
         await save();
         render(true);
@@ -134,6 +137,7 @@ async function resendFrom(i, t) {
   // Le tour modifié doit repartir tel quel : il sort du résumé s'il y était déjà.
   c.mem.upto = Math.min(upto, i);
   c.mem.lines = cutLines(c.mem.lines || [], i);
+  c.mem.chapters = cutChapters(c.mem.chapters, i);
   if (pv?.alts) {
     delete pv.alts;
     delete pv.ai;

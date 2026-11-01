@@ -772,6 +772,26 @@ try {
       'l’ancienne scène garde son décor'
     );
 
+    // Chapitres : titres au-dessus des scènes dans le Sommaire, relus et corrigés dans la feuille Mémoire.
+    await p3.evaluate(async () => {
+      const { app } = await import('/js/state.js');
+      app.cur.mem.chapters = [{ t: 'L’auberge', s: 'Arrivée à l’auberge.', upto: 4 }];
+    });
+    await p3.click('#mo');
+    await p3.click('#msm');
+    await p3.waitForSelector('#dsm[open]');
+    assert.deepEqual(await p3.locator('#sml .chh').allTextContents(), ['Chapitre 1 · L’auberge', 'Chapitre 2 · en cours']);
+    await p3.click('#dsmc');
+    await p3.click('#mo');
+    await p3.click('#mb');
+    await p3.waitForSelector('#dm[open]');
+    assert.equal(await p3.inputValue('#mch .chp input'), 'L’auberge');
+    assert.equal(await p3.textContent('#msul'), 'Résumé du chapitre en cours');
+    await p3.fill('#mch .chp textarea', 'Corrigé.');
+    await p3.click('#dms');
+    await p3.waitForSelector('#dm', { state: 'hidden' });
+    assert.equal(await p3.evaluate(async () => (await import('/js/state.js')).app.cur.mem.chapters[0].s), 'Corrigé.');
+
     await p3.locator('#msgs .m[data-i] .scn').first().click();
     await p3.waitForSelector('#dpic[open] .scn.big');
     await p3.click('#dpic');

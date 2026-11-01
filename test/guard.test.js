@@ -33,7 +33,8 @@ test('un lot de résumé ne vaut plus si le lot ou la mémoire changent pendant 
     'message du lot modifié': s => (s.messages[12].content = 'autre'),
     'variante choisie dans le lot': s => (s.messages[13] = { ...s.messages[13], content: 'variante' }),
     'résumé corrigé à la main': s => (s.mem.summary = 'corrigé'),
-    'souvenirs enregistrés': s => (s.mem.memories = [...s.mem.memories])
+    'souvenirs enregistrés': s => (s.mem.memories = [...s.mem.memories]),
+    'chapitres enregistrés': s => (s.mem.chapters = [...(s.mem.chapters || [])])
   };
   for (const [name, change] of Object.entries(cases)) {
     const s = story(),

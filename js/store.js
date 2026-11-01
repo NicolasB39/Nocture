@@ -1,6 +1,6 @@
 import { S, app } from './state.js';
 import { LS, plain, uid } from './util.js';
-import { REL_MAX, cutLines } from './memory.js';
+import { REL_MAX, cutChapters, cutLines } from './memory.js';
 
 let db;
 // Un message ou une variante : texte, et choix et état déjà mis à part à l'enregistrement (split, format.js).
@@ -76,6 +76,9 @@ export const clean = x => {
             .slice(-24)
         : [],
       relations: rel,
+      chapters: Array.isArray(mm.chapters)
+        ? mm.chapters.filter(v => v && typeof v.s == 'string').map(v => ({ t: s(v.t), s: v.s, upto: Math.min(n(v.upto), messages.length) }))
+        : [],
       upto: Math.min(n(mm.upto), messages.length)
     }
   };
@@ -88,6 +91,7 @@ export const forkOf = (s, i, name, id) => {
   Object.assign(c, { id, name, pin: false });
   c.messages = c.messages.slice(0, n);
   c.mem.lines = cutLines(c.mem.lines, n);
+  c.mem.chapters = cutChapters(c.mem.chapters, n);
   c.mem.upto = Math.min(c.mem.upto, n);
   return c;
 };

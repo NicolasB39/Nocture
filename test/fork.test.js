@@ -1,6 +1,27 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { clean, forkOf } from '../js/store.js';
+import { cutChapters } from '../js/memory.js';
+
+test('chapitres : coupés avec l’histoire, nettoyés au chargement', () => {
+  const C = [
+    { t: 'A', s: 'a', upto: 60 },
+    { t: 'B', s: 'b', upto: 120 },
+    { t: 'C', s: 'c', upto: 180 }
+  ];
+  assert.deepEqual(cutChapters(C, 200), C);
+  assert.deepEqual(cutChapters(C, 90).map(c => [c.t, c.upto]), [['A', 60], ['B', 90]], 'B contient 90 : il y finit ; C disparaît');
+  assert.deepEqual(cutChapters(C, 60).map(c => c.t), ['A'], 'B commence en 60 : il disparaît');
+  assert.deepEqual(cutChapters(undefined, 10), []);
+  const s = clean({
+    id: 'c',
+    name: 'C',
+    messages: Array.from({ length: 100 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'm' + i })),
+    mem: { summary: '', upto: 100, chapters: [{ t: 'A', s: 'a', upto: 60 }, { t: 'B', s: 'b', upto: 150 }, { t: 'x' }, null] }
+  });
+  assert.deepEqual(s.mem.chapters, [{ t: 'A', s: 'a', upto: 60 }, { t: 'B', s: 'b', upto: 100 }]);
+  assert.deepEqual(forkOf(s, 49, 'f', 'f2').mem.chapters, [{ t: 'A', s: 'a', upto: 50 }]);
+});
 
 const s = clean({
   id: 'a',

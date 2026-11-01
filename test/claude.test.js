@@ -105,7 +105,13 @@ test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un 
     calls++;
     fmt = JSON.parse(o.body).output_config?.format;
     const n = (JSON.parse(o.body).messages.at(-1).content.match(/^\d+\. /gm) || []).length;
-    const t = JSON.stringify({ resume: 'Résumé ' + calls, souvenirs: [' Un fait. '], relations: [{ nom: 'Alice', relation: 'amie' }], lignes: Array.from({ length: n }, (_, i) => 'ligne ' + i) });
+    const t = JSON.stringify({
+      resume: 'Résumé ' + calls,
+      souvenirs: [' Un fait. '],
+      relations: [{ nom: 'Alice', relation: 'amie' }],
+      lignes: Array.from({ length: n }, (_, i) => 'ligne ' + i),
+      chapitre: { clos: false, titre: '', resume: '' }
+    });
     return new Response(JSON.stringify({ model: 'claude-haiku-5-5', content: [{ type: 'text', text: t }], stop_reason: 'end_turn', usage: { input_tokens: 900, output_tokens: 200 } }), {
       status: 200,
       headers: { 'content-type': 'application/json' }
@@ -136,6 +142,71 @@ test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un 
   } finally {
     Object.assign(app, { cur, busy });
   }
+});
+
+test('chapitres : clos par le modèle à partir de 60 messages, jamais avant ; consigne selon la longueur', async () => {
+  const { app } = await import('../js/state.js');
+  const { summarize } = await import('../js/ai.js');
+  const cur = app.cur,
+    busy = app.busy;
+  let asked = [],
+    props = [];
+  globalThis.fetch = async (u, o) => {
+    props.push('chapitre' in JSON.parse(o.body).output_config.format.schema.properties);
+    const c = JSON.parse(o.body).messages.at(-1).content,
+      n = (c.match(/^\d+\. Joueur|^\d+\. Narrateur/gm) || []).length;
+    asked.push(c.match(/Chapitre en cours : .*/)[0]);
+    const t = JSON.stringify({
+      resume: 'Situation',
+      souvenirs: [],
+      relations: [],
+      lignes: Array.from({ length: n }, () => 'l'),
+      chapitre: { clos: true, titre: ' La Faille ', resume: 'Tout le chapitre.' }
+    });
+    return new Response(JSON.stringify({ content: [{ type: 'text', text: t }], stop_reason: 'end_turn', usage: { input_tokens: 900, output_tokens: 200 } }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' }
+    });
+  };
+  const s = {
+    id: 'chap',
+    messages: Array.from({ length: 170 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'message ' + i })),
+    mem: { summary: '', memories: [], relations: {}, lines: [], upto: 0 }
+  };
+  try {
+    // Histoire ouverte pendant un tour : la mémoire reste sur l'objet, sans passer par la base.
+    Object.assign(app, { cur: s, busy: true });
+    await summarize(s);
+    // 130 messages résumés par lots de 20 : clôture refusée à 20, 40, accordée à 60 ; puis 20, 40, 60 à nouveau.
+    assert.deepEqual(
+      s.mem.chapters.map(c => [c.t, c.s, c.upto]),
+      [
+        ['La Faille', 'Tout le chapitre.', 60],
+        ['La Faille', 'Tout le chapitre.', 120]
+      ]
+    );
+    assert.match(asked[0], /Trop court pour être clos/);
+    assert.deepEqual(props.slice(0, 3), [false, false, true], 'champ chapitre demandé à partir de 60 messages seulement');
+    assert.match(asked[2], /terminent un arc/);
+    asked = [];
+    s.messages.push(...Array.from({ length: 300 }, (_, i) => ({ role: i % 2 ? 'user' : 'assistant', content: 'suite ' + i })));
+    s.mem.chapters = [];
+    s.mem.upto = 300;
+    await summarize(s);
+    assert.match(asked[0], /Il est temps de le clore/, '320 messages sans chapitre');
+  } finally {
+    Object.assign(app, { cur, busy });
+  }
+});
+
+test('chapitres : envoyés en tête de la mémoire, les plus anciens par leur titre seul', () => {
+  const s = {
+    messages: [{ role: 'user', content: 'Bonjour' }],
+    mem: { summary: 'En cours.', memories: [], relations: {}, lines: [], upto: 0, chapters: Array.from({ length: 14 }, (_, i) => ({ t: 'T' + (i + 1), s: 'Résumé ' + (i + 1), upto: 0 })) }
+  };
+  const sys = buildInfo(s).msgs[0].content;
+  assert.match(sys, /<chapitres>\nChapitre 1 : T1\n\nChapitre 2 : T2\n\nChapitre 3 : T3\nRésumé 3[\s\S]*Résumé 14\n<\/chapitres>[\s\S]*<previous_history>\nEn cours\./);
+  assert.doesNotMatch(sys, /Résumé [12]\b/);
 });
 
 test('sorties structurées : le schéma rejoint l’effort dans output_config, ou part seul', () => {

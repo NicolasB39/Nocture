@@ -256,7 +256,7 @@ L'application range donc le prompt par volatilité croissante :
 
 ```
 système  prompt du scénario, préambule, casting, fiches et lorebook « toujours »,
-         codes d'images, protocole, avatar               ← fixe
+         codes d'images, protocole, avatar, chapitres    ← fixe
          résumé, lignes récentes, souvenirs, relations, note   ← change par paliers
 historique
 queue    dernier message, lorebook déclenché, fiches en scène, passages anciens, état précédent
@@ -276,7 +276,7 @@ L'application appelle l'API native de Claude (`/v1/messages`). Renseignez « Cl�
 
 L'application pose trois marqueurs de cache :
 
-1. après la partie fixe de la consigne (scénario, préambule, liste des personnages, fiches et lorebook `toujours`, codes d'images, protocole, avatar) : elle ne change jamais en cours de partie, et reste relue depuis le cache même quand la mémoire change ;
+1. après la partie fixe de la consigne (scénario, préambule, liste des personnages, fiches et lorebook `toujours`, codes d'images, protocole, avatar, chapitres clos) : elle ne change qu'à la clôture d'un chapitre, et reste relue depuis le cache même quand la mémoire change ;
 2. après la mémoire (résumé, lignes récentes, souvenirs, relations, note) ;
 3. sur l'avant-dernier message, juste avant le dernier message qui porte le lorebook déclenché, les fiches en scène et l'état précédent.
 
@@ -317,11 +317,12 @@ Avant l'envoi, le décompte est estimé à 3,4 caractères par token ; le nombre
 
 ## Mémoire
 
-La mémoire tient sur trois étages, du plus détaillé au plus condensé :
+La mémoire tient sur quatre étages, du plus détaillé au plus condensé :
 
 - **La fenêtre** : les derniers messages, envoyés mot pour mot.
 - **Les lignes récentes** : une phrase par message sorti de la fenêtre, pour garder le détail immédiat sans payer le texte intégral. Les plus anciennes disparaissent au fur et à mesure, une fois absorbées par le résumé.
-- **Le résumé** : le récit condensé de tout ce qui précède, plafonné pour ne pas gonfler avec le temps. Il est écrit en deux parties, « Événements » et « Situation actuelle », qui nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; les souvenirs gardent eux aussi en priorité ce qui pourra revenir plus tard, pour que le narrateur ait de quoi faire revenir le passé ; les souvenirs, les relations et l'objectif ont leurs propres champs et ne doivent pas y figurer. Quand il dépasse son plafond, il est coupé à la fin de la dernière phrase complète plutôt qu'au milieu d'un mot.
+- **Les chapitres** : quand un lot de messages termine un arc (lieu quitté pour de bon, quête achevée, ellipse), le modèle de mémoire clôt le chapitre en cours : un titre et un résumé de 700 caractères au plus, figés ensuite, jamais réécrits. Un chapitre compte au moins 60 messages ; à 200, le modèle est invité à le clore. Le narrateur reçoit les chapitres juste avant la mémoire, en entier pour les 12 derniers, par leur titre seul pour les plus anciens. Comme ils ne changent qu'à la clôture d'un chapitre, ils ferment la partie fixe du prompt : relus depuis le cache à chaque tour, ils ne sont réécrits qu'une fois par chapitre, et non à chaque mise à jour de la mémoire comme le résumé. Sans chapitres, un résumé unique se réécrivait sur lui-même à chaque lot, et les débuts d'une longue histoire s'y réduisaient à une phrase. Les chapitres se relisent et se corrigent dans la feuille Mémoire, et servent de titres dans le Sommaire.
+- **Le résumé** : le récit condensé du chapitre en cours (de toute l'histoire tant qu'aucun chapitre n'est clos), plafonné pour ne pas gonfler avec le temps. Il est écrit en deux parties, « Événements » et « Situation actuelle », qui nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; les souvenirs gardent eux aussi en priorité ce qui pourra revenir plus tard, pour que le narrateur ait de quoi faire revenir le passé ; les souvenirs, les relations et l'objectif ont leurs propres champs et ne doivent pas y figurer. Quand il dépasse son plafond, il est coupé à la fin de la dernière phrase complète plutôt qu'au milieu d'un mot.
 
 Chaque ligne récente renvoie au message qu'elle résume, ce qui permet au Sommaire d'y sauter. Si le modèle renvoie plus ou moins de lignes qu'il n'a reçu de messages, les lignes sont gardées sans ce lien, plutôt que de pointer vers de mauvais messages.
 
@@ -335,13 +336,13 @@ Le résumé, les souvenirs, les relations et les lignes récentes arrivent dans 
 
 Une relation enregistrée peut dater : la mémoire ne résume les messages qu'avec un retard de 40 à 120 messages (par lots de 20, voir « API Claude »), et l'IA lit pourtant la relation d'un personnage en scène en fin de prompt, juste avant d'écrire. Pour qu'elle ne l'emporte pas sur une évolution récente, cette ligne est envoyée sous la forme « Relation (état enregistré, peut dater ; les événements récents priment) : … », et le bloc `<relations>` de la mémoire porte la même mise en garde en tête. La liste complète ne change qu'à chaque mise à jour de la mémoire, comme le résumé : elle est donc relue depuis le cache sans le réécrire d'un tour à l'autre, quel que soit le personnage en scène.
 
-Le résumé et les souvenirs restent modifiables à la main dans la feuille Mémoire. Les relations, elles, n'y figurent plus : elles sont mises à jour par le modèle et affichées en lecture seule dans la fenêtre Personnages. Enregistrer la feuille Mémoire ne les touche pas.
+Les chapitres (titre, résumé, retrait), le résumé et les souvenirs restent modifiables à la main dans la feuille Mémoire. Supprimer des messages, renvoyer un tour modifié ou bifurquer retire les chapitres qui commencent après le point de coupe ; celui qui le contient s'y arrête désormais, son résumé gardant, comme celui de la mémoire, la trace de la suite. Les relations, elles, n'y figurent plus : elles sont mises à jour par le modèle et affichées en lecture seule dans la fenêtre Personnages. Enregistrer la feuille Mémoire ne les touche pas.
 
 L'objectif courant ne vit pas dans la mémoire mais dans le panneau d'état, qui est mis à jour à chaque tour. Ajoutez simplement un champ `Objectif` à la liste.
 
 Tout est régénéré par une requête de résumé lancée pendant que vous lisez la réponse précédente. Dans Réglages, « Modèle pour la mémoire » permet de confier ce travail à un modèle plus petit que celui de la narration.
 
-Cette requête demande une réponse **en JSON** avec les sorties structurées de l'API (`output_config.format`) : un schéma fixe les champs `resume`, `souvenirs`, `relations` (liste de `{ nom, relation }`) et `lignes`, et Claude répond toujours conformément. La narration, elle, reste en texte balisé : le JSON empêcherait l'affichage au fil de l'eau et abîmerait l'écriture, alors que la mémoire n'est jamais affichée telle quelle. Si la requête échoue (réseau, réponse coupée par la longueur maximale), la mémoire reste inchangée et l'essai reprend au tour suivant.
+Cette requête demande une réponse **en JSON** avec les sorties structurées de l'API (`output_config.format`) : un schéma fixe les champs `resume`, `souvenirs`, `relations` (liste de `{ nom, relation }`), `lignes` et, une fois le chapitre en cours assez long pour être clos, `chapitre` (`{ clos, titre, resume }`), et Claude répond toujours conformément. La narration, elle, reste en texte balisé : le JSON empêcherait l'affichage au fil de l'eau et abîmerait l'écriture, alors que la mémoire n'est jamais affichée telle quelle. Si la requête échoue (réseau, réponse coupée par la longueur maximale), la mémoire reste inchangée et l'essai reprend au tour suivant.
 
 Cette requête n'est pas diffusée : son délai maximal est de 5 minutes au lieu de 2.
 
@@ -362,7 +363,7 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 ## Repères dans la conversation
 
 - **Limite de contexte** : une ligne « l'IA lit à partir d'ici » traverse le fil au premier message envoyé tel quel. Au-dessus, l'IA ne dispose que de la mémoire. C'est la version visible du compteur de tokens.
-- **Sommaire** (menu « … ») : les scènes du récit dans l'ordre, une par lieu (le même découpage que les intertitres), sur toute l'histoire. Les scènes sont repliées : chacune affiche son lieu et son nombre de tours, et la scène en cours est soulignée. Toucher une scène l'ouvre (ou la referme) : elle montre alors sa première phrase, les lignes récentes de la mémoire qui la résument (24 au plus pour toute l'histoire, donc surtout pour les scènes récentes) et un bouton « Aller à cette scène ». Ce bouton ou une ligne mène au message, qui clignote à l'arrivée. Un lieu revisité apparaît deux fois, à sa place dans le récit. Sans champ « Lieu » dans l'état, le Sommaire reste la liste des lignes récentes.
+- **Sommaire** (menu « … ») : les scènes du récit dans l'ordre, sous les titres des chapitres clos puis du chapitre en cours, une par lieu (le même découpage que les intertitres), sur toute l'histoire. Les scènes sont repliées : chacune affiche son lieu et son nombre de tours, et la scène en cours est soulignée. Toucher une scène l'ouvre (ou la referme) : elle montre alors sa première phrase, les lignes récentes de la mémoire qui la résument (24 au plus pour toute l'histoire, donc surtout pour les scènes récentes) et un bouton « Aller à cette scène ». Ce bouton ou une ligne mène au message, qui clignote à l'arrivée. Un lieu revisité apparaît deux fois, à sa place dans le récit. Sans champ « Lieu » dans l'état, le Sommaire reste la liste des lignes récentes.
 - **Recherche dans l'histoire** (menu « … ») : cherche dans tous les messages, affiche un extrait autour de chaque occurrence et saute au message choisi, même s'il est au-delà des messages affichés.
 - **Panneau d'état** : chaque valeur numérique affiche sa variation depuis le tour précédent (▲ +1, ▼ −4).
 - **Images** : touchez une image pour l'ouvrir en plein écran.
@@ -388,7 +389,7 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 - Rappel automatique de passages anciens quand la scène reparle d'un détail sorti de l'historique envoyé.
 - Coût estimé par modèle et par période dans les statistiques, en dollars ou en euros.
 - Le bouton stop (et la sortie de la conversation) conserve le texte déjà reçu, que « Continuer » peut prolonger.
-- Mémoire à trois étages : résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note utilisateur (menu « … » de la conversation), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
+- Mémoire à quatre étages : chapitres, résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note utilisateur (menu « … » de la conversation), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
 - Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut).
 - Modèle et effort par scénario (section Génération des réglages du scénario). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les statistiques.
 - Coût des extras affiché sous les cases Choix et Panneau d'état (section Narration) : taille moyenne d'un bloc, part de la sortie et coût pour 100 réponses, mesurés sur les dernières réponses de l'histoire. Ces blocs sont réécrits par l'IA à chaque réponse et payés comme sortie : décochez ceux qui ne servent pas.
@@ -470,7 +471,7 @@ js/
   settings.js       réglages du scénario, mémoire, note, réglages IA, import
   backup.js         export, synchronisation GitHub (syncOnce testé avec un dépôt simulé, test/sync.test.js)
   merge.js          fusion des sauvegardes (sans DOM, testé unitairement)
-  memory.js         mémoire longue : fusion des souvenirs et des relations
+  memory.js         mémoire longue : fusion des souvenirs et des relations, chapitres
   stats.js          statistiques d'usage en tokens (sans DOM, testé unitairement)
   cost.js           tarifs et coût estimé (sans DOM, testé unitairement)
   statview.js       feuille Statistiques
