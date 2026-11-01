@@ -132,10 +132,9 @@ export async function ask(old, cont, hint) {
     const r = await chat(info.msgs, {
       max: +s.maxTok || 0,
       ac,
-      od: S.noStream ? null : live,
+      od: live,
       model: modelOf(s),
       effort: s.effort || 'low',
-      effBase: info.effort,
       primary: true,
       kind: cont ? 'continuer' : hint ? 'indication' : old ? 'régénérer' : 'tour',
       sid: s.id,
@@ -150,7 +149,6 @@ export async function ask(old, cont, hint) {
         }
       }
     });
-    app.stream = { mode: S.noStream ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
     const out = r.t;
     cut = r.cut;
     part = !!r.partial;

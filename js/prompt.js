@@ -1,6 +1,6 @@
 import { lastEtat } from './format.js';
 import { SUM_MAX, clip, sameName } from './memory.js';
-import { DEFAULT_FIELDS, modelOf, protocol } from './protocol.js';
+import { DEFAULT_FIELDS, protocol } from './protocol.js';
 import { RECALL_N, recall, recallTag } from './recall.js';
 import { S, ctx } from './state.js';
 import { nz } from './util.js';
@@ -103,50 +103,6 @@ const relOf = (mem, name) => {
       return '\nRelation (état enregistré, peut dater ; les événements récents priment) : ' + mem.relations[r];
   return '';
 };
-// Changements d'effort de l'histoire, s.effLog : [indice du premier message concerné, effort]. Avec Claude, l'effort
-// de premier niveau reste celui du premier message envoyé, et les changements suivants deviennent des messages
-// d'effort dans l'historique (toAnt, ai.js) : changer l'effort en cours de partie ne réécrit plus le cache.
-// Un changement vaut à partir du prochain tour du joueur : le dernier message s'il attend encore sa réponse.
-export const effortSet = (s, e) => {
-  if ((s.effort || '') === e) return;
-  const n = s.messages.length,
-    at = s.messages.at(-1)?.role == 'user' ? n - 1 : n,
-    u = Math.min(s.mem?.upto || 0, at),
-    log = (s.effLog?.length ? s.effLog : [[0, s.effort || '']]).filter(([k]) => k < at);
-  // Les changements déjà résumés ne servent plus qu'à donner l'effort de départ : fondus en une entrée, pour
-  // que le journal ne grossisse pas avec la partie.
-  const old = log.filter(([k]) => k <= u);
-  s.effLog = [...(old.length ? [[0, old.at(-1)[1]]] : []), ...log.filter(([k]) => k > u), [at, e]];
-  s.effort = e;
-};
-// Messages retirés à partir de n (suppression, renvoi, bifurcation) : un changement fait plus loin vaut dès n.
-export const effortCut = (s, n) => {
-  if (!s.effLog?.length) return;
-  const m = new Map();
-  for (const [k, v] of s.effLog) m.set(Math.min(k, n), v);
-  s.effLog = [...m].sort((a, b) => a[0] - b[0]);
-};
-// Effort de premier niveau (celui en vigueur au message first, le premier envoyé) et changements à placer
-// devant des messages plus loin. Un changement placé après le dernier tour du joueur (réponse régénérée) est
-// ramené devant lui : un message d'effort ne vaut qu'à partir du tour du joueur qui le suit.
-export const effortPlan = (s, first) => {
-  const log = s.effLog?.length ? s.effLog : [[0, s.effort || '']],
-    lu = s.messages.findLastIndex(m => m.role == 'user'),
-    marks = [];
-  let base = log[0][1] || 'low';
-  for (const [k, e] of log) {
-    const at = lu < 0 ? k : Math.min(k, lu),
-      v = e || 'low';
-    if (at <= first) {
-      base = v;
-      continue;
-    }
-    // Deux changements ramenés au même message : le dernier l'emporte ; aucun message s'il ne change rien.
-    if (marks.at(-1)?.[0] === at) marks.pop();
-    if (v !== (marks.at(-1)?.[1] ?? base)) marks.push([at, v]);
-  }
-  return { base, marks };
-};
 export function buildInfo(s, cont, hint) {
   const nm = s.pname?.trim() || '';
   const U = t => t.replace(/\{\{user\}\}/gi, nm || 'Joueur');
@@ -155,8 +111,7 @@ export function buildInfo(s, cont, hint) {
   let sys = c.system || '';
   if (!s.noPre && S.pre?.trim()) sys += '\n\n' + S.pre.trim();
   sys += castBlock() + permBlock(s.loreMax);
-  const P = protocol({
-    model: modelOf(s),
+  sys += protocol({
     stat: statOn(s),
     fields: statFields(s).replace(/\s*\n+\s*/g, ', '),
     choices: !s.noChoices,
@@ -164,7 +119,6 @@ export function buildInfo(s, cont, hint) {
     style: !s.noStyle,
     images: (ctx.images || []).length > 0
   });
-  sys += P.sys;
   if (av.trim()) sys += '\n\n# Avatar du joueur\n' + av;
   const cut = U(sys).length;
   sys = U(sys + memBlock(s));
@@ -208,15 +162,11 @@ export function buildInfo(s, cont, hint) {
       '\n\n<indication>\nPour cette réponse seulement, le joueur demande : ' +
       hint.trim() +
       '\nRespecte-la sans la mentionner dans le récit.\n</indication>';
-  add += P.tail;
   if (add && l?.role == 'user') l.content += U(add);
 
   const sysMsg = sys.trim() ? [{ role: 'system', content: sys, cut }] : [];
-  const eff = effortPlan(s, start);
-  for (const [at, v] of eff.marks) if (at - start < ms.length) ms[at - start].effBefore = v;
   return {
     msgs: [...sysMsg, ...ms],
-    effort: eff.base,
     // Estimation des tokens envoyés (compteur sous la conversation).
     used: (sysMsg.length ? estTok(sys) : 0) + ms.reduce((a, m) => a + estTok(m.content), 0),
     // Premier message envoyé tel quel : ceux d'avant sont dans la mémoire.

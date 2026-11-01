@@ -44,12 +44,11 @@ test('un message d’effort placé après le marqueur de cache n’en fait pas p
 });
 
 test('la fin de requête est découpée en blocs ajoutés par l’application', () => {
-  const b = req([u('Je pousse la porte.', '\n\n<lorebook>\n' + 'L'.repeat(340) + '\n</lorebook>\n\n<etat_precedent>\nLieu: Quai\n</etat_precedent>\n\n<rappel>\nTermine.\n</rappel>')]);
+  const b = req([u('Je pousse la porte.', '\n\n<lorebook>\n' + 'L'.repeat(340) + '\n</lorebook>\n\n<etat_precedent>\nLieu: Quai\n</etat_precedent>')]);
   const t = Object.fromEntries(tailParts(b));
   assert.ok(t['Dernier message du joueur'] > 0 && t['Dernier message du joueur'] < 15);
   assert.ok(t['Lorebook déclenché'] > 100);
   assert.ok(t['État précédent'] > 0);
-  assert.ok(t['Rappel des formats'] > 0);
 });
 
 test('journal coché sans base ouverte : l’appel aboutit quand même', async () => {

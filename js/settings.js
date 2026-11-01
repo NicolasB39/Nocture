@@ -4,10 +4,9 @@ import { jump, render, tk } from './view.js';
 import { PRICES, money, priceOf } from './cost.js';
 import { fr } from './format.js';
 import { draw, showList } from './list.js';
-import { effortSet, extrasOf, statOn } from './prompt.js';
+import { extrasOf, statOn } from './prompt.js';
 import { DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
 import { fillLec, setReading } from './read.js';
-import { reset as rlReset } from './rate.js';
 import { tocOf } from './scene.js';
 import { TERR, coverOf, getTree, loadCtx } from './scenarios.js';
 import { API, S, app, ctx } from './state.js';
@@ -248,7 +247,7 @@ $('#dss').onclick = async () => {
   app.cur.cover = COVER;
   app.cur.accent = ACC;
   app.cur.maxTok = +$('#smx').value || 0;
-  effortSet(app.cur, $('#sef').value);
+  app.cur.effort = $('#sef').value;
   app.cur.model = $('#smo').value.trim();
   app.cur.memN = num('#smm');
   app.cur.recallN = num('#srcl');
@@ -265,22 +264,6 @@ $('#dss').onclick = async () => {
   render();
   $('#ds').close();
 };
-const streamInfo = () => {
-  const x = app.stream;
-  if (!x) return 'Aucune réponse reçue pour le moment dans cette session.';
-  const sec = (x.ms / 1000).toFixed(1).replace('.', ',');
-  if (x.mode == 'off') return 'Dernière réponse : le streaming est désactivé dans ces réglages.';
-  if (x.chunks < 4)
-    return (
-      'Dernière réponse : diffusée en ' +
-      x.chunks +
-      (x.chunks > 1 ? ' morceaux' : ' morceau') +
-      ' seulement (' +
-      sec +
-      ' s). Le modèle envoie de gros morceaux ou a réfléchi avant de répondre.'
-    );
-  return 'Dernière réponse : diffusée en ' + x.chunks + ' morceaux (' + sec + ' s).';
-};
 function openCfg() {
   $('#ck').value = S.key || '';
   $('#cm').value = S.model || '';
@@ -288,14 +271,11 @@ function openCfg() {
   $('#cmm').value = S.memModel || '';
   $('#cmm').placeholder = memModel();
   $('#cwa').checked = S.warm !== false;
-  $('#cn').checked = !!S.noStream;
   $('#cch').checked = !!S.c1h;
   $('#cjr').checked = !!S.journal;
   fillLec();
-  $('#cst').textContent = streamInfo();
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
-  $('#cpr').value = S.proto || '';
   $('#ctc').checked = !!S.counters;
   $('#sto').textContent = '';
   Promise.all([
@@ -370,18 +350,15 @@ $('#imf').onchange = async e => {
 };
 $('#dcc').onclick = () => $('#dc').close();
 $('#dcs').onclick = async () => {
-  if ($('#cm').value.trim() !== (S.model || '')) rlReset();
   S.key = $('#ck').value.trim();
   S.model = $('#cm').value.trim();
   S.memModel = $('#cmm').value.trim();
-  S.noStream = $('#cn').checked;
   S.c1h = $('#cch').checked;
   S.warm = $('#cwa').checked;
   const rp = $('#crp').value.trim();
   if (rp !== (S.repo || '')) LS.del('tree');
   S.repo = rp;
   S.pre = $('#cpre').value.trim();
-  S.proto = $('#cpr').value;
   S.counters = $('#ctc').checked;
   S.journal = $('#cjr').checked;
   await saveSet();

@@ -2,8 +2,6 @@ import { face } from './cast.js';
 import { money } from './cost.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
-import { modelOf } from './protocol.js';
-import { status, wait } from './rate.js';
 import { refreshSpeech, ttsOk, visibleStart } from './read.js';
 import { coverOf } from './scenarios.js';
 import { decorFor, decorNow, decorsOf, lieuOf, scenesOf } from './scene.js';
@@ -29,8 +27,6 @@ export const infoOf = () => {
       m.lines?.length,
       Object.keys(m.relations || {}).length,
       S.pre?.length,
-      S.proto,
-      modelOf(),
       (ctx.chars || []).length,
       (ctx.lore || []).length
     ].join('|');
@@ -48,8 +44,6 @@ export function tk() {
   if (!app.cur || !S.counters) {
     e.textContent = '';
     e.hidden = true;
-    if (app.cur) rlView();
-    else $('#rl').hidden = true;
     return;
   }
   const r = infoOf(),
@@ -80,42 +74,6 @@ export function tk() {
     el('span', { class: 'tkl', text: long })
   );
   e.hidden = false;
-  rlView(r.used);
-}
-let rlEst = 0,
-  rlT = 0;
-const rlStop = () => {
-  clearInterval(rlT);
-  rlT = 0;
-};
-function rlView(est) {
-  if (est != null) rlEst = est;
-  const g = $('#rl'),
-    s = status(modelOf());
-  if (!s) {
-    g.hidden = true;
-    rlStop();
-    return;
-  }
-  const f = x => x.toLocaleString('fr-FR'),
-    pc = Math.max(0, Math.min(100, (s.rem / s.lim) * 100)),
-    w = wait(rlEst + (+app.cur?.maxTok || 500), modelOf());
-  g.className = w ? 'w' : '';
-  g.firstChild.firstChild.style.width = pc + '%';
-  g.lastChild.textContent =
-    f(s.rem) +
-    ' / ' +
-    f(s.lim) +
-    ' tokens par minute' +
-    (w ? ' · prochain tour dans ~' + w + ' s' : '');
-  g.hidden = !S.counters && !w;
-  // La jauge se remplit avec le temps : on ne la redessine chaque seconde que tant qu'elle est à l'écran.
-  if (g.hidden || $('#chat').hidden) rlStop();
-  else
-    rlT ||= setInterval(() => {
-      if (app.cur && !$('#chat').hidden && !document.hidden) rlView();
-      else if (!app.cur || $('#chat').hidden) rlStop();
-    }, 1000);
 }
 const act = (i, m, last) => {
   const r = el('div', { class: 'a' });

@@ -7,7 +7,6 @@ globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} }
 
 const { BUSY, backoff, chat, lastTurn, waitMsg } = await import('../js/ai.js');
 const { S } = await import('../js/state.js');
-const { reset } = await import('../js/rate.js');
 
 const ok = t =>
   new Response(JSON.stringify({ content: [{ type: 'text', text: t }], stop_reason: 'end_turn' }), {
@@ -29,7 +28,6 @@ const ms = [{ role: 'user', content: 'Bonjour' }];
 
 beforeEach(() => {
   Object.assign(S, { key: 'k', model: '' });
-  reset();
 });
 
 test('backoff double à chaque essai, borné, et suit retry-after', () => {
@@ -107,7 +105,6 @@ test('annuler pendant l’attente arrête les essais', async () => {
 test('les messages d’attente nomment la cause', () => {
   assert.match(waitMsg(4, 'busy'), /surchargé ou en panne : nouvelle tentative dans 4 s/);
   assert.match(waitMsg(3, 'net'), /connexion perdue/);
-  assert.match(waitMsg(9, 'pace'), /envoi dans 9 s/);
 });
 
 // Flux simulé : un morceau par lecture, puis fin propre ou coupure réseau.

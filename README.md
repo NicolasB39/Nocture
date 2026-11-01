@@ -111,7 +111,7 @@ L'application est propriétaire du **protocole** : les formats du bloc `<etat>`,
 Conséquences :
 
 - Faire évoluer un format se fait en un seul endroit, pour tous les scénarios à la fois.
-- Le protocole peut s'adapter au modèle. Réglages, « Consignes de format » : **Automatique** choisit des consignes concises pour Sonnet et Opus, qui les suivent bien, et détaillées pour les autres (Haiku, Fable), **Détaillées** et **Concises** forcent l'un ou l'autre. Le mode concis raccourcit les consignes et supprime le rappel de fin, ce qui économise environ 250 caractères par requête.
+- Les consignes de format sont concises, les mêmes pour tous les modèles : elles décrivent les blocs <etat> et <choix>, le style et les images sans rappel en fin de requête.
 - Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Scénario : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
 
 Le **préambule commun** (Réglages) est votre texte à vous, ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
@@ -213,7 +213,7 @@ En quittant une conversation, l'application retient le message en haut de l'écr
 
 ### Pendant la génération
 
-Au bout de trois secondes sans texte, le bloc en cours affiche « Réflexion… 12 s ». C'est surtout utile quand le streaming est coupé ou que le modèle raisonne avant de répondre : sans cela, rien ne bouge. Les messages d'état (pause de débit, mise à jour de la mémoire) s'affichent en pastille au bas du fil, par-dessus le texte, pour ne pas changer la hauteur de la zone de lecture ; seules les erreurs prennent leur place sous le fil. Un message d'état invisible, destiné aux lecteurs d'écran, annonce le début et la fin de la réponse, et l'auteur de chaque message est annoncé avant son texte.
+Au bout de trois secondes sans texte, le bloc en cours affiche « Réflexion… 12 s ». C'est surtout utile quand le modèle réfléchit avant de répondre : sans cela, rien ne bouge. Les messages d'état (nouvelle tentative, mise à jour de la mémoire) s'affichent en pastille au bas du fil, par-dessus le texte, pour ne pas changer la hauteur de la zone de lecture ; seules les erreurs prennent leur place sous le fil. Un message d'état invisible, destiné aux lecteurs d'écran, annonce le début et la fin de la réponse, et l'auteur de chaque message est annoncé avant son texte.
 
 Pendant l'écriture, les paragraphes terminés sont figés : seul le dernier est reconstruit à chaque rafraîchissement, au lieu de tout le texte reçu. Une longue réponse reste ainsi fluide sur un téléphone modeste. Dès que la réponse aborde son bloc d'état ou de choix, plus rien n'est figé, pour que ces blocs restent masqués. Le message définitif est ensuite rendu normalement. De même, le calcul du prompt qui alimente le compteur n'est refait que si quelque chose qui l'influence a changé ; l'envoi, lui, recalcule toujours tout.
 
@@ -243,7 +243,7 @@ Limites : la synthèse vocale est celle de l'appareil, donc les voix disponibles
 
 ## Prompt, cache et débit
 
-Les Réglages sont groupés : clé API Claude, modèles, streaming et cache en haut, puis « Lecture », « Narration », « Compteurs et débit » et « GitHub et sauvegarde » dans des sections repliées.
+Les Réglages sont groupés : clé API Claude, modèles et cache en haut, puis « Lecture », « Narration », « Compteurs et débit » et « GitHub et sauvegarde » dans des sections repliées.
 
 À chaque envoi partent le prompt système, la mémoire et tous les messages que la mémoire n'a pas encore résumés (voir « Mémoire »).
 
@@ -267,7 +267,7 @@ La mémoire ne change que par paliers, surtout en début de séance (voir « API
 
 Le compteur sous la conversation indique par exemple « ≈ 6 953 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 », et une ligne « l'IA lit à partir d'ici » marque dans le fil le premier message envoyé tel quel : au-dessus, l'IA n'a plus que la mémoire.
 
-Le compteur et la jauge de débit sont **masqués par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Compteurs et débit ») les rend permanents. Masquée, la jauge réapparaît d'elle-même dans le cas où elle sert : un envoi qui doit attendre la minute suivante.
+Le compteur est **masqué par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Compteurs et débit ») le rend permanent.
 
 ### API Claude
 
@@ -292,7 +292,7 @@ Les résumés partent par appels de 20 messages. Sur une séance mesurée de 13 
 
 **Effort.** Sonnet 5.5 et les modèles récents réfléchissent avant de répondre, et cette réflexion, invisible, est facturée comme de la sortie. Réglages du scénario, section Génération : « Effort », **Faible par défaut**, Moyen ou Élevé, envoyé dans `output_config.effort`. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. L'effort n'est envoyé qu'aux modèles qui le prennent en charge (Opus et Sonnet 4.6 et suivants, Opus 4.5, Haiku 5.5, Fable, Mythos) ; Haiku 4.5 et Sonnet 4.5 le refusent, l'application s'en abstient et la note le signale. Les résumés de mémoire partent toujours en effort faible.
 
-**Changer l'effort en cours de partie** ne réécrit pas le cache avec Fable 5.1, Mythos 5.1, Opus 5.5, Opus 5, Sonnet 5.5 et Haiku 5.5. L'effort envoyé en tête de la requête reste celui du premier message envoyé ; le changement devient un court message d'effort glissé dans l'historique, juste avant le tour du joueur où il commence (fonction bêta `mid-conversation-output-config-2026-07-01`). L'histoire garde la liste de ses changements (`effLog`) pour les replacer au même endroit à chaque tour. Ils rejoignent l'effort de tête quand la mémoire se met à jour, qui réécrit le cache de toute façon. Changer l'effort puis régénérer la dernière réponse l'applique à cette réponse. Avec les autres modèles, l'effort change en tête de requête, ce qui réécrit le cache une fois.
+**Changer l'effort en cours de partie** change l'effort en tête de requête, ce qui réécrit le cache une fois (quelques centimes sur une longue histoire).
 
 **Refus.** Claude peut refuser d'écrire une réponse, y compris au milieu du texte, notamment sur des scènes très sombres. L'application l'affiche clairement (« Claude a refusé d'écrire cette réponse », avec le motif quand l'API le donne), ne garde pas le texte déjà reçu, qui n'est pas une réponse complète, et propose « Indication… » pour orienter la scène plutôt que de renvoyer la même requête, qui serait refusée de même. Pour la narration avec Fable 5.1, Opus 5.5, Opus 5 et Sonnet 5.5, l'application demande aussi le **relais** d'Anthropic (`fallbacks: "default"`, bêta `server-side-fallback-2026-07-01`) : une requête refusée est reprise côté serveur par un autre modèle choisi selon le motif. Avec Sonnet 5.5, seuls les refus « cybersécurité » et « développement d'IA » sont relayés ; les refus « contenu sensible », les plus probables en fiction, reviennent comme refus. Haiku 5.5 n'a pas de relais. Une requête qui porte un changement d'effort part sans relais, car le modèle de secours pourrait ne pas le prendre en charge.
 
@@ -300,25 +300,17 @@ Les résumés partent par appels de 20 messages. Sur une séance mesurée de 13 
 
 **Version de l'API et échantillonnage.** L'application appelle Claude avec la version d'API `2026-10-21` (en-tête `anthropic-version`, constante `ANT_VERSION` dans `ai.js`). Dans cette version, `temperature`, `top_p` et `top_k` sont refusés (erreur 400) sur tous les modèles, même à leur valeur par défaut : l'application ne les envoie donc jamais. Conséquence avec Sonnet 4.6, Opus 4.6 et Haiku 4.5, les seuls modèles Claude qui acceptaient encore une température : ils écrivent désormais avec l'échantillonnage par défaut, et il n'existe pas de réglage de remplacement. Les autres changements de cette version (documents dans un message de l'IA, citations dans un message du joueur, champs de l'API d'administration) ne concernent pas l'application. Guide de migration : https://platform.claude.com/docs/en/api/migration-2026-10-21
 
-Les appels partent directement du navigateur avec l'en-tête `anthropic-dangerous-direct-browser-access` : la clé reste sur l'appareil. Les en-têtes de débit `anthropic-ratelimit-*` alimentent la jauge, et une surcharge (529) est relancée comme les autres erreurs passagères (voir « Jauge de débit »), sans toucher à la jauge. Le résumé de mémoire utilise les sorties structurées (`output_config.format`, schéma JSON) : l'API garantit une réponse conforme (voir « Mémoire »).
+Les appels partent directement du navigateur avec l'en-tête `anthropic-dangerous-direct-browser-access` : la clé reste sur l'appareil. Une surcharge (529) est relancée comme les autres erreurs passagères (voir « Erreurs et relances »). Le résumé de mémoire utilise les sorties structurées (`output_config.format`, schéma JSON) : l'API garantit une réponse conforme (voir « Mémoire »).
 
-### Jauge de débit
-
-Sous le compteur, une barre indique les tokens restants dans la minute en cours : « 2 400 / 8 000 tokens par minute · prochain tour dans ~7 s ». Elle passe en rouge quand le tour suivant ne tient pas dans ce qui reste.
-
-La jauge part du chiffre exact des en-têtes `anthropic-ratelimit-*` de la dernière réponse (la limite compte l'entrée sauf le cache lu). Entre deux réponses, elle ne recrédite que les tokens de vos propres requêtes qui viennent réellement de sortir de la fenêtre de soixante secondes, jamais un réapprovisionnement théorique. Sans réponse récente (plus de deux minutes et demie), elle disparaît plutôt que d'afficher un chiffre périmé.
-
-Quand le tour suivant ne tient pas dans ce qui reste, l'application **attend d'elle-même** au lieu de partir dans une erreur de limite. Le décompte s'affiche sous la conversation (« envoi dans 55 s… »), rien n'est envoyé pendant ce temps, et le bouton d'arrêt annule l'attente et vous rend la main. Votre message reste dans la conversation, prêt à être renvoyé. L'attente s'applique aussi à la requête de mémoire, dont les tokens sont décomptés comme les autres.
+### Erreurs et relances
 
 Le compteur affiche aussi les tokens lus et mis en cache. C'est le moyen de vérifier que le préfixe stable du prompt est bien réutilisé.
 
-Le suivi est tenu **par modèle**, parce que les limites le sont aussi : confier les résumés à un autre modèle lui donne son propre compteur, et la jauge de la narration n'en voit rien.
-
 En cas de refus pour dépassement (429), l'application relance jusqu'à trois fois. Le délai est lu dans l'en-tête `retry-after`, à défaut 15, 30 puis 45 secondes, avec un minimum de 3 secondes et un plafond de 90. Le décompte est affiché pendant l'attente, y compris pour la requête de mémoire.
 
-Les **erreurs passagères** sont relancées de la même façon, jusqu'à trois fois : surcharge ou panne de l'API (500, 502, 503, 504, 529) et coupure réseau avant toute réponse. L'attente double à chaque essai (2, 4 puis 8 secondes), sauf si l'API indique elle-même un délai (`retry-after`, plafonné à 60 secondes). Le message dit la cause (« Claude est surchargé ou en panne », « connexion perdue ») et le bouton d'arrêt annule l'attente. Ces erreurs ne touchent pas la jauge de débit, puisqu'elles ne disent rien de votre quota. Une erreur de requête (400, clé refusée…) n'est jamais relancée, et une coupure au milieu d'une réponse diffusée garde le texte reçu, que « Continuer » peut prolonger, plutôt que de tout redemander. Le délai maximal sans réponse repart de zéro après chaque attente.
+Les **erreurs passagères** sont relancées de la même façon, jusqu'à trois fois : surcharge ou panne de l'API (500, 502, 503, 504, 529) et coupure réseau avant toute réponse. L'attente double à chaque essai (2, 4 puis 8 secondes), sauf si l'API indique elle-même un délai (`retry-after`, plafonné à 60 secondes). Le message dit la cause (« Claude est surchargé ou en panne », « connexion perdue ») et le bouton d'arrêt annule l'attente. Une erreur de requête (400, clé refusée…) n'est jamais relancée, et une coupure au milieu d'une réponse diffusée garde le texte reçu, que « Continuer » peut prolonger, plutôt que de tout redemander. Le délai maximal sans réponse repart de zéro après chaque attente.
 
-Deux messages distincts selon l'origine de l'attente : « Pause pour respecter la limite de débit de Claude » quand l'application temporise d'elle-même, avant l'envoi, parce que le tour ne tiendrait pas dans ce qui reste de la minute ; « Claude a refusé l'envoi » quand l'API a réellement répondu 429. Après un refus, la jauge est remise à zéro le temps de l'attente, puis rétablie dès qu'une réponse passe.
+Le message dit la cause de l'attente : « Claude a refusé l'envoi (limite de débit) », « Claude est surchargé ou en panne » ou « connexion perdue ».
 
 Avant l'envoi, le décompte est estimé à 3,4 caractères par token ; le nombre réel, renvoyé par Claude, s'affiche après la réponse (« réel : … »).
 
@@ -383,7 +375,7 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 
 ## Fonctions
 
-- Réponses en streaming (avec diagnostic dans les réglages), trois suggestions de réponse (envoi direct ou crayon pour modifier), bouton annuler.
+- Réponses en streaming, trois suggestions de réponse (envoi direct ou crayon pour modifier), bouton annuler.
 - Variantes de réponse (flèches ‹ ›) en régénérant, bouton « continuer » (double chevron) pour prolonger une réponse coupée.
 - Modifier, copier ou supprimer à partir d'un message (feuille « … » sous le message). La suppression est immédiate, avec un bouton « Annuler » pendant 7 secondes tant que la conversation n'a pas changé. Les lignes récentes des messages supprimés sont retirées de la mémoire ; si la suppression touche des messages déjà résumés, la notification prévient que le résumé en garde la trace. Supprimer à partir du premier message recommence l'histoire ; pour un scénario GitHub, cette remise à zéro est synchronisée comme une modification (sans elle, une histoire GitHub vide n'est jamais synchronisée, et la version en ligne reviendrait).
 - Modifier un message déjà résumé : sa ligne récente est retirée de la mémoire, et une notification prévient que le résumé garde la trace de l'ancienne version.
@@ -397,11 +389,11 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 - Le bouton stop (et la sortie de la conversation) conserve le texte déjà reçu, que « Continuer » peut prolonger.
 - Mémoire à trois étages : résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note utilisateur (menu « … » de la conversation), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
 - Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut).
-- Modèle et effort par scénario (section Génération des réglages du scénario). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les consignes de format automatiques, la jauge de débit et les statistiques.
+- Modèle et effort par scénario (section Génération des réglages du scénario). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les statistiques.
 - Coût des extras affiché sous les cases Choix et Panneau d'état (section Narration) : taille moyenne d'un bloc, part de la sortie et coût pour 100 réponses, mesurés sur les dernières réponses de l'histoire. Ces blocs sont réécrits par l'IA à chaque réponse et payés comme sortie : décochez ceux qui ne servent pas.
 - Protocole de sortie centralisé, adapté au modèle, et préambule commun à tous les scénarios.
 - Modèles proposés dans les champs Modèle : ceux dont le tarif est connu (`js/cost.js`) ; un autre se tape à la main.
-- Compteurs : estimation des tokens envoyés et jauge de débit sous la conversation (voir « Prompt, cache et débit »).
+- Compteurs : estimation des tokens envoyés, cache et coût du dernier tour sous la conversation (voir « Prompt, cache et débit »).
 - Recherche dans la liste, export d'une histoire en `.md`, sauvegarde JSON (clés API exclues) avec rappel tous les 30 jours, synchronisation en ligne sur un dépôt GitHub privé.
 - Bouton retour du téléphone géré, y compris pour fermer une feuille ouverte depuis la liste, fonctionnement hors ligne.
 
@@ -461,7 +453,6 @@ js/
   bus.js            annonces entre modules (on / emit), pour éviter les imports en boucle
   store.js          base locale (IndexedDB) : scénarios, réglages, import validé, bifurcation
   scenarios.js      scénarios GitHub : arbre de fichiers, couvertures, personnages, images, lorebook
-  rate.js           suivi du débit d'après les en-têtes de Claude
   prompt.js         assemblage du prompt : casting, mémoire, lorebook, estimation des tokens
   recall.js         rappel de passages anciens par mots distinctifs (sans DOM, testé unitairement)
   protocol.js       formats de sortie imposés par l'application (état, choix, images)
@@ -538,7 +529,7 @@ Si l'application ne répond plus malgré tout :
 
 ## Streaming
 
-Le texte s'affiche au fur et à mesure que Claude le diffuse. Réglages indique comment la dernière réponse est arrivée : diffusée en N morceaux, ou streaming désactivé (case « Désactiver le streaming »). Les modèles « à raisonnement » réfléchissent avant de répondre : l'application affiche alors « Réflexion… » et le texte n'apparaît qu'ensuite.
+Le texte s'affiche au fur et à mesure que Claude le diffuse. Les modèles réfléchissent avant de répondre : l'application affiche alors « Réflexion… » et le texte n'apparaît qu'ensuite.
 
 ## Sécurité
 

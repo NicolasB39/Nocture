@@ -9,7 +9,6 @@ const sc = (o = {}) =>
   clean({ id: 's', name: 'S', system: 'SYS', messages: [], ...o });
 
 beforeEach(() => {
-  S.proto = '';
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 
@@ -59,14 +58,11 @@ test('tous les messages non résumés partent', () => {
   assert.equal(r.msgs[0].role, 'system');
 });
 
-test('le format des choix vit dans le système, le rappel sur le dernier message', () => {
-  S.proto = 'full';
+test('le format des choix vit dans le système, rien de plus sur le dernier message', () => {
   const s = sc({ messages: [{ role: 'user', content: 'bonjour' }] });
   const r = buildInfo(s);
-  assert.match(r.msgs[0].content, /# Format des choix/);
-  assert.match(r.msgs.at(-1).content, /^bonjour/);
-  assert.match(r.msgs.at(-1).content, /<rappel>/);
-  assert.doesNotMatch(r.msgs[0].content, /<rappel>/);
+  assert.match(r.msgs[0].content, /# Choix/);
+  assert.equal(r.msgs.at(-1).content, 'bonjour');
 });
 
 test('le prompt système ne bouge pas quand l’historique avance', () => {

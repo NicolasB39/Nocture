@@ -1,8 +1,7 @@
 import { HAIKU_LONG, LONG } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
-import { SUM_MAX, clip, mergeMem, mergeRel, splitSummary, unnum } from './memory.js';
-import { hit429, note, wait } from './rate.js';
+import { SUM_MAX, clip, mergeMem, mergeRel, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { addCall, getOne, save } from './store.js';
@@ -40,31 +39,18 @@ export const effortOk = model => {
   return maj > 4 || (maj == 4 && min >= (f == 'opus' ? 5 : 6));
 };
 const base = m => String(m || '').replace(/-\d{8}$/, '');
-// Changement d'effort en cours de partie sans réécrire le cache (beta) : un message système vide portant
-// output_config.effort, inséré dans l'historique, vaut à partir du tour du joueur qui suit. Changer l'effort
-// de premier niveau, lui, réécrit tout le cache des messages.
-export const EFF_BETA = 'mid-conversation-output-config-2026-07-01';
-export const effortMsgOk = model =>
-  ['claude-fable-5-1', 'claude-mythos-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5', 'claude-haiku-5-5'].includes(
-    base(model)
-  );
 // Relais en cas de refus (beta) : la requête refusée est rejouée côté serveur sur le modèle de secours
 // qu'Anthropic choisit selon le motif du refus. Avec Sonnet 5.5, seuls les refus « cyber » et « frontier_llm »
 // sont relayés ; les autres (« general_harms », etc.) reviennent comme refus.
 export const FB_BETA = 'server-side-fallback-2026-07-01';
 export const fallbackOk = model => ['claude-fable-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5'].includes(base(model));
-// En-tête des fonctions bêta qu'utilise une requête Claude.
-export const antBetas = b =>
-  [b.fallbacks && FB_BETA, b.messages?.some(m => m.output_config) && EFF_BETA].filter(Boolean).join(',');
-// effBefore (posé par buildInfo sur un message) : l'effort change juste avant ce message ; effBase : l'effort
-// en vigueur au premier message envoyé. Sans prise en charge par le modèle, l'effort actuel part en premier
-// niveau, comme avant.
+// En-tête bêta d'une requête Claude (le relais en cas de refus).
+export const antBetas = b => (b.fallbacks ? FB_BETA : '');
 // schema : réponse en JSON conforme à ce schéma (sorties structurées), garantie par l'API.
-export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback, schema }) => {
+export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema }) => {
   const cc = { type: 'ephemeral', ...(ttl ? { ttl: '1h' } : {}) },
     sys = [],
-    out = [],
-    marks = effortOk(model) && effortMsgOk(model) && ms.some(m => EFFORTS.includes(m.effBefore));
+    out = [];
   for (const m of ms)
     if (m.role == 'system') {
       const k = m.cut ?? m.content.length;
@@ -73,19 +59,16 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback, 
     }
   for (const m of ms) {
     if (m.role == 'system') continue;
-    if (marks && EFFORTS.includes(m.effBefore))
-      out.push({ role: 'system', content: [], output_config: { effort: m.effBefore } });
     const l = out.at(-1);
     if (l?.role == m.role) l.content += '\n\n' + m.content;
     else out.push({ role: m.role, content: m.content });
   }
   if (out[0]?.role == 'assistant') out.unshift({ role: 'user', content: '(Suite de l’histoire.)' });
-  // Marqueur de cache sur le dernier message avant le tour en cours (un message d'effort n'en porte pas).
-  const b = out.slice(0, -1).findLast(x => x.role != 'system');
+  // Marqueur de cache sur le dernier message avant le tour en cours.
+  const b = out.at(-2);
   if (b?.content.trim()) b.content = [{ type: 'text', text: b.content, cache_control: cc }];
-  const top = marks && EFFORTS.includes(effBase) ? effBase : effort,
-    oc = {
-      ...(EFFORTS.includes(top) && effortOk(model) ? { effort: top } : {}),
+  const oc = {
+      ...(EFFORTS.includes(effort) && effortOk(model) ? { effort } : {}),
       ...(schema ? { format: { type: 'json_schema', schema } } : {})
     };
   return {
@@ -94,8 +77,7 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback, 
     ...(sys.length ? { system: sys } : {}),
     messages: out,
     ...(Object.keys(oc).length ? { output_config: oc } : {}),
-    // Pas de relais avec un changement d'effort : le modèle de secours pourrait ne pas le prendre en charge.
-    ...(fallback && !marks && fallbackOk(model) ? { fallbacks: 'default' } : {}),
+    ...(fallback && fallbackOk(model) ? { fallbacks: 'default' } : {}),
     ...(stream ? { stream: true } : {})
   };
 };
@@ -134,7 +116,6 @@ export async function keepWarm() {
       return false;
     }
     const u = usageOf((await r.json().catch(() => ({}))).usage);
-    note(r.headers, u, b.model);
     journal('relance', w, { sid, key, ...track(u, key), ms: Date.now() - t0 });
     return true;
   } catch (e) {
@@ -195,12 +176,11 @@ const journal = (kind, body, x) => {
 const logged = e => Object.assign(e, { logged: true });
 export async function chat(
   ms,
-  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000, kind = '', sid = '', schema = null } = {}
+  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', onWait = null, primary = false, timeout = 120000, kind = '', sid = '', schema = null } = {}
 ) {
   if (!S.key) throw new Error('clé API manquante');
   if (primary) TURN = null;
   const mdl = model || modelOf(null);
-  const est = ms.slice(-2).reduce((a, m) => a + estTok(m.content), 0) + (max || 500);
   const hold = async (next, why) => {
     for (let w = next(); w > 0 && !ac.signal.aborted; w = next()) {
       onWait?.(w, why);
@@ -209,7 +189,6 @@ export async function chat(
     onWait?.(0);
     if (ac.signal.aborted) throw new Error('Annulé.');
   };
-  await hold(() => wait(est, mdl), 'pace');
   let tm;
   const arm = () => {
     clearTimeout(tm);
@@ -221,13 +200,12 @@ export async function chat(
   let body = null;
   // Fin commune des deux lectures (flux ou bloc) : compte l'usage, journalise, puis rend la réponse ou lève
   // l'erreur. Un refus (relais compris) jette le texte déjà reçu, mais ce qui a été facturé est compté.
-  const finish = (h, { text, stop, sd, served, u, part = false, mode, chunks }) => {
+  const finish = ({ text, stop, sd, served, u, part = false, mode, chunks }) => {
     const key = served || mdl,
       out = text.trim();
     // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de sortie). La
     // sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
     if (part && u && out && u.out < estTok(out)) u = { ...u, out: estTok(out), est: true };
-    note(h, u, mdl);
     const x = { sid, key, ...track(u, key, primary), stop: stop || (part ? 'coupée' : ''), ms: Date.now() - t0 };
     if (stop == 'refusal') {
       journal(kind, body, x);
@@ -248,7 +226,7 @@ export async function chat(
   try {
     for (let a = 0; ; a++) {
       let r;
-      body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary, schema });
+      body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, fallback: primary, schema });
       // La dernière requête de narration sert de modèle au maintien du cache (keepWarm).
       if (primary) LAST = { body, at: Date.now(), sid };
       const bt = antBetas(body);
@@ -333,15 +311,12 @@ export async function chat(
           if (!tt) throw e;
           part = true;
         }
-        return finish(r.headers, { text: tt, stop: fr, sd, served, u: usageOf(us), part, mode: 'stream', chunks: n });
+        return finish({ text: tt, stop: fr, sd, served, u: usageOf(us), part, mode: 'stream', chunks: n });
       }
       const j = await r.json().catch(() => ({}));
       const er = j.error;
       if (r.status == 429 && a < TRIES) {
-        // La réponse 429 porte aussi les en-têtes de débit : la jauge existe même au premier envoi.
-        note(r.headers, null, mdl);
         const secs = Math.min(90, Math.max(3, Math.round(+r.headers.get('retry-after') || (a + 1) * 15)));
-        hit429(mdl, secs * 1000);
         await retry(secs, 'retry');
         continue;
       }
@@ -350,7 +325,7 @@ export async function chat(
         continue;
       }
       if (!r.ok || er) throw new Error(er?.message || 'Erreur ' + r.status);
-      return finish(r.headers, {
+      return finish({
         text: (j.content || [])
           .filter(b => b.type == 'text')
           .map(b => b.text)
@@ -384,10 +359,8 @@ export const waitMsg = (w, why) =>
     ? 'Claude a refusé l’envoi (limite de débit)'
     : why == 'busy'
       ? 'Claude est surchargé ou en panne'
-      : why == 'net'
-        ? 'connexion perdue'
-        : 'pause pour respecter la limite de débit de Claude') +
-  (why == 'pace' ? ' : envoi dans ' : ' : nouvelle tentative dans ') +
+      : 'connexion perdue') +
+  ' : nouvelle tentative dans ' +
   w +
   ' s…';
 const SUMJ =
@@ -418,10 +391,6 @@ const SCHEMA = {
 };
 const SUMS = new Map();
 const LINES_MAX = 24;
-const absorb = (s, x, keep) => {
-  if (x.souvenirs.length) s.mem.memories = mergeMem(s.mem.memories, x.souvenirs);
-  if (Object.keys(x.relations).length) s.mem.relations = mergeRel(s.mem.relations, x.relations, keep);
-};
 // Histoire ouverte : on l'enregistre telle quelle, une copie relue en base pourrait dater d'avant la
 // réponse que l'envoi est en train d'enregistrer. Pendant un tour, rien : la mémoire est sur le même objet
 // et la fin du tour l'enregistrera (Régénérer a retiré la réponse en mémoire seulement, l'enregistrer ici
@@ -482,11 +451,6 @@ async function sumRun(s, start) {
     let go = false;
     while ((go = sumGate(s.messages.length - s.mem.upto, go, start ? SUM_START : SUM_PLAY))) {
       say('Mise à jour de la mémoire…');
-      const pr = splitSummary(s.mem.summary);
-      if (pr.summary && pr.summary !== (s.mem.summary || '').trim()) {
-        absorb(s, pr, keep);
-        s.mem.summary = pr.summary;
-      }
       // Jamais en dessous de SUM_KEEP messages gardés mot pour mot.
       const n = Math.min(SUM_BATCH, s.messages.length - s.mem.upto - SUM_KEEP),
         parts = s.messages
@@ -531,11 +495,9 @@ async function sumRun(s, start) {
       // Coupée, la réponse n'est pas du JSON complet ; vide, le résumé effacerait celui de l'histoire.
       if (cut) throw new Error('réponse coupée par la longueur maximale');
       const j = JSON.parse(t),
-        list = a => a.map(x => x.trim()).filter(Boolean),
-        x = splitSummary(j.resume);
+        list = a => a.map(x => x.trim()).filter(Boolean);
       if (!j.resume.trim()) throw new Error('résumé vide');
-      s.mem.summary = clip(x.summary || j.resume.trim(), SUM_MAX);
-      absorb(s, x, keep);
+      s.mem.summary = clip(j.resume.trim(), SUM_MAX);
       s.mem.memories = mergeMem(s.mem.memories, list(j.souvenirs));
       s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), keep);
       addLines(s, list(j.lignes), parts.length);

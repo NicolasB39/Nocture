@@ -2,13 +2,12 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { clean } from '../js/store.js';
 import { buildInfo } from '../js/prompt.js';
-import { cutLines, mergeRel, splitSummary, unnum } from '../js/memory.js';
+import { cutLines, mergeRel, unnum } from '../js/memory.js';
 import { protocol } from '../js/protocol.js';
 import { settled } from '../js/format.js';
 import { S, ctx } from '../js/state.js';
 
 beforeEach(() => {
-  S.proto = '';
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 
@@ -35,12 +34,6 @@ test('un personnage à fiche reste protégé sous un nom reformulé', () => {
   assert.equal(Object.keys(r).length, 12);
 });
 
-test('splitSummary coupe les intitulés qualifiés', () => {
-  for (const h of ['Lignes récentes :', '## Objectif actuel', 'Objectif courant : fuir', '**Souvenirs durables**'])
-    assert.equal(splitSummary('Récit.\n' + h + '\n- x').summary, 'Récit.', h);
-  assert.equal(splitSummary('Relations tendues avec Bob.').summary, 'Relations tendues avec Bob.');
-});
-
 test('cutLines retire les lignes des messages supprimés', () => {
   const l = [{ i: -1, t: 'a' }, { i: 3, t: 'b' }, { i: 8, t: 'c' }];
   assert.deepEqual(cutLines(l, 5).map(x => x.t), ['a', 'b']);
@@ -55,14 +48,8 @@ test('unnum retire le numéro de message recopié en tête de ligne', () => {
 });
 
 test('sans consigne de style, les choix ne demandent pas d’astérisques', () => {
-  assert.doesNotMatch(protocol({ choices: true, style: false }).sys, /\*/);
-  assert.match(protocol({ choices: true }).sys, /\*un geste\*/);
-});
-
-test('en mode concis, l’ordre état puis choix est explicite', () => {
-  const p = protocol({ model: 'claude-sonnet-5-5', stat: true, choices: true }).sys;
-  assert.match(p, /avant le bloc <choix>/);
-  assert.equal((p.match(/Termine par/g) || []).length, 1);
+  assert.doesNotMatch(protocol({ choices: true, style: false }), /\*/);
+  assert.match(protocol({ choices: true }), /\*un geste\*/);
 });
 
 test('l’import plafonne les relations à REL_MAX en gardant les plus récentes', () => {

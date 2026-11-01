@@ -1173,31 +1173,6 @@ hr {
   color: var(--ac);
   font: 500 3.15em/0.82 var(--ser);
 }
-#rl {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 18px 6px;
-  color: var(--mu);
-  font-size: 12px;
-}
-#rl .bar {
-  flex: none;
-  width: 54px;
-}
-#rl u {
-  background: var(--ac);
-  transition: width 0.3s;
-}
-#rl.w {
-  color: var(--dg);
-}
-#rl.w u {
-  background: var(--dg);
-}
-#chat.reading #rl {
-  display: none;
-}
 footer {
   padding: 8px 12px calc(env(safe-area-inset-bottom, 0px) + 10px);
 }

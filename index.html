@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="7b05d4e77a">
+<meta name="app-version" content="bf8d6c610a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -33,7 +33,6 @@
 <link rel="modulepreload" href="js/nav.js">
 <link rel="modulepreload" href="js/prompt.js">
 <link rel="modulepreload" href="js/protocol.js">
-<link rel="modulepreload" href="js/rate.js">
 <link rel="modulepreload" href="js/read.js">
 <link rel="modulepreload" href="js/recall.js">
 <link rel="modulepreload" href="js/scenarios.js">
@@ -104,7 +103,6 @@
 <div id="mw"><div id="msgs"><div id="mhead"></div><div id="mfoot"></div></div><div id="nav"><button id="nvp" aria-label="Tour précédent"><svg class="i rot"><use href="#i-down"/></svg></button><button id="nvn" aria-label="Tour suivant"><svg class="i"><use href="#i-down"/></svg></button></div><div id="err" role="status"></div><button id="newm" hidden></button></div>
 <p id="gst" class="sr" role="status"></p>
 <div id="tk"></div>
-<div id="rl" hidden><i class="bar"><u></u></i><span></span></div>
 <footer><div class="inb"><textarea id="inp" rows="1" placeholder="Votre tour"></textarea><button id="ast" aria-label="Mettre en action">✱</button><button id="stop" hidden aria-label="Annuler"><svg class="i f"><use href="#i-stop"/></svg></button><button id="send" class="primary" aria-label="Envoyer"><svg class="i" style="stroke-width:2.6"><use href="#i-send"/></svg></button></div></footer>
 <div id="tts" hidden><span>Lecture</span><button id="tpp"></button><button id="tst" aria-label="Arrêter la lecture"><svg class="i f"><use href="#i-stop"/></svg></button></div>
 <div id="rbar" hidden>
@@ -313,12 +311,10 @@
 <label for="cmm">Modèle pour la mémoire</label>
 <input id="cmm" list="cml" autocomplete="off" autocapitalize="off">
 <p class="note">Vide : Haiku 5.5. Les résumés de mémoire ne demandent pas votre meilleur modèle, un plus petit coûte moins cher et consomme moins de quota.</p>
-<label><input id="cn" type="checkbox">Désactiver le streaming</label>
 <label><input id="cch" type="checkbox">Garder le cache une heure au lieu de 5 minutes</label>
 <p class="note">Utile si vous faites souvent des pauses de plus de 20 minutes entre deux tours. L’écriture en cache coûte alors 2 fois le prix normal au lieu de 1,25 fois ; la relecture reste au tarif réduit.</p>
 <label><input id="cwa" type="checkbox">Garder le cache au chaud pendant les pauses</label>
 <p class="note">Avec le cache de 5 minutes : peu avant son expiration, l'application relit le prompt au tarif réduit au lieu de le laisser se perdre, jusqu'à trois fois d'affilée (une vingtaine de minutes), tant que la conversation est ouverte à l'écran. Sans effet avec le cache d'une heure.</p>
-<p id="cst" class="note"></p>
 
 <details>
 <summary>Lecture</summary>
@@ -349,15 +345,13 @@
 <summary>Narration</summary>
 <label for="cpre">Préambule commun à tous les scénarios</label>
 <textarea id="cpre" style="min-height:90px" placeholder="Vos préférences de narration : longueur, rythme, registre…"></textarea>
-<label for="cpr">Consignes de format</label>
-<select id="cpr"><option value="">Automatique (selon le modèle)</option><option value="full">Détaillées</option><option value="lean">Concises</option></select>
 <p class="note">Les formats de l'état, des choix et des images sont produits par l'application, pas par les scénarios. « Concises » économise des tokens sur les modèles qui suivent bien les consignes.</p>
 </details>
 
 <details>
 <summary>Compteurs et débit</summary>
 <label><input id="ctc" type="checkbox">Afficher les compteurs sous la conversation</label>
-<p class="note">Tokens envoyés et jauge de débit. Masqués, la jauge réapparaît quand un envoi doit attendre.</p>
+<p class="note">Tokens envoyés, cache et coût du dernier tour.</p>
 <label><input id="cjr" type="checkbox">Journal des appels</label>
 <p class="note">Garde sur cet appareil les 100 dernières requêtes envoyées à Claude, texte compris, avec ce qu'elles ont coûté et ce qui est parti hors cache : Statistiques, puis « Journal des appels ». Jamais synchronisé ni sauvegardé ; la clé API n'y figure pas.</p>
 </details>

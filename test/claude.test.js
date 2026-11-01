@@ -5,11 +5,10 @@ globalThis.document = { createElement: () => ({}), querySelector: () => null, qu
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
-const { EFF_BETA, FB_BETA, antBetas, chat, lastTurn, toAnt } = await import('../js/ai.js');
+const { FB_BETA, antBetas, chat, lastTurn, toAnt } = await import('../js/ai.js');
 const { LONG, priceOf } = await import('../js/cost.js');
-const { buildInfo, effortCut, effortPlan, effortSet } = await import('../js/prompt.js');
+const { buildInfo } = await import('../js/prompt.js');
 const { S, ctx } = await import('../js/state.js');
-const { reset } = await import('../js/rate.js');
 
 const sse = parts => {
   const enc = new TextEncoder();
@@ -45,7 +44,6 @@ const ms = [
 
 beforeEach(() => {
   Object.assign(S, { key: 'k', model: '', c1h: false });
-  reset();
 });
 
 test('relais en cas de refus : demandé pour la narration sur les modèles qui le prennent en charge', async () => {
@@ -96,93 +94,6 @@ test('Haiku 5.5 au-delà de 100 000 tokens de prompt : compté sous sa propre li
   queue([sse([start('claude-haiku-5-5', { input_tokens: 90000, output_tokens: 1 }), text('Court.'), stop('end_turn')])]);
   await chat(ms, { od: () => {}, model: 'claude-haiku-5-5', primary: true });
   assert.equal(lastTurn().key, 'claude-haiku-5-5');
-});
-
-test('changement d’effort en cours de partie : message d’effort dans l’historique, effort de départ gardé', () => {
-  const m2 = ms.map(m => ({ ...m }));
-  m2[2].effBefore = 'high';
-  const b = toAnt(m2, { model: 'claude-sonnet-5-5', effort: 'high', effBase: 'low', fallback: true });
-  assert.deepEqual(b.output_config, { effort: 'low' }, 'premier niveau inchangé : le cache tient');
-  assert.deepEqual(b.messages[2], { role: 'system', content: [], output_config: { effort: 'high' } });
-  assert.equal(b.messages[3].content, 'Je sors.');
-  assert.equal(b.messages[1].content[0].cache_control.type, 'ephemeral', 'marqueur de cache avant le message d’effort');
-  assert.ok(!('fallbacks' in b), 'pas de relais avec un changement d’effort');
-  assert.equal(antBetas(b), EFF_BETA);
-  // Modèle sans effort par message : l'effort actuel part en premier niveau, sans message.
-  const o = toAnt(m2, { model: 'claude-sonnet-4-6', effort: 'high', effBase: 'low' });
-  assert.deepEqual(o.output_config, { effort: 'high' });
-  assert.ok(o.messages.every(m => m.role != 'system'));
-});
-
-test('effortSet et effortPlan : position du changement, régénération, fenêtre', () => {
-  const s = { effort: 'low', messages: [{ role: 'user' }, { role: 'assistant' }] };
-  effortSet(s, 'high');
-  assert.deepEqual(s.effLog, [[0, 'low'], [2, 'high']]);
-  s.messages.push({ role: 'user' });
-  assert.deepEqual(effortPlan(s, 0), { base: 'low', marks: [[2, 'high']] });
-  assert.deepEqual(effortPlan(s, 2), { base: 'high', marks: [] }, 'changement avant la fenêtre : premier niveau');
-  // Régénération de la réponse précédente : le changement est ramené devant le dernier tour du joueur.
-  const r = { effort: 'low', messages: [{ role: 'user' }, { role: 'assistant' }] };
-  effortSet(r, 'medium');
-  r.messages.pop();
-  assert.deepEqual(effortPlan(r, 0).marks, [], 'devant le premier message envoyé : premier niveau');
-  assert.equal(effortPlan(r, 0).base, 'medium');
-  // Dernier message du joueur sans réponse (échec) : le changement vaut pour lui.
-  const f = { effort: '', messages: [{ role: 'user' }, { role: 'assistant' }, { role: 'user' }] };
-  effortSet(f, 'high');
-  assert.deepEqual(f.effLog, [[0, ''], [2, 'high']]);
-  // Retour à l'effort de départ : aucun message.
-  effortSet(f, 'low');
-  assert.deepEqual(effortPlan(f, 0).marks, []);
-  // Messages retirés : le changement fait plus loin vaut dès la coupure.
-  const c = { effort: 'high', effLog: [[0, 'low'], [6, 'medium'], [9, 'high']] };
-  effortCut(c, 4);
-  assert.deepEqual(c.effLog, [[0, 'low'], [4, 'high']]);
-});
-
-test('buildInfo pose le changement d’effort sur le bon message et donne l’effort de départ', () => {
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
-  const s = {
-    id: 's',
-    system: 'SYS',
-    noChoices: true,
-    effort: 'low',
-    messages: [
-      { role: 'user', content: 'a' },
-      { role: 'assistant', content: 'b' }
-    ],
-    mem: { summary: '', memories: [], upto: 0, relations: {} }
-  };
-  effortSet(s, 'high');
-  s.messages.push({ role: 'user', content: 'c' });
-  const r = buildInfo(s);
-  assert.equal(r.effort, 'low');
-  assert.deepEqual(r.msgs.filter(m => m.effBefore).map(m => [m.content.slice(0, 1), m.effBefore]), [['c', 'high']]);
-});
-
-test('effLog : clean filtre et trie, effortSet fond les changements déjà résumés', async () => {
-  const { clean } = await import('../js/store.js');
-  const c = clean({ id: 'a', messages: [], effLog: [[5, 'high'], [0, 'low'], [-1, 'low'], [2, 'max'], [3.5, 'low'], 'x', [1, 'medium']] });
-  assert.deepEqual(c.effLog, [[0, 'low'], [1, 'medium'], [5, 'high']]);
-  assert.deepEqual(clean({ id: 'b', messages: [] }).effLog, []);
-  const s = { effort: 'low', effLog: [[0, 'low'], [3, 'high'], [6, 'medium']], messages: Array.from({ length: 12 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user' })), mem: { upto: 8 } };
-  effortSet(s, 'high');
-  assert.deepEqual(s.effLog, [[0, 'medium'], [12, 'high']]);
-});
-
-test('maintien du cache avec un message d’effort : en-tête bêta gardé, sans relais', async () => {
-  const { keepWarm } = await import('../js/ai.js');
-  const m2 = ms.map(m => ({ ...m }));
-  m2[2].effBefore = 'high';
-  queue([sse([start(), text('La pluie.'), stop('end_turn')])]);
-  await chat(m2, { od: () => {}, model: 'claude-sonnet-5-5', effort: 'high', effBase: 'low', primary: true });
-  assert.equal(req.h['anthropic-beta'], EFF_BETA);
-  queue([new Response(JSON.stringify({ usage: { input_tokens: 1, cache_read_input_tokens: 3000, output_tokens: 0 } }), { status: 200 })]);
-  assert.equal(await keepWarm(), true);
-  assert.equal(req.h['anthropic-beta'], EFF_BETA);
-  assert.ok(!('fallbacks' in req.b) && !('stream' in req.b));
-  assert.equal(req.b.max_tokens, 0);
-  assert.ok(req.b.messages.some(m => m.output_config?.effort == 'high'));
 });
 
 test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un second appel attend la même mise à jour', async () => {

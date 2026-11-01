@@ -2,7 +2,6 @@ import { S, app } from './state.js';
 import { LIX, split } from './format.js';
 import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutLines, unnum } from './memory.js';
-import { effortCut } from './prompt.js';
 
 let db;
 const one = m => {
@@ -69,13 +68,6 @@ export const clean = x => {
     accent: typeof x.accent == 'string' && /^#[0-9a-f]{6}$/i.test(x.accent) ? x.accent.toLowerCase() : '',
     maxTok: n(x.maxTok),
     effort: ['low', 'medium', 'high'].includes(x.effort) ? x.effort : '',
-    // Changements d'effort en cours de partie (effortSet, prompt.js) : [indice, effort], dans l'ordre.
-    effLog: Array.isArray(x.effLog)
-      ? x.effLog
-          .filter(e => Array.isArray(e) && Number.isInteger(e[0]) && e[0] >= 0 && ['', 'low', 'medium', 'high'].includes(e[1]))
-          .sort((a, b) => a[0] - b[0])
-          .slice(-20)
-      : [],
     model: s(x.model).trim(),
     memN: o(x.memN),
     recallN: o(x.recallN),
@@ -109,7 +101,6 @@ export const forkOf = (s, i, name, id) => {
   c.messages = c.messages.slice(0, n);
   c.mem.lines = cutLines(c.mem.lines, n);
   c.mem.upto = Math.min(c.mem.upto, n);
-  effortCut(c, n);
   return c;
 };
 const pvOf = s => {
@@ -321,7 +312,7 @@ export const clearCalls = () =>
   });
 // Réglages de la version multi-fournisseurs (v49 et avant), oubliés au chargement : l'ancienne clé API
 // n'y reste pas stockée.
-const OLD = ['provider', 'keys', 'models', 'memModels', 'ns', 'nj', 'tpm', 'tpms', 'temp', 'top', 'ctxLim', 'reserve', 'prices', 'cpt', 'memTagged', 'jf'];
+const OLD = ['provider', 'keys', 'models', 'memModels', 'ns', 'nj', 'tpm', 'tpms', 'temp', 'top', 'ctxLim', 'reserve', 'prices', 'cpt', 'memTagged', 'jf', 'noStream', 'proto'];
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);
