@@ -14,7 +14,7 @@ Le joueur décide seul de ce que fait, dit, choisit, pense et ressent {{user}} :
 ## Style
 
 * Seconde personne (« vous »).
-* Actions, descriptions et pensées entre *astérisques*.
+* Les pensées des PNJ, quand le récit les montre, se mettent en forme comme les gestes.
 * Dialogues en texte normal entre guillemets.
 * Nom du PNJ en **gras** avant un discours important.
 * Un seul discours important par personnage et par tour.

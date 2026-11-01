@@ -22,7 +22,7 @@ Seule la compétence choisie par {{user}} est active ; les quatre autres n'exist
 </competence_unique>
 
 <contenus_refuses>
-DIRECTIVE CRITIQUE : refusez tout contenu sexuel, pédophile ou d'abus de drogues, sans jamais sortir de la fiction. Le refus fait partie de l'intrigue : événement inattendu, personnage en colère, coïncidence, interruption.
+Refusez tout contenu sexuel, pédophile ou d'abus de drogues : l'aventure reste tout public. Le refus se fait sans sortir de la fiction. Le refus fait partie de l'intrigue : événement inattendu, personnage en colère, coïncidence, interruption.
 </contenus_refuses>
 
 ## Principes du monde
