@@ -172,7 +172,9 @@ const bkMsg = t => {
           : '');
 };
 let bkBusy = false;
-async function syncOnce(B, gone) {
+// Stockage local de la synchronisation ; les tests passent le leur (test/sync.test.js).
+const DB = { getAll, getOne, put, del };
+export async function syncOnce(B, gone, { getAll, getOne, put, del } = DB) {
   // Repères « vu » et marques de suppression propres au dépôt : ceux d'un autre dépôt y feraient supprimer
   // des histoires ou manquer des conflits. Pour un autre dépôt, cette passe part de zéro ; S ne change
   // qu'à la fin d'une passe réussie (une faute de frappe dans le nom ne doit rien effacer).
@@ -283,21 +285,20 @@ async function syncOnce(B, gone) {
     x.fs = (await GH.write(B, f, JSON.stringify({ ...rest, cv: h }), L.get(f))).content?.sha;
     n++;
   }
-  const live = new Set(m.keep.map(x => x.id));
-  for (const id in m.tomb)
-    if (!live.has(id))
-      for (const f of [fname(id), cname(id)])
-        if (L.has(f)) {
-          await GH.remove(B, f, L.get(f));
-          n++;
-        }
-  if (n || m.up || fixed || !L.has(IDX)) {
-    await GH.write(
-      B,
-      IDX,
-      JSON.stringify({ v: 2, saved: Date.now(), items: m.keep.filter(x => !lost.has(x.id)).map(stub), tomb: m.tomb }),
-      L.get(IDX)
-    );
+  // Fichiers des histoires supprimées : effacés après l'écriture de l'index, qui ne les cite plus. Interrompue
+  // entre les deux, la synchronisation laisse des fichiers orphelins, effacés au passage suivant, jamais un
+  // index qui désigne un fichier absent.
+  const live = new Set(m.keep.map(x => x.id)),
+    dead = Object.keys(m.tomb)
+      .filter(id => !live.has(id))
+      .flatMap(id => [fname(id), cname(id)])
+      .filter(f => L.has(f));
+  if (n || dead.length || m.up || fixed || !L.has(IDX)) {
+    await GH.write(B, IDX, JSON.stringify({ v: 2, items: m.keep.filter(x => !lost.has(x.id)).map(stub), tomb: m.tomb }), L.get(IDX));
+    n++;
+  }
+  for (const f of dead) {
+    await GH.remove(B, f, L.get(f));
     n++;
   }
   // Historique compacté tous les SQ fichiers écrits, pour que le dépôt ne grossisse pas indéfiniment.

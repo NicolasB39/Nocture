@@ -1,11 +1,13 @@
-import { uid } from './util.js';
-
 export const TOMB_TTL = 1.5552e10;
 // Une histoire GitHub jamais jouée n'est pas synchronisée (chaque appareil en crée une vide). Vidée exprès
 // pour recommencer (reset), elle l'est : sinon la version distante remettrait les anciens messages.
 export const syncable = s => !(s.remote && !(s.messages ? s.messages.length : s.n) && !s.reset);
 
-export function merge(loc, rem, t1, t2, { seen = {}, now = Date.now(), nid = uid } = {}) {
+// Identifiant de la copie « (conflit) » d'une version perdante : tiré de cette version, il est le même sur
+// chaque appareil qui voit le conflit, et la copie n'est faite qu'une fois.
+const copyId = lose => lose.id + '-c' + lose.updated.toString(36);
+
+export function merge(loc, rem, t1, t2, { seen = {}, now = Date.now(), nid = copyId } = {}) {
   const tomb = { ...t1 };
   let up = false;
   for (const k in t2) if ((t2[k] || 0) > (tomb[k] || 0)) tomb[k] = t2[k];
@@ -34,10 +36,11 @@ export function merge(loc, rem, t1, t2, { seen = {}, now = Date.now(), nid = uid
     // Divergence : les deux versions ont bougé depuis la dernière synchronisation. Sans repère (premier
     // passage de cet appareil, autre dépôt, import), deux versions différentes divergent aussi : rien ne dit
     // que l'une prolonge l'autre, la perdante est gardée en copie plutôt qu'écrasée.
-    const base = seen[id];
-    if (l && r && l.updated !== r.updated && (base == null || (l.updated > base && r.updated > base))) {
-      const lose = p === l ? r : l,
-        c = { ...lose, id: nid(), name: lose.name + ' (conflit)', updated: now };
+    const base = seen[id],
+      lose = p === l ? r : l,
+      cid = lose && nid(lose);
+    if (l && r && l.updated !== r.updated && (base == null || (l.updated > base && r.updated > base)) && !L.has(cid) && !R.has(cid)) {
+      const c = { ...lose, id: cid, name: lose.name + ' (conflit)', updated: now };
       keep.push(c);
       toLocal.push(c);
       copies.push([c, lose.id, lose === r]);
