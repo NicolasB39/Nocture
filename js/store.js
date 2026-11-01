@@ -1,20 +1,16 @@
 import { S, app } from './state.js';
-import { LIX, split } from './format.js';
 import { LS, plain, uid } from './util.js';
-import { REL_MAX, cutLines, unnum } from './memory.js';
+import { REL_MAX, cutLines } from './memory.js';
 
 let db;
+// Un message ou une variante : texte, et choix et état déjà mis à part à l'enregistrement (split, format.js).
 const one = m => {
-  // L'annonce du lieu n'est jamais gardée, même dans une sauvegarde importée qui la contiendrait.
-  const r = { role: m.role, content: m.content.replace(LIX, '') };
-  if (Array.isArray(m.choices) || Array.isArray(m.state)) {
-    const c = (m.choices || []).filter(x => typeof x == 'string').slice(0, 3),
-      t = (m.state || []).filter(e => Array.isArray(e) && e.length == 2).slice(0, 12);
-    if (c.length) r.choices = c;
-    if (t.length) r.state = t;
-    return r;
-  }
-  return { role: m.role, ...split(m.content) };
+  const r = { role: m.role, content: m.content },
+    c = (Array.isArray(m.choices) ? m.choices : []).filter(x => typeof x == 'string').slice(0, 3),
+    t = (Array.isArray(m.state) ? m.state : []).filter(e => Array.isArray(e) && e.length == 2).slice(0, 12);
+  if (c.length) r.choices = c;
+  if (t.length) r.state = t;
+  return r;
 };
 export const clean = x => {
   if (!x || typeof x.id != 'string' || !x.id || !Array.isArray(x.messages)) return null;
@@ -27,13 +23,7 @@ export const clean = x => {
       const r = one(m);
       if (Number.isFinite(+m.t) && +m.t > 0) r.t = +m.t;
       const a = Array.isArray(m.alts) && i == all.length - 1
-        ? m.alts.map(v =>
-            typeof v == 'string'
-              ? { role: m.role, ...split(v) }
-              : v && typeof v.content == 'string'
-                ? one({ ...v, role: m.role })
-                : null
-          )
+        ? m.alts.map(v => (v && typeof v.content == 'string' ? one({ ...v, role: m.role }) : null))
         : null;
       if (a && a.length > 1 && a.every(Boolean)) {
         r.alts = a.map(({ role, ...rest }) => rest);
@@ -81,10 +71,8 @@ export const clean = x => {
       memories: Array.isArray(mm.memories) ? mm.memories.filter(v => typeof v == 'string') : [],
       lines: Array.isArray(mm.lines)
         ? mm.lines
-            .map(v => (typeof v == 'string' ? { i: -1, t: v } : v))
             .filter(v => v && typeof v.t == 'string')
-            // Les lignes déjà enregistrées perdent aussi le numéro recopié par le modèle.
-            .map(v => ({ i: 0 | v.i, t: unnum(v.t) }))
+            .map(v => ({ i: 0 | v.i, t: v.t }))
             .slice(-24)
         : [],
       relations: rel,
@@ -136,8 +124,7 @@ export const openDB = () =>
   new Promise((res, rej) => {
     // Nom historique de la base : le renommer reviendrait à repartir d'une base vide.
     const r = indexedDB.open('histoires', 5);
-    // Création d'une base neuve, ou ajout du journal des appels (version 5). Les bases des versions 1 à 3
-    // (histoire d'un seul bloc) ne sont plus converties : tous les appareils sont passés à la version 4.
+    // Création d'une base neuve, ou ajout du journal des appels (version 5).
     r.onupgradeneeded = () => {
       const d = r.result;
       for (const [n, k] of [['scenarios', 'id'], ['settings', 'key'], ['meta', 'id'], ['chunks', 'k'], ['covers', 'id']])
@@ -310,13 +297,9 @@ export const clearCalls = () =>
     t.oncomplete = () => res();
     fail(t, rej);
   });
-// Réglages de la version multi-fournisseurs (v49 et avant), oubliés au chargement : l'ancienne clé API
-// n'y reste pas stockée.
-const OLD = ['provider', 'keys', 'models', 'memModels', 'ns', 'nj', 'tpm', 'tpms', 'temp', 'top', 'ctxLim', 'reserve', 'prices', 'cpt', 'memTagged', 'jf', 'noStream', 'proto'];
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);
-    for (const k of OLD) delete S[k];
   });
 export const saveSet = () => tx('settings', 'readwrite', s => s.put({ key: 'main', value: S })).then(told('set'));
 export const loadStats = () => tx('settings', 'readonly', s => s.get('usage')).then(r => r?.value || null);

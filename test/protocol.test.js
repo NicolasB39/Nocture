@@ -36,15 +36,6 @@ test('la balise <lieu> est lue puis retirée du texte', async () => {
     assert.equal(split(b + '\n\nUn volcan gronde.\n\nIl fait chaud.').content, 'Un volcan gronde.\n\nIl fait chaud.', b);
 });
 
-test('une sauvegarde importée ne garde pas l’annonce du lieu', () => {
-  const s = clean({
-    id: 's',
-    messages: [{ role: 'assistant', content: '<lieu>Volcan</lieu>\n\nUn volcan gronde.', state: [['Lieu', 'Volcan']] }]
-  });
-  assert.doesNotMatch(s.messages[0].content, /lieu>/);
-  assert.match(s.messages[0].content, /Un volcan gronde\./);
-});
-
 test('aucun format n’est émis pour ce qui est désactivé', () => {
   const p = protocol({ stat: false, choices: false, images: false, style: false });
   assert.equal(p, '');

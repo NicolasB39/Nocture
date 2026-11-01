@@ -210,8 +210,8 @@ async function syncOnce(B, gone) {
     const f = fname(id);
     if (!L.has(f)) throw new Error('Sauvegarde incomplète : fichier ' + f + ' manquant.');
     const d = (await GH.read(B, f)).data || {};
-    let cover = typeof d.cover == 'string' ? d.cover : '';
-    if (!cover && d.cv) {
+    let cover = '';
+    if (d.cv) {
       const [lc, lh] = LC.get(id) || [];
       if (lh === d.cv) cover = lc;
       else {

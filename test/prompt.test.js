@@ -37,10 +37,10 @@ test('clean filtre les messages invalides et borne mem.upto', () => {
 test('clean normalise les variantes', () => {
   const r = clean({
     id: 'a',
-    messages: [{ role: 'assistant', content: 'b', alts: ['a', 'b'], ai: 9 }]
+    messages: [{ role: 'assistant', content: 'b', alts: [{ content: 'a' }, { content: 'b' }], ai: 9 }]
   });
   assert.equal(r.messages[0].ai, 1);
-  const u = clean({ id: 'a', messages: [{ role: 'assistant', content: 'b', alts: ['b'], ai: 0 }] });
+  const u = clean({ id: 'a', messages: [{ role: 'assistant', content: 'b', alts: [{ content: 'b' }], ai: 0 }] });
   assert.equal(u.messages[0].alts, undefined);
 });
 
@@ -114,7 +114,7 @@ test('les trois étages de mémoire vivent dans le préfixe, pas dans la queue',
     noChoices: true,
     note: 'ma note',
     messages: [{ role: 'user', content: 'suite' }],
-    mem: { summary: 'ancien', lines: ['il a ouvert la porte'], memories: ['la fiole est verte'], relations: {} }
+    mem: { summary: 'ancien', lines: [{ i: 0, t: 'il a ouvert la porte' }], memories: ['la fiole est verte'], relations: {} }
   });
   const r = buildInfo(s),
     sys = r.msgs[0].content,
@@ -178,27 +178,6 @@ test('split sépare narration, état et choix', () => {
 test('raw reconstruit un message éditable sans perte', () => {
   const m = { role: 'assistant', content: 'Texte.', state: [['Lieu', 'Quai']], choices: ['a', 'b'] };
   assert.deepEqual(split(raw(m)), { content: 'Texte.', choices: ['a', 'b'], state: [['Lieu', 'Quai']] });
-});
-
-test('clean migre les anciens messages en champs séparés', () => {
-  const r = clean({
-    id: 'a',
-    messages: [{ role: 'assistant', content: 'Récit.\n<choix>\n1. a\n</choix>' }]
-  });
-  assert.equal(r.messages[0].content, 'Récit.');
-  assert.deepEqual(r.messages[0].choices, ['a']);
-});
-
-test('clean migre les variantes au format chaîne', () => {
-  const r = clean({
-    id: 'a',
-    messages: [
-      { role: 'assistant', content: 'deux', alts: ['un<choix>\n1. x\n</choix>', 'deux'], ai: 1 }
-    ]
-  });
-  assert.equal(r.messages[0].alts[0].content, 'un');
-  assert.deepEqual(r.messages[0].alts[0].choices, ['x']);
-  assert.equal(r.messages[0].ai, 1);
 });
 
 test('estTok croît avec la longueur', () => {

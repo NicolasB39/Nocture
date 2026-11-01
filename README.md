@@ -399,7 +399,7 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 
 ## Stockage sur l'appareil
 
-Les messages sont rangés par paquets de 25 dans la base locale, et un enregistrement ne réécrit que les paquets qui ont changé : jouer un tour dans une longue histoire ne réécrit plus toute l'histoire. La couverture est stockée une seule fois, à part, et n'est réécrite que si elle change ; la liste ne charge que des informations légères. Les variantes d'une réponse (flèches ‹ ›) ne sont gardées que tant que cette réponse est la dernière : elles disparaissent dès que vous envoyez le message suivant. Les très anciennes bases (versions 1 à 3, une histoire d'un seul bloc) ne sont plus converties : tous les appareils sont passés au format actuel. Si un appareil resté très longtemps sans mise à jour affiche une liste vide, ses histoires sont encore dans l'ancien format : récupérez-les depuis la sauvegarde en ligne ou un export.
+Les messages sont rangés par paquets de 25 dans la base locale, et un enregistrement ne réécrit que les paquets qui ont changé : jouer un tour dans une longue histoire ne réécrit plus toute l'histoire. La couverture est stockée une seule fois, à part, et n'est réécrite que si elle change ; la liste ne charge que des informations légères. Les variantes d'une réponse (flèches ‹ ›) ne sont gardées que tant que cette réponse est la dernière : elles disparaissent dès que vous envoyez le message suivant.
 
 Si l'appareil manque de place, un enregistrement refusé par le navigateur est signalé comme une erreur (« Enregistrement impossible ») au lieu de bloquer l'envoi sur « Réponse en cours ».
 
