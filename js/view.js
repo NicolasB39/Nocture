@@ -28,7 +28,6 @@ export const infoOf = () => {
       m.memories.length,
       m.lines?.length,
       Object.keys(m.relations || {}).length,
-      S.cpt,
       S.pre?.length,
       S.proto,
       modelOf(),

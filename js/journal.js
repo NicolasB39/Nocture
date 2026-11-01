@@ -57,7 +57,7 @@ const hm = t => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minut
 const start = c => c.t - (c.ms || 0);
 const head = c => {
   const [p = 0, o = 0, , , cr = 0, w5 = 0, w1 = 0] = c.e || [],
-    k = c.e ? costOf(c.e, priceOf(c.key || '', S.prices)) : null;
+    k = c.e ? costOf(c.e, priceOf(c.key || '')) : null;
   return (
     (c.e
       ? '≈ ' + f(p) + ' envoyés · ' + f(cr) + ' lus en cache · ' + f(w5 + w1) + ' écrits · ' + f(o) + ' en sortie' + (k != null ? ' · ' + money(k, S.fx) : '')

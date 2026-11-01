@@ -1,7 +1,7 @@
-import { authH, effortOk, memModel } from './ai.js';
+import { effortOk, memModel } from './ai.js';
 import { on } from './bus.js';
 import { jump, render, tk } from './view.js';
-import { money, priceOf } from './cost.js';
+import { PRICES, money, priceOf } from './cost.js';
 import { fr } from './format.js';
 import { draw, showList } from './list.js';
 import { effortSet, extrasOf, statOn } from './prompt.js';
@@ -36,7 +36,7 @@ const extrasNote = () => {
     e.textContent = 'Ni choix ni état dans les dernières réponses : rien à payer en plus.';
     return;
   }
-  const pr = priceOf(modelOf(), S.prices),
+  const pr = priceOf(modelOf()),
     per = pr ? (x.avg * pr[1]) / 1e6 : null,
     tk = v => Math.round(v) + (Math.round(v) > 1 ? ' tokens' : ' token');
   e.textContent =
@@ -292,12 +292,7 @@ function openCfg() {
   $('#cch').checked = !!S.c1h;
   $('#cjr').checked = !!S.journal;
   fillLec();
-  $('#cst').textContent =
-    streamInfo() +
-    (S.cpt ? ' Estimation calibrée : ' + S.cpt.toFixed(2) + ' caractères par token.' : '') +
-    (S.memTagged
-      ? ' Mémoire : réponses en texte balisé (deux réponses JSON illisibles d’affilée).'
-      : ' Mémoire : réponses en JSON.');
+  $('#cst').textContent = streamInfo();
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
   $('#cpr').value = S.proto || '';
@@ -331,28 +326,12 @@ $('#cfg2').onclick = () => {
   $('#dmn').close();
   openCfg();
 };
-$('#cl').onclick = async () => {
-  const k = $('#ck').value.trim();
-  if (!k) {
-    dlg('Clé API manquante', { m: 'Saisissez la clé avant de lister les modèles.' });
-    return;
-  }
-  try {
-    const r = await fetch(API.u + '/models?limit=1000', { headers: authH(k) });
-    const j = await r.json();
-    const a = (j.data || [])
-      .map(x => String(x.id || ''))
-      .filter(Boolean)
-      .sort();
-    if (!a.length) throw new Error(j.error?.message || 'liste vide');
-    $('#cml').replaceChildren(...a.map(x => el('option', { value: x })));
-    dlg(a.length + ' modèles', {
-      m: 'Effacez le champ Modèle puis touchez-le pour choisir dans la liste.'
-    });
-  } catch (e) {
-    dlg('Liste indisponible', { m: e.message });
-  }
-};
+// Modèles proposés dans les champs Modèle : ceux dont le tarif est connu (cost.js) ; un autre se tape à la main.
+$('#cml').replaceChildren(
+  ...Object.keys(PRICES)
+    .filter(m => !m.includes(' '))
+    .map(m => el('option', { value: m }))
+);
 $('#im').onclick = () => $('#imf').click();
 $('#imf').onchange = async e => {
   const f = e.target.files[0];

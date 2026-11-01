@@ -188,11 +188,13 @@ test('maintien du cache avec un message d’effort : en-tête bêta gardé, sans
 test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un second appel attend la même mise à jour', async () => {
   const { app } = await import('../js/state.js');
   const { summarize } = await import('../js/ai.js');
-  let calls = 0;
+  let calls = 0,
+    fmt = null;
   globalThis.fetch = async (u, o) => {
     calls++;
+    fmt = JSON.parse(o.body).output_config?.format;
     const n = (JSON.parse(o.body).messages.at(-1).content.match(/^\d+\. /gm) || []).length;
-    const t = JSON.stringify({ resume: 'Résumé ' + calls, souvenirs: [], relations: {}, lignes: Array.from({ length: n }, (_, i) => 'ligne ' + i) });
+    const t = JSON.stringify({ resume: 'Résumé ' + calls, souvenirs: [' Un fait. '], relations: [{ nom: 'Alice', relation: 'amie' }], lignes: Array.from({ length: n }, (_, i) => 'ligne ' + i) });
     return new Response(JSON.stringify({ model: 'claude-haiku-5-5', content: [{ type: 'text', text: t }], stop_reason: 'end_turn', usage: { input_tokens: 900, output_tokens: 200 } }), {
       status: 200,
       headers: { 'content-type': 'application/json' }
@@ -213,6 +215,9 @@ test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un 
     await p;
     assert.equal(s.mem.upto, 35, '75 messages en attente : 35 résumés, 40 gardés');
     assert.equal(calls, 2, 'paquets de 20 puis 15');
+    assert.equal(fmt?.type, 'json_schema', 'réponse en JSON garanti (sorties structurées)');
+    assert.deepEqual(s.mem.relations, { Alice: 'amie' });
+    assert.deepEqual(s.mem.memories, ['Un fait.']);
     // En jeu, 40 messages en attente ne déclenchent rien (seuil 120).
     calls = 0;
     await summarize(s);
@@ -220,4 +225,44 @@ test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un 
   } finally {
     Object.assign(app, { cur, busy });
   }
+});
+
+test('sorties structurées : le schéma rejoint l’effort dans output_config, ou part seul', () => {
+  const schema = { type: 'object', properties: {}, additionalProperties: false };
+  assert.deepEqual(toAnt(ms, { model: 'claude-haiku-5-5', effort: 'low', schema }).output_config, {
+    effort: 'low',
+    format: { type: 'json_schema', schema }
+  });
+  assert.deepEqual(toAnt(ms, { model: 'claude-haiku-4-5', effort: 'low', schema }).output_config, { format: { type: 'json_schema', schema } });
+  assert.equal(toAnt(ms, { model: 'claude-haiku-4-5' }).output_config, undefined);
+});
+
+test('mémoire : une réponse coupée ou un résumé vide laissent la mémoire intacte', async () => {
+  const { app } = await import('../js/state.js');
+  const { summarize } = await import('../js/ai.js');
+  const cur = app.cur;
+  for (const [stop, resume] of [
+    ['max_tokens', 'Résumé coupé'],
+    ['end_turn', '  ']
+  ]) {
+    globalThis.fetch = async () =>
+      new Response(
+        JSON.stringify({
+          content: [{ type: 'text', text: stop == 'max_tokens' ? '{"resume":"' + resume : JSON.stringify({ resume, souvenirs: [], relations: [], lignes: [] }) }],
+          stop_reason: stop,
+          usage: { input_tokens: 900, output_tokens: 200 }
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } }
+      );
+    const s = {
+      id: 'm-' + stop,
+      messages: Array.from({ length: 130 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'message ' + i })),
+      mem: { summary: 'Résumé précédent.', memories: [], relations: {}, lines: [], upto: 0 }
+    };
+    app.cur = null;
+    await summarize(s);
+    assert.equal(s.mem.summary, 'Résumé précédent.', stop);
+    assert.equal(s.mem.upto, 0, stop);
+  }
+  app.cur = cur;
 });

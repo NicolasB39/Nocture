@@ -6,7 +6,7 @@ import { hit429, note, wait } from './rate.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { addCall, getOne, save } from './store.js';
-import { $, err, strip } from './util.js';
+import { $, err } from './util.js';
 
 // La mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
 // le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
@@ -59,7 +59,8 @@ export const antBetas = b =>
 // effBefore (posé par buildInfo sur un message) : l'effort change juste avant ce message ; effBase : l'effort
 // en vigueur au premier message envoyé. Sans prise en charge par le modèle, l'effort actuel part en premier
 // niveau, comme avant.
-export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback }) => {
+// schema : réponse en JSON conforme à ce schéma (sorties structurées), garantie par l'API.
+export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback, schema }) => {
   const cc = { type: 'ephemeral', ...(ttl ? { ttl: '1h' } : {}) },
     sys = [],
     out = [],
@@ -83,13 +84,17 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback }
   // Marqueur de cache sur le dernier message avant le tour en cours (un message d'effort n'en porte pas).
   const b = out.slice(0, -1).findLast(x => x.role != 'system');
   if (b?.content.trim()) b.content = [{ type: 'text', text: b.content, cache_control: cc }];
-  const top = marks && EFFORTS.includes(effBase) ? effBase : effort;
+  const top = marks && EFFORTS.includes(effBase) ? effBase : effort,
+    oc = {
+      ...(EFFORTS.includes(top) && effortOk(model) ? { effort: top } : {}),
+      ...(schema ? { format: { type: 'json_schema', schema } } : {})
+    };
   return {
     model,
     max_tokens: max || 4096,
     ...(sys.length ? { system: sys } : {}),
     messages: out,
-    ...(EFFORTS.includes(top) && effortOk(model) ? { output_config: { effort: top } } : {}),
+    ...(Object.keys(oc).length ? { output_config: oc } : {}),
     // Pas de relais avec un changement d'effort : le modèle de secours pourrait ne pas le prendre en charge.
     ...(fallback && !marks && fallbackOk(model) ? { fallbacks: 'default' } : {}),
     ...(stream ? { stream: true } : {})
@@ -189,16 +194,9 @@ const journal = (kind, body, x) => {
 };
 // Erreur déjà journalisée avec ce qu'elle a coûté : le catch de chat() ne l'ajoute pas une seconde fois.
 const logged = e => Object.assign(e, { logged: true });
-const calib = (ms, u) => {
-  const pt = u?.in,
-    ov = 4 * ms.length;
-  if (!pt || pt <= ov) return;
-  const r = ms.reduce((a, m) => a + m.content.length, 0) / (pt - ov);
-  if (r > 2 && r < 6) S.cpt = +((S.cpt || 3.4) * 0.75 + r * 0.25).toFixed(3);
-};
 export async function chat(
   ms,
-  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000, kind = '', sid = '' } = {}
+  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000, kind = '', sid = '', schema = null } = {}
 ) {
   if (!S.key) throw new Error('clé API manquante');
   if (primary) TURN = null;
@@ -230,7 +228,7 @@ export async function chat(
   try {
     for (let a = 0; ; a++) {
       let r;
-      body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary });
+      body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary, schema });
       // La dernière requête de narration sert de modèle au maintien du cache (keepWarm).
       if (primary) LAST = { body, at: Date.now(), sid };
       const bt = antBetas(body);
@@ -324,7 +322,7 @@ export async function chat(
           journal(kind, body, { sid, key, ...track(us, key, primary), stop: fr, ms: Date.now() - t0 });
           throw logged(refusal(sd));
         }
-        const out = strip(tt);
+        const out = tt.trim();
         if (!out) {
           note(r.headers, us, mdl, primary);
           journal(kind, body, { sid, key, ...track(us, key, primary), err: 'réponse vide', stop: fr, ms: Date.now() - t0 });
@@ -333,7 +331,6 @@ export async function chat(
         // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de
         // sortie). La sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
         if (part && us && us.out < estTok(out)) us = { ...us, out: estTok(out), est: true };
-        if (primary) calib(ms, us);
         note(r.headers, us, mdl, primary);
         journal(kind, body, { sid, key, ...track(us, key, primary), stop: fr || (part ? 'coupée' : ''), ms: Date.now() - t0 });
         return {
@@ -362,14 +359,12 @@ export async function chat(
       }
       if (!r.ok || er) throw new Error(er?.message || 'Erreur ' + r.status);
       const u = usageOf(j.usage);
-      if (primary) calib(ms, u);
       note(r.headers, u, mdl, primary);
-      const out = strip(
-        (j.content || [])
-          .filter(b => b.type == 'text')
-          .map(b => b.text)
-          .join('')
-      );
+      const out = (j.content || [])
+        .filter(b => b.type == 'text')
+        .map(b => b.text)
+        .join('')
+        .trim();
       const key = j.model || mdl,
         x = { sid, key, ...track(u, key, primary), stop: j.stop_reason || '', ms: Date.now() - t0 };
       if (j.stop_reason == 'refusal') {
@@ -414,24 +409,34 @@ export const waitMsg = (w, why) =>
   (why == 'pace' ? ' : envoi dans ' : ' : nouvelle tentative dans ') +
   w +
   ' s…';
-const SUMP =
-  "Tu mets à jour la mémoire d'une histoire interactive. Réponds uniquement dans ce format, sections dans cet ordre :\n[RÉSUMÉ]\n(résumé complet mis à jour de toute l'histoire, 1200 caractères maximum, deux parties : Événements, Situation actuelle. N'y mets ni souvenirs, ni relations, ni objectif : ils ont leurs propres sections.)\n[SOUVENIRS]\n- (un ou deux faits durables à retenir, une phrase chacun, ou « aucun »)\n[RELATIONS]\n- Nom: état de sa relation avec le joueur, une phrase (ou « aucun »)\n[LIGNES]\n- (une ligne par message fourni, dans l'ordre, une phrase courte et factuelle)";
 const SUMJ =
-  "Tu mets à jour la mémoire d'une histoire interactive. Réponds uniquement par un objet JSON valide, sans texte autour, avec ces clés :\n" +
-  '{"resume": "récit condensé et mis à jour de toute l\'histoire, 1200 caractères maximum, uniquement le récit (Événements, Situation actuelle), sans souvenirs, sans relations ni l\'objectif (ils ont leurs propres clés)",\n' +
-  ' "souvenirs": ["faits durables NOUVEAUX seulement, une phrase chacun ; ne répète pas ceux déjà connus"],\n' +
-  ' "relations": {"Nom du personnage": "état de sa relation avec le joueur, une phrase"},\n' +
-  ' "lignes": ["une entrée par message fourni, dans l\'ordre, une phrase courte et factuelle"]}\n' +
-  'Les tableaux et objets peuvent être vides. Écris en français.\n' +
-  "Pour les relations : uniquement les personnages récurrents, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.";
+  "Tu mets à jour la mémoire d'une histoire interactive. Écris en français.\n" +
+  "- resume : récit condensé et mis à jour de toute l'histoire, 1200 caractères maximum, en deux parties (Événements, Situation actuelle) ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
+  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
+  "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.\n" +
+  "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.";
+// Réponse de la mémoire, garantie conforme par l'API (sorties structurées).
+const SCHEMA = {
+  type: 'object',
+  properties: {
+    resume: { type: 'string' },
+    souvenirs: { type: 'array', items: { type: 'string' } },
+    relations: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: { nom: { type: 'string' }, relation: { type: 'string' } },
+        required: ['nom', 'relation'],
+        additionalProperties: false
+      }
+    },
+    lignes: { type: 'array', items: { type: 'string' } }
+  },
+  required: ['resume', 'souvenirs', 'relations', 'lignes'],
+  additionalProperties: false
+};
 const SUMS = new Map();
 const LINES_MAX = 24;
-export const sect = (t, n) => {
-  const m = t.match(
-    new RegExp('\\[' + n + '\\][*_ \\t]*([\\s\\S]*?)(?=\\n[^\\n\\w\\[]*\\[[A-ZÉÈ]{4,}\\]|$)', 'i')
-  );
-  return m ? m[1].trim() : '';
-};
 const known = () => (ctx.chars || []).map(c => c.name);
 const absorb = (s, x) => {
   if (x.souvenirs.length) s.mem.memories = mergeMem(s.mem.memories, x.souvenirs);
@@ -455,35 +460,6 @@ const persist = async s => {
     s.updated = f.updated;
   }
 };
-export const asJson = t => {
-  const b = t.lastIndexOf('}');
-  for (let a = t.indexOf('{'); a >= 0 && a < b; a = t.indexOf('{', a + 1)) {
-    try {
-      const o = JSON.parse(t.slice(a, b + 1));
-      if (o && typeof o == 'object' && typeof o.resume == 'string' && o.resume.trim()) return o;
-    } catch (e) {}
-  }
-  return null;
-};
-export const toRel = v => {
-  const o = {};
-  if (Array.isArray(v))
-    for (const x of v) {
-      if (typeof x == 'string') {
-        const i = x.indexOf(':');
-        if (i > 0) o[x.slice(0, i).trim()] = x.slice(i + 1).trim();
-      } else if (x && typeof x == 'object')
-        for (const k of ['nom', 'name', 'personnage'])
-          if (typeof x[k] == 'string') o[x[k]] = String(x.relation ?? x.etat ?? x.valeur ?? '');
-    }
-  else if (v && typeof v == 'object')
-    for (const k in v) if (typeof v[k] == 'string') o[k] = v[k];
-  return o;
-};
-export const strs = v =>
-  (Array.isArray(v) ? v : typeof v == 'string' ? v.split('\n') : [])
-    .map(x => String(x).replace(/^[\s\-•*]+/, '').trim())
-    .filter(x => x && !/^aucun/i.test(x));
 const addLines = (s, ln, n) => {
   if (ln.length)
     s.mem.lines = [
@@ -535,11 +511,9 @@ async function sumRun(s, start) {
           .slice(s.mem.upto, s.mem.upto + n)
           .map(m => (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + m.content.replace(/\{\{img::[^}]*\}\}/g, '').trim());
       const stale = batchGuard(s, parts.length);
-      // Deux réponses JSON illisibles d'affilée : la mémoire passe au format balisé (SUMP).
-      const useJson = !S.memTagged;
-      const { t } = await chat(
+      const { t, cut } = await chat(
         [
-          { role: 'system', content: useJson ? SUMJ : SUMP },
+          { role: 'system', content: SUMJ },
           {
             role: 'user',
             content:
@@ -559,9 +533,12 @@ async function sumRun(s, start) {
         ],
         {
           model: memModel(),
+          // Vingt messages et la réflexion du modèle : plus que les 4 096 tokens par défaut.
+          max: 8192,
           effort: 'low',
           kind: 'mémoire',
           sid: s.id,
+          schema: SCHEMA,
           timeout: 300000,
           onWait: (w, why) => {
             if (said) say(w ? 'Mémoire : ' + waitMsg(w, why) : 'Mise à jour de la mémoire…');
@@ -569,41 +546,22 @@ async function sumRun(s, start) {
         }
       );
       if (stale(app.cur)) break;
-      const j = useJson ? asJson(t) : null;
-      if (useJson && !j) {
-        S.jf = (S.jf || 0) + 1;
-        if (S.jf >= 2) S.memTagged = true;
-      } else if (useJson) S.jf = 0;
-      if (j) {
-        const x = splitSummary(j.resume);
-        s.mem.summary = clip(x.summary || j.resume, SUM_MAX);
-        absorb(s, x);
-        s.mem.memories = mergeMem(s.mem.memories, strs(j.souvenirs));
-        s.mem.relations = mergeRel(s.mem.relations, toRel(j.relations), known());
-        addLines(s, strs(j.lignes), parts.length);
-        s.mem.upto += parts.length;
-        await persist(s);
-        continue;
-      }
-      const sum = sect(t, 'R[ÉE]SUM[ÉE]');
-      if (!sum) throw new Error('réponse inattendue');
-      const x = splitSummary(sum);
-      s.mem.summary = clip(x.summary || sum, SUM_MAX);
+      // Coupée, la réponse n'est pas du JSON complet ; vide, le résumé effacerait celui de l'histoire.
+      if (cut) throw new Error('réponse coupée par la longueur maximale');
+      const j = JSON.parse(t),
+        list = a => a.map(x => x.trim()).filter(Boolean),
+        x = splitSummary(j.resume);
+      if (!j.resume.trim()) throw new Error('résumé vide');
+      s.mem.summary = clip(x.summary || j.resume.trim(), SUM_MAX);
       absorb(s, x);
-      s.mem.memories = mergeMem(s.mem.memories, strs(sect(t, 'SOUVENIRS')));
-      s.mem.relations = mergeRel(s.mem.relations, toRel(strs(sect(t, 'RELATIONS'))), known());
-      addLines(s, strs(sect(t, 'LIGNES')), parts.length);
+      s.mem.memories = mergeMem(s.mem.memories, list(j.souvenirs));
+      s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), known());
+      addLines(s, list(j.lignes), parts.length);
       s.mem.upto += parts.length;
       await persist(s);
     }
     if (said && mine()) err('');
   } catch (e) {
-    say(
-      'Mémoire non mise à jour (' +
-        (/^réponse vide/.test(e.message)
-          ? 'le modèle a raisonné sans donner de réponse : choisissez un modèle sans raisonnement dans « Modèle pour la mémoire »'
-          : e.message) +
-        ') : nouvel essai au prochain tour.'
-    );
+    say('Mémoire non mise à jour (' + e.message + ') : nouvel essai au prochain tour.');
   }
 }

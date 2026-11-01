@@ -113,24 +113,6 @@ test('en dessous du seuil, toutes les fiches vont dans la partie stable, aucune 
   assert.doesNotMatch(r.msgs.at(-1).content, /## Alice|## Bob/);
 });
 
-test('le seuil du petit casting ne suit pas la calibration des tokens', () => {
-  ctx.chars = [
-    { name: 'Alice', sum: 'a', text: 'A'.repeat(1400), always: false, images: [], keys: [/zzz/] },
-    { name: 'Bob', sum: 'b', text: 'B'.repeat(1400), always: false, images: [], keys: [/zzz/] }
-  ];
-  const s = sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'rien' }] }),
-    cpt = S.cpt;
-  try {
-    for (const c of [2.5, 3.4, 5]) {
-      S.cpt = c;
-      const r = buildInfo(s);
-      assert.match(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Alice[\s\S]*## Bob/, 'S.cpt = ' + c);
-    }
-  } finally {
-    S.cpt = cpt;
-  }
-});
-
 test('les trois étages de mémoire vivent dans le préfixe, pas dans la queue', () => {
   const s = sc({
     noChoices: true,

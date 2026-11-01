@@ -174,11 +174,6 @@ export const pickAccent = px => {
   );
 };
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-export const strip = t =>
-  t
-    .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '')
-    .replace(/^[\s\S]*<\/think>/i, '')
-    .trim();
 export const plain = (t, nm) =>
   t
     .replace(/<choix>[\s\S]*?(?:<\/choix>|$)/gi, '')

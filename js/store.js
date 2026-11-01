@@ -321,7 +321,7 @@ export const clearCalls = () =>
   });
 // Réglages de la version multi-fournisseurs (v49 et avant), oubliés au chargement : l'ancienne clé API
 // n'y reste pas stockée.
-const OLD = ['provider', 'keys', 'models', 'memModels', 'ns', 'nj', 'tpm', 'tpms', 'temp', 'top', 'ctxLim', 'reserve'];
+const OLD = ['provider', 'keys', 'models', 'memModels', 'ns', 'nj', 'tpm', 'tpms', 'temp', 'top', 'ctxLim', 'reserve', 'prices', 'cpt', 'memTagged', 'jf'];
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);

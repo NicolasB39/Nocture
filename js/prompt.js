@@ -4,7 +4,8 @@ import { RECALL_N, recall, recallTag } from './recall.js';
 import { S, ctx } from './state.js';
 import { nz } from './util.js';
 
-export const estTok = t => Math.ceil(t.length / (S.cpt || 3.4)) + 4;
+// Estimation, avant l'envoi : environ 3,4 caractères par token en français. Le vrai compte vient de la réponse.
+export const estTok = t => Math.ceil(t.length / 3.4) + 4;
 export const statOn = s => s.stat ?? !!(s.remote && ctx.stat);
 export const statFields = s =>
   (s.statFields || '').trim() || (s.remote ? ctx.stat : '') || DEFAULT_FIELDS;
@@ -23,9 +24,7 @@ const loreTag = a => (a.length ? '\n\n<lorebook>\n' + a.map(e => e.text).join('\
 // fiches et un lorebook modestes coûtent donc moins en entier dans la partie fixe que par morceaux en fin de
 // requête ; au-delà de CACHED_FREE, seuls les actifs partent.
 const CACHED_FREE = 3000;
-// Rapport fixe, pas S.cpt : recalibré à chaque réponse, il ferait basculer fiches et lorebook d'un tour à l'autre
-// entre la partie fixe du prompt et la fin du dernier message, et réécrire tout le cache de Claude.
-const toks = L => L.reduce((a, x) => a + Math.ceil(x.text.length / 3.4) + 4, 0);
+const toks = L => L.reduce((a, x) => a + estTok(x.text), 0);
 // Lorebook entier en partie fixe, sauf limite d'entrées choisie dans le scénario.
 const loreAll = max => !max && toks(ctx.lore || []) <= CACHED_FREE;
 const lorePerm = max => (ctx.lore || []).filter(e => e.always || loreAll(max)).sort((x, y) => y.pr - x.pr);

@@ -1,4 +1,4 @@
-import { costMap, costOf, money, parseAmount, parsePrice, priceOf } from './cost.js';
+import { costMap, costOf, money, parseAmount, priceOf } from './cost.js';
 import { S } from './state.js';
 import { saveSet } from './store.js';
 import {
@@ -43,8 +43,7 @@ const rows = map => {
   return ks.map(k => {
     const e = map[k],
       t = e[0] + e[1],
-      pr = priceOf(k, S.prices),
-      c = costOf(e, pr);
+      c = costOf(e, priceOf(k));
     return el(
       'div',
       { class: 'ur' },
@@ -68,41 +67,13 @@ const rows = map => {
             ' en sortie · ' +
             fmt(e[2]) +
             (e[2] > 1 ? ' requêtes' : ' requête') +
-            (c != null ? ' · ≈ ' + money(c, S.fx) : '')
-        }),
-        el('button', {
-          class: 'upr',
-          data: { k },
-          'aria-label': (pr ? 'Modifier le tarif de ' : 'Ajouter un tarif pour ') + k,
-          text: pr ? 'Tarif' : 'Ajouter un tarif'
+            (c != null ? ' · ≈ ' + money(c, S.fx) : ' · sans tarif')
         })
       )
     );
   });
 };
 const num2 = v => String(v).replace('.', ',');
-async function setPrice(k) {
-  const own = S.prices?.[k],
-    cur = priceOf(k, S.prices);
-  const v = await dlg('Tarif de ' + k, {
-    m:
-      'En dollars par million de tokens : entrée / sortie, et si vous le connaissez le cache lu (exemple : 2 / 10 / 0,2). ' +
-      (own && priceOf(k) ? 'Vide : revenir au tarif public.' : 'Vide : pas de coût affiché.'),
-    v: cur ? cur.map(num2).join(' / ') : '',
-    ok: 'Enregistrer'
-  });
-  if (v === null) return;
-  const p = parsePrice(v);
-  if (p === undefined) {
-    await dlg('Tarif illisible', { m: 'Écrivez deux ou trois nombres, par exemple 2 / 10.', no: 'Fermer' });
-    return;
-  }
-  S.prices ??= {};
-  if (p) S.prices[k] = p;
-  else delete S.prices[k];
-  await saveSet();
-  view();
-}
 
 const bars = ym => {
   const ds = monthDays(ym),
@@ -132,7 +103,7 @@ const bars = ym => {
 
 // Plafond mensuel (S.cap, en dollars comme les tarifs) : il ne bloque rien, il prévient à 80 % puis à
 // 100 %, une fois par mois et par seuil.
-const monthCost = () => costMap(monthMap(monthKey(dayKey())), S.prices).sum;
+const monthCost = () => costMap(monthMap(monthKey(dayKey()))).sum;
 export const capLevel = (spent, cap) => (!cap ? 0 : spent >= cap ? 1 : spent >= cap * 0.8 ? 0.8 : 0);
 export function capCheck() {
   if (!S.cap) return;
@@ -196,7 +167,7 @@ export function view() {
   }
   const t = total(map),
     est = t[3],
-    cm = costMap(map, S.prices);
+    cm = costMap(map);
   const parts = [
     el(
       'div',
@@ -235,14 +206,14 @@ export function view() {
           text:
             'Coût non compté pour ' +
             (cm.unknown.length > 1 ? cm.unknown.length + ' modèles sans tarif' : 'un modèle sans tarif') +
-            ' : touchez « Ajouter un tarif » (0 / 0 pour une offre gratuite).'
+            ' : son tarif s’ajoute dans js/cost.js.'
         })
       : null,
     t[2] && cm.any
       ? el('p', {
           class: 'note',
           text:
-            'Coût estimé à partir des tarifs publics (ou des vôtres), cache compris' +
+            'Coût estimé à partir des tarifs publics, cache compris' +
             (S.fx ? ', converti à ' + num2(S.fx) + ' € pour 1 $' : ', en dollars') +
             ' : votre facture fait foi.'
         })
@@ -307,10 +278,6 @@ $('#usx').onclick = () => {
   view();
 };
 $('#usc').onclick = () => $('#dus').close();
-$('#usv').onclick = e => {
-  const b = e.target.closest?.('.upr');
-  if (b) setPrice(b.dataset.k);
-};
 $('#usf').onclick = async () => {
   const v = await dlg('Afficher en euros', {
     m: 'Les tarifs sont publiés en dollars. Combien d’euros pour un dollar (exemple : 0,92) ? Vide : afficher en dollars.',

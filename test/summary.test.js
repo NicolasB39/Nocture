@@ -6,7 +6,6 @@ globalThis.matchMedia = () => ({ matches: false });
 globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
 const { splitSummary } = await import('../js/memory.js');
-const { sect } = await import('../js/ai.js');
 
 test('un résumé propre est rendu tel quel, avec Événements et Situation actuelle', () => {
   const t = 'Événements : ils ont trouvé le coffre.\nSituation actuelle : ils hésitent à le toucher.';
@@ -54,13 +53,3 @@ test('un texte qui n’est que sections rend un résumé vide, à charge de l’
   assert.equal(splitSummary('Souvenirs :\n- a').summary, '');
 });
 
-test('sect s’arrête avant les intitulés décorés', () => {
-  const sortie = h =>
-    `${h('RÉSUMÉ')}\nÉvénements : le coffre.\n${h('SOUVENIRS')}\n- un fait\n${h('RELATIONS')}\n- Maëlys: amie\n${h('LIGNES')}\n- une ligne`;
-  for (const f of [h => `[${h}]`, h => `**[${h}]**`, h => `## [${h}]`]) {
-    const t = sortie(f);
-    assert.equal(sect(t, 'R[ÉE]SUM[ÉE]'), 'Événements : le coffre.');
-    assert.equal(sect(t, 'SOUVENIRS'), '- un fait');
-    assert.equal(sect(t, 'RELATIONS'), '- Maëlys: amie');
-  }
-});

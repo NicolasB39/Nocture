@@ -9,7 +9,7 @@ import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
 import { app, S } from './state.js';
 import { save, saveSet } from './store.js';
-import { $, dlg, el, err, fit, LS, strip } from './util.js';
+import { $, dlg, el, err, fit, LS } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
 
 // Envoi d'un tour : appel au modèle, affichage progressif, erreurs, maintien du cache, zone de saisie.
@@ -93,7 +93,7 @@ export async function ask(old, cont, hint) {
     // Lieu annoncé en tête : la scène s'installe avant le texte (intertitre, lettrine, décor).
     const lt = !cont && lieuTag(t);
     if (lt && lt != lieu) dl = liveScene((lieu = lt));
-    const v = liveText(strip(t)),
+    const v = liveText(t.trim()),
       sec = Math.round((Date.now() - t0) / 1000);
     if (!v)
       wt.querySelector('.act').textContent =
@@ -191,7 +191,7 @@ export async function ask(old, cont, hint) {
   }
   // Coût du tour, refus compris (facturé) ; rien si la requête n'a pas abouti.
   const lt = lastTurn();
-  app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key, S.prices)) };
+  app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key)) };
   clearInterval(tick);
   cancelAnimationFrame(raf);
   pend = null;

@@ -2155,14 +2155,6 @@ dialog input[type='range'] {
   flex: 1;
   min-width: 0;
 }
-.upr {
-  flex: none;
-  padding: 2px 0;
-  color: var(--mu2);
-  font-size: 12.5px;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
 #pel {
   margin-top: 6px;
 }
