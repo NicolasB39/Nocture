@@ -395,7 +395,7 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 - Modèles proposés dans les champs Modèle : ceux dont le tarif est connu (`js/cost.js`) ; un autre se tape à la main.
 - Compteurs : estimation des tokens envoyés, cache et coût du dernier tour sous la conversation (voir « Prompt, cache et débit »).
 - Recherche dans la liste, export d'une histoire en `.md`, sauvegarde JSON (clés API exclues) avec rappel tous les 30 jours, synchronisation en ligne sur un dépôt GitHub privé.
-- Bouton retour du téléphone géré, y compris pour fermer une feuille ouverte depuis la liste, fonctionnement hors ligne.
+- Bouton retour du téléphone géré, y compris pour fermer une feuille ouverte depuis la liste, fonctionnement hors ligne : les fichiers des scénarios, images comprises, restent en cache d'une version de l'application à l'autre (400 au plus).
 
 ## Stockage sur l'appareil
 

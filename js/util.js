@@ -229,27 +229,41 @@ export const saveFile = async f => {
   }
   return true;
 };
+// Toast permanent (a.keep, l'offre de nouvelle version) : un toast passager le recouvre puis le laisse revenir.
+let keep = null;
+// Le toast est un popover, au premier plan même au-dessus d'une feuille ouverte. Rangé dans la dernière feuille
+// ouverte : hors d'elle, une feuille modale rendrait son bouton inactif.
+const pop = (e, on) => {
+  e.hidden = !on;
+  try {
+    if (e.matches(':popover-open')) e.hidePopover();
+    if (on) {
+      ([...document.querySelectorAll('dialog[open]')].at(-1) || document.body).append(e);
+      e.showPopover();
+    }
+  } catch (x) {}
+};
 export const toast = (t, a) => {
   const e = $('#toast');
+  if (a?.keep) keep = [t, a];
+  const end = () => {
+    clearTimeout(toastT);
+    if (keep && !a?.keep) toast(...keep);
+    else pop(e, false);
+  };
   e.textContent = t;
   if (a)
     e.append(
       el('button', {
         text: a.label,
         onclick: () => {
-          e.hidden = true;
-          clearTimeout(toastT);
+          if (a.keep) keep = null;
+          end();
           a.fn();
         }
       })
     );
-  e.hidden = false;
+  pop(e, true);
   clearTimeout(toastT);
-  if (a?.keep) return;
-  toastT = setTimeout(
-    () => {
-      e.hidden = true;
-    },
-    a ? 7000 : 2600
-  );
+  if (!a?.keep) toastT = setTimeout(end, a ? 7000 : 2600);
 };

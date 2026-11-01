@@ -176,6 +176,24 @@ try {
     assert.ok(!(await pg.evaluate(() => history.state?.d)));
   });
 
+  await step('toast au-dessus d’une feuille ouverte ; le toast permanent revient après un passager', async () => {
+    await pg.click('#cfg');
+    const top = await pg.evaluate(async () => {
+      const { toast } = await import('/js/util.js');
+      toast('Version', { keep: 1, label: 'Recharger', fn() {} });
+      toast('Passager');
+      const t = document.querySelector('#toast'),
+        r = t.getBoundingClientRect();
+      return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.closest('#toast') === t;
+    });
+    assert.ok(top, 'le toast n’est pas sous la feuille');
+    assert.match(await pg.textContent('#toast'), /Passager/);
+    await until(pg, () => /Version/.test(document.querySelector('#toast').textContent), null, 5000);
+    await pg.click('#toast button');
+    assert.ok(await pg.evaluate(() => document.querySelector('#toast').hidden));
+    await pg.click('#dcc');
+  });
+
   await step('envoi, réponse et choix', async () => {
     await pg.click('#cfg');
     await pg.fill('#ck', 'k');

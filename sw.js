@@ -1,4 +1,4 @@
-const C = 'nocturne-4faf49faf2',
+const C = 'nocturne-1d2e6049e9',
   A = [
     './',
     'index.html',
@@ -42,7 +42,9 @@ const C = 'nocturne-4faf49faf2',
     'js/util.js',
     'js/view.js'
   ],
-  MAX = 120;
+  // Fichiers des scénarios (textes, images) : cache à part, gardé d'une version à l'autre, MAX entrées au plus.
+  D = 'nocturne-scenarios',
+  MAX = 400;
 const SH = new Set(A.map(a => new URL(a, self.registration.scope).href));
 // Fichiers demandés avec ?v=<version> (rangés sous leur adresse) : les copies encore en cache chez
 // l'hébergeur juste après un déploiement sont contournées. Installation refusée si la page (sous ses deux
@@ -74,22 +76,23 @@ self.addEventListener('activate', e =>
   e.waitUntil(
     caches
       .keys()
-      .then(k => Promise.all(k.filter(x => x != C).map(x => caches.delete(x))))
+      .then(k => Promise.all(k.filter(x => x != C && x != D).map(x => caches.delete(x))))
       .then(() => clients.claim())
   )
 );
 const trim = async () => {
-  const c = await caches.open(C);
-  const k = (await c.keys()).filter(r => !SH.has(r.url));
+  const c = await caches.open(D);
+  const k = await c.keys();
   for (const r of k.slice(0, Math.max(0, k.length - MAX))) await c.delete(r);
 };
 const store = (r, x) => {
   if (!x.ok) return;
-  const c = x.clone();
+  const c = x.clone(),
+    sh = SH.has(r.url);
   return caches
-    .open(C)
+    .open(sh ? C : D)
     .then(k => k.put(r, c))
-    .then(() => (SH.has(r.url) ? 0 : trim()));
+    .then(() => (sh ? 0 : trim()));
 };
 // Fichiers de l'application : seulement ceux de l'installation, jamais rafraîchis un par un dans ce cache
 // (un rafraîchissement partiel mélangerait deux versions). Une nouvelle version passe par un nouveau worker.

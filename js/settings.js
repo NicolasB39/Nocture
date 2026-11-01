@@ -124,6 +124,11 @@ export function openSc() {
   $('#sst').checked = statOn(app.cur);
   $('#sstf').value = app.cur.statFields || '';
   $('#sstf').placeholder = ctx.stat || DEFAULT_FIELDS;
+  imgView();
+  if (!$('#ds').open) $('#ds').showModal();
+}
+// Images détectées du scénario GitHub (section de la feuille Scénario).
+function imgView() {
   const im = ctx.images;
   $('#simw').hidden = !app.cur.remote;
   $('#simn').textContent =
@@ -140,13 +145,18 @@ export function openSc() {
       )
     )
   );
-  if (!$('#ds').open) $('#ds').showModal();
 }
 on('settings:open', openSc);
+// Recharger l'index : seuls les champs venus de GitHub sont relus ; ce que vous avez saisi dans la feuille reste.
 $('#simr').onclick = async () => {
   await getTree(true);
   await loadCtx();
-  openSc();
+  if (app.cur.remote) {
+    $('#ssys').value = ctx.system;
+    $('#sav').value = ctx.avatar;
+    $('#sint').value = ctx.intro || '';
+  }
+  imgView();
   render();
 };
 $('#mo').onclick = () => $('#dmn').showModal();
