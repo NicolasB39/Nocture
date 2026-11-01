@@ -1,1 +1,1 @@
-Lieu, Niveau, Santé (0/100), Quête en cours
+Lieu, Jour, Niveau, Santé (0/100), Quête en cours

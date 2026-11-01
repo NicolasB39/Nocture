@@ -360,8 +360,8 @@ export const waitMsg = (w, why) =>
   ' s…';
 const SUMJ =
   "Tu mets à jour la mémoire d'une histoire interactive. Écris en français.\n" +
-  "- resume : récit condensé et mis à jour de toute l'histoire, 1200 caractères maximum, en deux parties (Événements, Situation actuelle) ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
-  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
+  "- resume : récit condensé et mis à jour de toute l'histoire, 1200 caractères maximum, en deux parties (Événements, Situation actuelle) ; la Situation actuelle nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
+  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
   "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.\n" +
   "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.";
 // Réponse de la mémoire, garantie conforme par l'API (sorties structurées).

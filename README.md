@@ -321,7 +321,7 @@ La mémoire tient sur trois étages, du plus détaillé au plus condensé :
 
 - **La fenêtre** : les derniers messages, envoyés mot pour mot.
 - **Les lignes récentes** : une phrase par message sorti de la fenêtre, pour garder le détail immédiat sans payer le texte intégral. Les plus anciennes disparaissent au fur et à mesure, une fois absorbées par le résumé.
-- **Le résumé** : le récit condensé de tout ce qui précède, plafonné pour ne pas gonfler avec le temps. Il est écrit en deux parties, « Événements » et « Situation actuelle » ; les souvenirs, les relations et l'objectif ont leurs propres champs et ne doivent pas y figurer. Quand il dépasse son plafond, il est coupé à la fin de la dernière phrase complète plutôt qu'au milieu d'un mot.
+- **Le résumé** : le récit condensé de tout ce qui précède, plafonné pour ne pas gonfler avec le temps. Il est écrit en deux parties, « Événements » et « Situation actuelle », qui nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; les souvenirs gardent eux aussi en priorité ce qui pourra revenir plus tard, pour que le narrateur ait de quoi faire revenir le passé ; les souvenirs, les relations et l'objectif ont leurs propres champs et ne doivent pas y figurer. Quand il dépasse son plafond, il est coupé à la fin de la dernière phrase complète plutôt qu'au milieu d'un mot.
 
 Chaque ligne récente renvoie au message qu'elle résume, ce qui permet au Sommaire d'y sauter. Si le modèle renvoie plus ou moins de lignes qu'il n'a reçu de messages, les lignes sont gardées sans ce lien, plutôt que de pointer vers de mauvais messages.
 
