@@ -446,6 +446,8 @@ try {
     assert.match(await pg.textContent('#jrl .scg .sct'), /tour · sonnet-5-5/);
     assert.match(await pg.textContent('#jrl .scg .scm'), /lus en cache/);
     await pg.click('#jrl .scg .sch');
+    // Détail lu à l'ouverture, avec les requêtes complètes.
+    await until(pg, () => !/Lecture…/.test(document.querySelector('#jrl .scg .scb').textContent));
     const d = await pg.textContent('#jrl .scg .scb');
     assert.match(d, /préfixe identique/);
     assert.match(d, /Dernier message du joueur/);
@@ -539,6 +541,25 @@ try {
     await wait(300);
     await syncDone();
     assert.deepEqual(ghLog.sort(), ['PUT ' + f, 'PUT histoires-backup/index.json'].sort());
+  });
+
+  await step('journal des appels : envoi sur GitHub, ignoré par la synchronisation', async () => {
+    await pg.evaluate(async () => (await import('/js/store.js')).addCall({ t: Date.now(), kind: 'tour', sid: 'x', body: { messages: [{ role: 'user', content: 'Envoyé sur GitHub.' }] } }));
+    await pg.evaluate(async () => (await import('/js/statview.js')).openStats('session'));
+    await pg.click('#usj');
+    await pg.waitForSelector('#jrg:not([hidden])');
+    await pg.click('#jrg');
+    await until(pg, () => document.querySelector('#jrg').textContent == 'Envoyer sur GitHub' && !document.querySelector('#jrg').disabled);
+    const k = [...GH.keys()].find(x => /^histoires-backup\/journal\/journal-[\d-]+\.json$/.test(x));
+    assert.ok(k, 'fichier envoyé : ' + [...GH.keys()].join(', '));
+    assert.equal(JSON.parse(GH.get(k).text).calls.at(-1).body.messages[0].content, 'Envoyé sur GitHub.');
+    await pg.click('#jrc');
+    await pg.click('#usc');
+    ghLog.length = 0;
+    await pg.click('#sy');
+    await syncDone();
+    assert.ok(!ghLog.some(x => x.includes('journal')), 'la synchronisation ne touche pas au journal : ' + ghLog.join(', '));
+    assert.ok(GH.has(k));
   });
 
   await step('décors : scène aux 2/3, décor du moment, repli et fenêtre Personnages', async () => {

@@ -151,6 +151,13 @@ export const bkOn = () => {
   const B = S.bk;
   return B && B.p == 'gh' && B.repo && B.tok ? B : null;
 };
+// Fichier à part dans un sous-dossier du dossier de sauvegarde (journal des appels) : la synchronisation ne lit
+// que les fichiers à la racine du dossier, et le compactage de l'historique garde tout le dossier.
+export const ghSaveFile = (rel, text, message) => {
+  const B = bkOn();
+  if (!B) throw new Error('Sauvegarde GitHub non configurée (Réglages, section GitHub et sauvegarde).');
+  return GH.send(B, GH.dir(B) + '/' + rel, 'PUT', { message, content: b64e(text) });
+};
 const bkMsg = t => {
   const B = S.bk || {};
   $('#sy').classList.toggle('err', !!B.err);

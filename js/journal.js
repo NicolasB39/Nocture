@@ -1,8 +1,9 @@
+import { bkOn, ghSaveFile } from './backup.js';
 import { costOf, money, priceOf } from './cost.js';
 import { estTok } from './prompt.js';
 import { S } from './state.js';
 import { clearCalls, getCallBody, getCalls } from './store.js';
-import { $, dlg, el, saveFile } from './util.js';
+import { $, dlg, el, saveFile, toast } from './util.js';
 
 // Journal des appels : chaque requête envoyée à Claude (ai.js, quand la case des Réglages est cochée), avec ce
 // qu'elle a coûté. Pour une requête de narration, deux lectures utiles pour le cache : ce qui part hors cache
@@ -117,6 +118,7 @@ const draw = () => {
     : S.journal
       ? 'Aucun appel pour le moment.'
       : 'Journal désactivé : cochez « Journal des appels » dans Réglages, section Compteurs et débit.';
+  $('#jrg').hidden = !CALLS.length || !bkOn();
   $('#jrl').replaceChildren(
     ...CALLS.map((c, i) => {
       // Requête de narration réussie précédente de la même histoire, et relances du cache faites entre les deux.
@@ -159,14 +161,29 @@ export async function openJournal() {
 $('#usj').onclick = openJournal;
 $('#jrc').onclick = () => $('#djr').close();
 // Export : les requêtes complètes sont relues une à une, dans l'ordre d'envoi.
-$('#jre').onclick = async () => {
+const exportText = async () => {
   const all = [];
   for (const c of [...CALLS].reverse()) all.push({ ...c, body: await getCallBody(c.k).catch(() => null) });
-  saveFile(
-    new File([JSON.stringify({ v: 1, calls: all })], 'nocturne-journal-' + new Date().toISOString().slice(0, 10) + '.json', {
-      type: 'application/json'
-    })
-  );
+  return JSON.stringify({ v: 1, calls: all });
+};
+const stamp = () => new Date().toISOString().slice(0, 19).replace('T', '-').replace(/:/g, '');
+$('#jre').onclick = async () =>
+  saveFile(new File([await exportText()], 'nocturne-journal-' + stamp() + '.json', { type: 'application/json' }));
+// Envoi dans le dépôt de sauvegarde, un fichier daté par envoi, sous <dossier de sauvegarde>/journal/.
+$('#jrg').onclick = async () => {
+  const b = $('#jrg'),
+    n = 'journal/journal-' + stamp() + '.json';
+  b.disabled = true;
+  b.textContent = 'Envoi…';
+  try {
+    await ghSaveFile(n, await exportText(), 'Journal des appels (' + CALLS.length + ')');
+    toast('Journal envoyé sur GitHub : ' + n);
+  } catch (e) {
+    await dlg('Envoi impossible', { m: e.message, no: 'Fermer' });
+  } finally {
+    b.disabled = false;
+    b.textContent = 'Envoyer sur GitHub';
+  }
 };
 $('#jrx').onclick = async () => {
   if (!(await dlg('Vider le journal ?', { m: 'Les appels enregistrés sur cet appareil sont effacés. Les statistiques ne sont pas touchées.', ok: 'Vider' })))

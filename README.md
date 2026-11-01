@@ -203,7 +203,7 @@ Pour comprendre où partent les tokens, cochez « Journal des appels » (Réglag
 - **Fin de requête, hors cache** : le dernier message découpé en blocs (votre message, lorebook déclenché, fiches des personnages en scène, passages anciens, état précédent, indication, rappel des formats) avec leur taille. C'est là qu'on voit ce qui gagnerait à passer dans la partie fixe.
 - **Requête complète**, telle qu'envoyée.
 
-« Exporter » enregistre le journal en JSON (pour l'analyser ailleurs) et « Vider » l'efface. Le journal reste sur l'appareil : il n'est ni synchronisé ni sauvegardé, et la clé API n'y figure jamais. Une requête de narration pèse de quelques dizaines à quelques centaines de kilo-octets ; décochez la case une fois l'analyse faite.
+« Exporter » enregistre le journal en JSON (pour l'analyser ailleurs) et « Vider » l'efface. Avec la sauvegarde GitHub configurée, « Envoyer sur GitHub » dépose ce même fichier dans le dépôt de sauvegarde, sous `<dossier de sauvegarde>/journal/journal-AAAA-MM-JJ-HHMMSS.json` : un nouveau fichier à chaque envoi, que la synchronisation des histoires ignore (elle ne lit que la racine du dossier). Sinon, le journal reste sur l'appareil : il n'est ni synchronisé ni sauvegardé automatiquement, et la clé API n'y figure jamais. Une requête de narration pèse de quelques dizaines à quelques centaines de kilo-octets ; décochez la case une fois l'analyse faite.
 
 ### Repères dans le fil
 

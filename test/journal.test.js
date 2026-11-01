@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [] };
+globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [], addEventListener() {} };
 globalThis.matchMedia = () => ({ matches: false });
 globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 globalThis.window = globalThis;
