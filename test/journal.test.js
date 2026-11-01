@@ -58,7 +58,7 @@ test('journal coché sans base ouverte : l’appel aboutit quand même', async (
       status: 200,
       headers: { 'content-type': 'application/json' }
     });
-  Object.assign(S, { keys: { claude: 'k' }, models: {}, journal: true });
+  Object.assign(S, { key: 'k', model: '', journal: true });
   assert.equal((await chat([u('Bonjour')], { kind: 'tour' })).t, 'Ok.');
   S.journal = false;
 });

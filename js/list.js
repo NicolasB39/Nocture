@@ -1,7 +1,7 @@
 import { bkOn, sync } from './backup.js';
 import { emit, on } from './bus.js';
 import { coverOf, getTree, localTree } from './scenarios.js';
-import { API, S, app } from './state.js';
+import { S, app } from './state.js';
 import { del, getAll, getOne, put, saveSet } from './store.js';
 import { $, LS, ago, dlg, el, hue, ic, nz, plain, uid, vt } from './util.js';
 
@@ -116,7 +116,7 @@ export async function draw() {
   };
   for (const b of $('#tabs').querySelectorAll('button'))
     b.querySelector('.cnt').textContent = cnt[b.dataset.f] || '';
-  $('#ak').hidden = !!S.keys[API.k];
+  $('#ak').hidden = !!S.key;
   $('#bk').hidden = !(
     a.some(s => s.n > 0) &&
     Date.now() - (+LS.get('bk') || +LS.get('first') || Date.now()) > 2592e6 &&

@@ -1,5 +1,5 @@
-// Statistiques d'usage : d[jour][fournisseur/modèle] = [entrée, sortie, requêtes, requêtes estimées,
-// puis, quand le fournisseur en parle : cache lu, cache écrit 5 min, cache écrit 1 h] (compris dans l'entrée).
+// Statistiques d'usage : d[jour][modèle] = [entrée, sortie, requêtes, requêtes estimées, cache lu, cache écrit
+// 5 min, cache écrit 1 h] (cache compris dans l'entrée).
 export const STATS = { v: 1, d: {} };
 export const SESSION = {};
 
@@ -12,42 +12,16 @@ export const dayKey = (t = Date.now()) => {
   return d.getFullYear() + '-' + two(d.getMonth() + 1) + '-' + two(d.getDate());
 };
 export const monthKey = k => k.slice(0, 7);
-export const splitKey = k => {
-  const i = k.indexOf('/');
-  return i < 0 ? ['', k] : [k.slice(0, i), k.slice(i + 1)];
-};
 
-export const usageOf = u => {
-  if (!u) return null;
-  const p = +u.prompt_tokens || 0,
-    t = +u.total_tokens || 0,
-    c = Math.max(+u.completion_tokens || 0, t - p);
-  return p || c > 0 ? [p, Math.max(0, c)] : null;
-};
-
-// Cache lu et écrit, lus dans l'usage normalisé par normU (ai.js).
-export const cacheOf = u => [+u?.prompt_tokens_details?.cached_tokens || 0, +u?.cache_write || 0];
-
-const bump = (map, key, p, c, est, ca) => {
-  const e = (map[key] ??= [0, 0, 0, 0]);
-  e[0] += p;
-  e[1] += c;
-  e[2] += 1;
-  if (est) e[3] += 1;
-  ca.forEach((v, i) => {
-    if (v > 0) e[4 + i] = (e[4 + i] || 0) + v;
-  });
-};
-
-// ca : [cache lu, cache écrit 5 min, cache écrit 1 h].
-export const record = (key, p, c, est = false, t = Date.now(), ca = []) => {
-  if (!key || !(p > 0 || c > 0)) return;
-  bump((STATS.d[dayKey(t)] ??= {}), key, p, c, est, ca);
-  bump(SESSION, key, p, c, est, ca);
-  hook?.();
-};
 const add = (o, e) => {
   for (let i = 0; i < e.length; i++) o[i] = (o[i] || 0) + (e[i] || 0);
+};
+// e : une requête, au format ci-dessus (requêtes = 1).
+export const record = (key, e, t = Date.now()) => {
+  if (!key || !(e[0] > 0 || e[1] > 0)) return;
+  add(((STATS.d[dayKey(t)] ??= {})[key] ??= []), e);
+  add((SESSION[key] ??= []), e);
+  hook?.();
 };
 
 export const load = v => {

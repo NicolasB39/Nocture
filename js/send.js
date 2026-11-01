@@ -7,7 +7,7 @@ import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
-import { API, app, S } from './state.js';
+import { app, S } from './state.js';
 import { save, saveSet } from './store.js';
 import { $, dlg, el, err, fit, LS, strip } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
@@ -46,12 +46,11 @@ function setBusy(b) {
 }
 export async function ask(old, cont, hint) {
   const s = app.cur,
-    k = S.keys[API.k],
     again = cont ? () => ask(null, true) : old ? () => regen(hint) : () => ask(null, false, hint),
     // Réessayer n'a de sens que si le fil finit encore comme au départ : tour du joueur à envoyer, ou
     // réponse à continuer (le joueur a pu supprimer ou modifier des messages entre-temps).
     still = cont ? () => s.messages.at(-1)?.role == 'assistant' : old ? () => true : () => s.messages.at(-1)?.role == 'user';
-  if (!k) {
+  if (!S.key) {
     if (old) s.messages.push(old);
     render();
     err("Ajoutez une clé API dans les réglages IA (menu « … » en haut).", 1);
@@ -133,7 +132,7 @@ export async function ask(old, cont, hint) {
     const r = await chat(info.msgs, {
       max: +s.maxTok || 0,
       ac,
-      od: S.ns?.[API.k] ? null : live,
+      od: S.noStream ? null : live,
       model: modelOf(s),
       effort: s.effort || 'low',
       effBase: info.effort,
@@ -151,10 +150,8 @@ export async function ask(old, cont, hint) {
         }
       }
     });
-    app.stream = { mode: S.ns?.[API.k] ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
+    app.stream = { mode: S.noStream ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
     app.pt = r.pt ? { id: s.id, n: r.pt } : null;
-    const lt = lastTurn();
-    app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key, S.prices)) };
     const out = r.t;
     cut = r.cut;
     part = !!r.partial;
@@ -192,6 +189,9 @@ export async function ask(old, cont, hint) {
     // Un résumé fini pendant le tour n'a rien enregistré (persist, ai.js) : on le fait ici.
     await save(s).catch(() => {});
   }
+  // Coût du tour, refus compris (facturé) ; rien si la requête n'a pas abouti.
+  const lt = lastTurn();
+  app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key, S.prices)) };
   clearInterval(tick);
   cancelAnimationFrame(raf);
   pend = null;

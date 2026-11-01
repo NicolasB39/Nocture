@@ -20,7 +20,7 @@ $('#bkl').onclick = () => {
   LS.set('bks', Date.now());
   $('#bk').hidden = true;
 };
-// Nom historique : le renommer ferait chercher un fichier inexistant chez le fournisseur.
+// Nom historique : le renommer ferait chercher un fichier inexistant dans le dépôt.
 const FN = 'histoires-backup.json';
 const b64e = s => {
   const b = new TextEncoder().encode(s);

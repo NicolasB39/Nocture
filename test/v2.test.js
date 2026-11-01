@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normU, toAnt } from '../js/ai.js';
+import { toAnt, usageOf } from '../js/ai.js';
 import { clip } from '../js/memory.js';
 import { merge } from '../js/merge.js';
 import { last, note, status } from '../js/rate.js';
@@ -40,15 +40,11 @@ test('toAnt : requête à un seul message, sans marqueur de message', () => {
   assert.equal(typeof b.messages[0].content, 'string');
 });
 
-test('normU convertit l’usage Claude au format des compteurs', () => {
-  const u = normU({ input_tokens: 50, cache_read_input_tokens: 1000, cache_creation_input_tokens: 200, output_tokens: 300 });
-  assert.equal(u.prompt_tokens, 1250);
-  assert.equal(u.completion_tokens, 300);
-  assert.equal(u.total_tokens, 1550);
-  assert.equal(u.prompt_tokens_details.cached_tokens, 1000);
-  assert.equal(u.cache_write, 200);
-  assert.equal(u.rl, 250);
-  assert.equal(normU(null), null);
+test('usageOf : entrée cache compris, sortie, cache lu et écrit', () => {
+  const u = usageOf({ input_tokens: 50, cache_read_input_tokens: 1000, cache_creation_input_tokens: 200, output_tokens: 300 });
+  assert.deepEqual(u, { in: 1250, out: 300, read: 1000, write: 200 });
+  assert.deepEqual(usageOf({}), { in: 0, out: 0, read: 0, write: 0 });
+  assert.equal(usageOf(null), null);
 });
 
 test('note lit les en-têtes de débit d’Anthropic et le cache', () => {
@@ -57,12 +53,11 @@ test('note lit les en-têtes de débit d’Anthropic et le cache', () => {
     'anthropic-ratelimit-input-tokens-remaining': '29000',
     'anthropic-ratelimit-requests-remaining': '49'
   });
-  note(h, normU({ input_tokens: 10, cache_read_input_tokens: 900, cache_creation_input_tokens: 90, output_tokens: 5 }), 'claude-x', true);
+  note(h, usageOf({ input_tokens: 10, cache_read_input_tokens: 900, cache_creation_input_tokens: 90, output_tokens: 5 }), 'claude-x', true);
   assert.equal(last.cached, 900);
   assert.equal(last.wrote, 90);
   const s = status('claude-x');
   assert.equal(s.lim, 30000);
-  assert.equal(s.src, 'api');
 });
 
 test('clip coupe en fin de phrase, sinon au mot', () => {

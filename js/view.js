@@ -105,7 +105,6 @@ function rlView(est) {
     ' / ' +
     f(s.lim) +
     ' tokens par minute' +
-    (s.src == 'local' ? ' (estimation locale)' : '') +
     (w ? ' · prochain tour dans ~' + w + ' s' : '');
   g.hidden = !S.counters && !w;
   // La jauge se remplit avec le temps : on ne la redessine chaque seconde que tant qu'elle est à l'écran.

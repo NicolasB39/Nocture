@@ -4,7 +4,7 @@ import { API, S, app } from './state.js';
 const LEAN = /sonnet|opus/i;
 
 // Modèle de narration : celui du scénario ouvert, sinon celui des Réglages.
-export const modelOf = (s = app.cur) => s?.models?.[API.k] || S.models[API.k] || API.m;
+export const modelOf = (s = app.cur) => s?.model || S.model || API.m;
 export const family = m => (S.proto == 'full' || S.proto == 'lean' ? S.proto : LEAN.test(m || '') ? 'lean' : 'full');
 
 // Le lieu arrive avec l'état, en fin de réponse : trop tard pour l'affichage progressif. Quand il change,

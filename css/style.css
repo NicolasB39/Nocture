@@ -2118,9 +2118,6 @@ dialog input[type='range'] {
   white-space: nowrap;
   font-weight: 600;
 }
-.uh small {
-  flex: none;
-}
 .uh span {
   margin-left: auto;
   flex: none;

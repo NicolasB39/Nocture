@@ -30,9 +30,9 @@ test('température, Top P et Top K ne partent jamais, quel que soit le modèle',
       headers: { 'content-type': 'application/json' }
     });
   };
-  Object.assign(S, { keys: { claude: 'k' }, models: {}, tpm: 0, tpms: {} });
+  Object.assign(S, { key: 'k', model: '' });
   for (const m of ['', 'claude-sonnet-4-6', 'claude-haiku-4-5', 'claude-opus-5-5']) {
-    S.models.claude = m;
+    S.model = m;
     await chat(ms);
     const b = bodies.at(-1);
     for (const k of ['temperature', 'top_p', 'top_k']) assert.ok(!(k in b), (m || 'défaut') + ' : ' + k);

@@ -1,8 +1,9 @@
 import { HAIKU_LONG, LONG } from './cost.js';
 import { estTok } from './prompt.js';
+import { modelOf } from './protocol.js';
 import { SUM_MAX, clip, mergeMem, mergeRel, splitSummary, unnum } from './memory.js';
 import { hit429, note, wait } from './rate.js';
-import { cacheOf, record, usageOf } from './stats.js';
+import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { addCall, getOne, save } from './store.js';
 import { $, err, strip } from './util.js';
@@ -25,8 +26,8 @@ export const authH = k => ({ 'x-api-key': k, 'anthropic-version': ANT_VERSION, '
 export const ANT_VERSION = '2026-10-21';
 // Résumés de mémoire quand aucun modèle n'est choisi : un résumé ne demande pas le meilleur modèle, et
 // Haiku 5.5 coûte une vingtaine de fois moins que Sonnet 5.5.
-export const MEM_CLAUDE = 'claude-haiku-5-5';
-export const memModel = () => S.memModels?.[API.k] || MEM_CLAUDE;
+export const MEM_MODEL = 'claude-haiku-5-5';
+export const memModel = () => S.memModel || MEM_MODEL;
 export const EFFORTS = ['low', 'medium', 'high'];
 // L'effort (output_config.effort) règle la réflexion facturée avant chaque réponse. Accepté par Opus et
 // Sonnet 4.6 et suivants, Haiku 5.5, Fable et Mythos (et Opus 4.5) ; Haiku 4.5 et Sonnet 4.5 le refusent.
@@ -94,19 +95,14 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback }
     ...(stream ? { stream: true } : {})
   };
 };
-// Usage de Claude au format des compteurs : prompt_tokens comprend le cache lu et écrit.
-export const normU = u =>
-  u
-    ? {
-        prompt_tokens: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0),
-        completion_tokens: u.output_tokens || 0,
-        total_tokens:
-          (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0) + (u.output_tokens || 0),
-        prompt_tokens_details: { cached_tokens: u.cache_read_input_tokens || 0 },
-        cache_write: u.cache_creation_input_tokens || 0,
-        rl: (u.input_tokens || 0) + (u.cache_creation_input_tokens || 0)
-      }
-    : u;
+// Usage d'une réponse, en tokens : entrée (cache compris), sortie, cache lu, cache écrit.
+export const usageOf = u =>
+  u && {
+    in: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0),
+    out: u.output_tokens || 0,
+    read: u.cache_read_input_tokens || 0,
+    write: u.cache_creation_input_tokens || 0
+  };
 // Maintien du cache : le cache de Claude expire 5 minutes après le début de la dernière requête qui l'a
 // lu ou écrit. Pendant une pause, renvoyer la même requête avec max_tokens: 0 (sans streaming, refusé
 // dans ce cas) relit le préfixe au tarif réduit et repousse l'échéance, au lieu de le réécrire à 1,25 fois
@@ -115,28 +111,27 @@ let LAST = null;
 export const WARM_AT = 270000;
 export const lastWarmable = () => LAST;
 export async function keepWarm() {
-  const k = S.keys[API.k];
-  if (!LAST || !k) return false;
+  if (!LAST || !S.key) return false;
   // Sans relais (rien à relayer, et hors du préfixe) ; un changement d'effort, lui, fait partie du préfixe.
   const { stream, fallbacks, ...b } = LAST.body,
     bt = antBetas(b),
     w = { ...b, max_tokens: 0 },
-    key = API.k + '/' + b.model,
+    key = b.model,
     { sid } = LAST,
     t0 = (LAST.at = Date.now());
   try {
     const r = await fetch(API.u + '/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authH(k), ...(bt ? { 'anthropic-beta': bt } : {}) },
+      headers: { 'Content-Type': 'application/json', ...authH(S.key), ...(bt ? { 'anthropic-beta': bt } : {}) },
       body: JSON.stringify(w)
     });
     if (!r.ok) {
       journal('relance', w, { sid, key, err: 'Erreur ' + r.status, ms: Date.now() - t0 });
       return false;
     }
-    const u = normU((await r.json().catch(() => ({}))).usage);
+    const u = usageOf((await r.json().catch(() => ({}))).usage);
     note(r.headers, u, b.model, false);
-    journal('relance', w, { sid, ...track([], '', u, key), ms: Date.now() - t0 });
+    journal('relance', w, { sid, key, ...track(u, key), ms: Date.now() - t0 });
     return true;
   } catch (e) {
     journal('relance', w, { sid, key, err: e.message, ms: Date.now() - t0 });
@@ -158,7 +153,7 @@ export const refusal = sd => {
   e.refusal = true;
   return e;
 };
-// Erreurs passagères du fournisseur (surcharge, passerelle) : on retente, sans toucher à la jauge de débit.
+// Erreurs passagères de l'API (surcharge, passerelle) : on retente, sans toucher à la jauge de débit.
 export const BUSY = new Set([500, 502, 503, 504, 529]);
 export const TRIES = 3;
 export const backoff = (a, ra) => Math.min(60, Math.max(1, Math.round(+ra || 2 ** (a + 1))));
@@ -173,26 +168,15 @@ const pause = (ms, sig) =>
 // Dernier tour de narration, au format des statistiques, pour afficher son coût sous la conversation.
 let TURN = null;
 export const lastTurn = () => TURN;
-const track = (ms, out, u, key, primary) => {
-  try {
-    const x = usageOf(u);
-    // Haiku 5.5 coûte plus cher au-delà de 100 000 tokens de prompt : ces requêtes ont leur propre ligne.
-    if (x && base(key) == 'claude/claude-haiku-5-5' && x[0] > HAIKU_LONG) key = base(key) + LONG;
-    if (x) {
-      const [cr, cw] = cacheOf(u),
-        h1 = S.c1h,
-        ca = [cr, h1 ? 0 : cw, h1 ? cw : 0];
-      const e = [x[0], x[1], 1, u.est ? 1 : 0, ...ca];
-      if (primary) TURN = { key, e };
-      record(key, x[0], x[1], !!u.est, Date.now(), ca);
-      return { key, e };
-    }
-    const p = ms.reduce((a, m) => a + estTok(m.content) + 4, 0),
-      c = estTok(out);
-    if (primary) TURN = { key, e: [p, c, 1, 1] };
-    record(key, p, c, true);
-    return { key, e: [p, c, 1, 1] };
-  } catch (e) {}
+// Compte l'usage u (usageOf) dans les statistiques, sous la clé du modèle ; rend la clé et l'entrée comptée.
+const track = (u, key, primary) => {
+  if (!u || !(u.in || u.out)) return;
+  // Haiku 5.5 coûte plus cher au-delà de 100 000 tokens de prompt : ces requêtes ont leur propre ligne.
+  if (base(key) == 'claude-haiku-5-5' && u.in > HAIKU_LONG) key = base(key) + LONG;
+  const e = [u.in, u.out, 1, u.est ? 1 : 0, u.read, ...(S.c1h ? [0, u.write] : [u.write, 0])];
+  if (primary) TURN = { key, e };
+  record(key, e);
+  return { key, e };
 };
 // Journal des appels (Réglages, Compteurs et débit ; journal.js) : la requête telle qu'envoyée, sans la clé, ce
 // qu'elle a coûté (key et e, au format des statistiques, rendus par track) et comment elle s'est terminée.
@@ -206,7 +190,7 @@ const journal = (kind, body, x) => {
 // Erreur déjà journalisée avec ce qu'elle a coûté : le catch de chat() ne l'ajoute pas une seconde fois.
 const logged = e => Object.assign(e, { logged: true });
 const calib = (ms, u) => {
-  const pt = u?.prompt_tokens,
+  const pt = u?.in,
     ov = 4 * ms.length;
   if (!pt || pt <= ov) return;
   const r = ms.reduce((a, m) => a + m.content.length, 0) / (pt - ov);
@@ -216,11 +200,9 @@ export async function chat(
   ms,
   { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000, kind = '', sid = '' } = {}
 ) {
-  const p = API.k,
-    k = S.keys[p];
-  if (!k) throw new Error('clé API manquante');
+  if (!S.key) throw new Error('clé API manquante');
   if (primary) TURN = null;
-  const mdl = model || S.models[p] || API.m;
+  const mdl = model || modelOf(null);
   const est = ms.slice(-2).reduce((a, m) => a + estTok(m.content), 0) + (max || 500);
   const hold = async (next, why) => {
     for (let w = next(); w > 0 && !ac.signal.aborted; w = next()) {
@@ -256,7 +238,7 @@ export async function chat(
         r = await fetch(API.u + '/messages', {
           method: 'POST',
           signal: ac.signal,
-          headers: { 'Content-Type': 'application/json', ...authH(k), ...(bt ? { 'anthropic-beta': bt } : {}) },
+          headers: { 'Content-Type': 'application/json', ...authH(S.key), ...(bt ? { 'anthropic-beta': bt } : {}) },
           body: JSON.stringify(body)
         });
       } catch (e) {
@@ -333,31 +315,27 @@ export async function chat(
           if (!tt) throw e;
           part = true;
         }
-        const key = p + '/' + (served || mdl);
+        const key = served || mdl;
+        us = usageOf(us);
         // Refus (relais compris) : le texte déjà reçu est jeté, il n'est pas une réponse complète. Ce qui a été
         // facturé est compté quand même.
         if (fr == 'refusal') {
-          us = normU(us);
           note(r.headers, us, mdl, primary);
-          journal(kind, body, { sid, ...track(ms, strip(tt), us, key, primary), stop: fr, ms: Date.now() - t0 });
+          journal(kind, body, { sid, key, ...track(us, key, primary), stop: fr, ms: Date.now() - t0 });
           throw logged(refusal(sd));
         }
         const out = strip(tt);
         if (!out) {
-          journal(kind, body, { sid, key, err: 'réponse vide', stop: fr, ms: Date.now() - t0 });
+          note(r.headers, us, mdl, primary);
+          journal(kind, body, { sid, key, ...track(us, key, primary), err: 'réponse vide', stop: fr, ms: Date.now() - t0 });
           throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
         }
-        us = normU(us);
         // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de
         // sortie). La sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
-        if (part && us) {
-          const c = estTok(out);
-          if ((us.completion_tokens || 0) < c)
-            us = { ...us, completion_tokens: c, total_tokens: (us.prompt_tokens || 0) + c, est: true };
-        }
+        if (part && us && us.out < estTok(out)) us = { ...us, out: estTok(out), est: true };
         if (primary) calib(ms, us);
         note(r.headers, us, mdl, primary);
-        journal(kind, body, { sid, ...track(ms, out, us, key, primary), stop: fr || (part ? 'coupée' : ''), ms: Date.now() - t0 });
+        journal(kind, body, { sid, key, ...track(us, key, primary), stop: fr || (part ? 'coupée' : ''), ms: Date.now() - t0 });
         return {
           t: out,
           cut: fr == 'max_tokens',
@@ -365,12 +343,14 @@ export async function chat(
           chunks: n,
           ms: Date.now() - t0,
           partial: part,
-          pt: us?.prompt_tokens || 0
+          pt: us?.in || 0
         };
       }
       const j = await r.json().catch(() => ({}));
       const er = j.error;
       if (r.status == 429 && a < TRIES) {
+        // La réponse 429 porte aussi les en-têtes de débit : la jauge existe même au premier envoi.
+        note(r.headers, null, mdl, false);
         const secs = Math.min(90, Math.max(3, Math.round(+r.headers.get('retry-after') || (a + 1) * 15)));
         hit429(mdl, secs * 1000);
         await retry(secs, 'retry');
@@ -381,7 +361,7 @@ export async function chat(
         continue;
       }
       if (!r.ok || er) throw new Error(er?.message || 'Erreur ' + r.status);
-      const u = normU(j.usage);
+      const u = usageOf(j.usage);
       if (primary) calib(ms, u);
       note(r.headers, u, mdl, primary);
       const out = strip(
@@ -390,7 +370,8 @@ export async function chat(
           .map(b => b.text)
           .join('')
       );
-      const x = { sid, ...track(ms, out, u, p + '/' + (j.model || mdl), primary), stop: j.stop_reason || '', ms: Date.now() - t0 };
+      const key = j.model || mdl,
+        x = { sid, key, ...track(u, key, primary), stop: j.stop_reason || '', ms: Date.now() - t0 };
       if (j.stop_reason == 'refusal') {
         journal(kind, body, x);
         throw logged(refusal(j.stop_details));
@@ -403,13 +384,13 @@ export async function chat(
         mode: 'block',
         chunks: 1,
         ms: Date.now() - t0,
-        pt: u?.prompt_tokens || 0
+        pt: u?.in || 0
       };
     }
   } catch (e) {
     // Échec sans réponse comptée (erreur de l'API, réseau, arrêt) ; un refus ou une réponse vide l'est déjà.
     if (body && !e.logged)
-      journal(kind, body, { sid, key: p + '/' + mdl, err: ac.signal.aborted ? String(ac.signal.reason || 'arrêt') : e.message, ms: Date.now() - t0 });
+      journal(kind, body, { sid, key: mdl, err: ac.signal.aborted ? String(ac.signal.reason || 'arrêt') : e.message, ms: Date.now() - t0 });
     if (ac.signal.aborted)
       throw new Error(
         ac.signal.reason == 'timeout'
@@ -555,7 +536,7 @@ async function sumRun(s, start) {
           .map(m => (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + m.content.replace(/\{\{img::[^}]*\}\}/g, '').trim());
       const stale = batchGuard(s, parts.length);
       // Deux réponses JSON illisibles d'affilée : la mémoire passe au format balisé (SUMP).
-      const useJson = !S.nj?.[API.k];
+      const useJson = !S.memTagged;
       const { t } = await chat(
         [
           { role: 'system', content: useJson ? SUMJ : SUMP },
@@ -591,7 +572,7 @@ async function sumRun(s, start) {
       const j = useJson ? asJson(t) : null;
       if (useJson && !j) {
         S.jf = (S.jf || 0) + 1;
-        if (S.jf >= 2) (S.nj ??= {})[API.k] = 1;
+        if (S.jf >= 2) S.memTagged = true;
       } else if (useJson) S.jf = 0;
       if (j) {
         const x = splitSummary(j.resume);

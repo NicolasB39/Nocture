@@ -9,7 +9,6 @@ import {
   monthDays,
   monthKey,
   monthMap,
-  splitKey,
   total
 } from './stats.js';
 import { $, LS, dlg, el, toast } from './util.js';
@@ -31,8 +30,8 @@ const step = d => {
 const atNow = () =>
   mode == 'day' ? dayKey(cur) >= dayKey() : monthKey(dayKey(cur)) >= monthKey(dayKey());
 
-// Part de l'entrée lue ou écrite en cache (e[4] lu, e[5] et e[6] écrits 5 min et 1 h), quand le fournisseur
-// la donne : c'est ce qui dit si le cache joue son rôle.
+// Part de l'entrée lue ou écrite en cache (e[4] lu, e[5] et e[6] écrits 5 min et 1 h) : c'est ce qui dit si le
+// cache joue son rôle.
 const cacheTxt = e => {
   const r = e[4] || 0,
     w = (e[5] || 0) + (e[6] || 0);
@@ -42,8 +41,7 @@ const rows = map => {
   const ks = Object.keys(map).sort((a, b) => map[b][0] + map[b][1] - (map[a][0] + map[a][1])),
     top = ks.length ? map[ks[0]][0] + map[ks[0]][1] : 1;
   return ks.map(k => {
-    const [p, m] = splitKey(k),
-      e = map[k],
+    const e = map[k],
       t = e[0] + e[1],
       pr = priceOf(k, S.prices),
       c = costOf(e, pr);
@@ -53,8 +51,7 @@ const rows = map => {
       el(
         'div',
         { class: 'uh' },
-        el('b', { text: m }),
-        el('small', { text: p == 'claude' ? 'Claude' : p }),
+        el('b', { text: k }),
         el('span', { text: fmt(t) })
       ),
       el('i', { class: 'bar' }, el('u', { style: 'width:' + Math.max(2, (t / top) * 100) + '%' })),
@@ -76,7 +73,7 @@ const rows = map => {
         el('button', {
           class: 'upr',
           data: { k },
-          'aria-label': (pr ? 'Modifier le tarif de ' : 'Ajouter un tarif pour ') + m,
+          'aria-label': (pr ? 'Modifier le tarif de ' : 'Ajouter un tarif pour ') + k,
           text: pr ? 'Tarif' : 'Ajouter un tarif'
         })
       )
@@ -85,10 +82,9 @@ const rows = map => {
 };
 const num2 = v => String(v).replace('.', ',');
 async function setPrice(k) {
-  const m = splitKey(k)[1],
-    own = S.prices?.[k],
+  const own = S.prices?.[k],
     cur = priceOf(k, S.prices);
-  const v = await dlg('Tarif de ' + m, {
+  const v = await dlg('Tarif de ' + k, {
     m:
       'En dollars par million de tokens : entrée / sortie, et si vous le connaissez le cache lu (exemple : 2 / 10 / 0,2). ' +
       (own && priceOf(k) ? 'Vide : revenir au tarif public.' : 'Vide : pas de coût affiché.'),
@@ -246,7 +242,7 @@ export function view() {
       ? el('p', {
           class: 'note',
           text:
-            'Coût estimé à partir des tarifs (publics pour Claude, sinon les vôtres), cache compris' +
+            'Coût estimé à partir des tarifs publics (ou des vôtres), cache compris' +
             (S.fx ? ', converti à ' + num2(S.fx) + ' € pour 1 $' : ', en dollars') +
             ' : votre facture fait foi.'
         })
@@ -257,7 +253,7 @@ export function view() {
           text:
             fmt(est) +
             (est > 1 ? ' requêtes sont estimées' : ' requête est estimée') +
-            ' : le fournisseur n’a pas renvoyé son propre décompte.'
+            ' : réponse interrompue, sortie comptée sur le texte reçu.'
         })
       : null,
     mode == 'session'

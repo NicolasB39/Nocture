@@ -6,7 +6,7 @@ globalThis.matchMedia = () => ({ matches: false });
 globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 globalThis.window = globalThis;
 
-const { MEM_CLAUDE, chat, effortOk, keepWarm, lastTurn, lastWarmable, memModel, toAnt } = await import('../js/ai.js');
+const { MEM_MODEL, chat, effortOk, keepWarm, lastTurn, lastWarmable, memModel, toAnt } = await import('../js/ai.js');
 const { S, app } = await import('../js/state.js');
 const { modelOf } = await import('../js/protocol.js');
 const { extrasOf } = await import('../js/prompt.js');
@@ -42,7 +42,7 @@ const stub = () => {
 };
 
 beforeEach(() => {
-  Object.assign(S, { keys: { claude: 'k' }, models: {}, memModels: {}, tpm: 0, tpms: {}, c1h: false });
+  Object.assign(S, { key: 'k', model: '', memModel: '', c1h: false });
   app.cur = null;
   clear();
   stub();
@@ -63,17 +63,18 @@ test('toAnt n’envoie l’effort qu’aux modèles qui le prennent, et seulemen
 });
 
 test('la mémoire passe par Haiku 5.5, sauf choix explicite', () => {
-  assert.equal(memModel(), MEM_CLAUDE);
-  S.memModels.claude = 'claude-sonnet-5-5';
+  assert.equal(memModel(), MEM_MODEL);
+  S.memModel = 'claude-sonnet-5-5';
   assert.equal(memModel(), 'claude-sonnet-5-5');
 });
 
 test('le modèle du scénario l’emporte sur celui des Réglages', () => {
-  const s = clean({ id: 'a', messages: [], models: { claude: 'claude-haiku-5-5', groq: '  ', x: 3 } });
-  assert.deepEqual(s.models, { claude: 'claude-haiku-5-5' });
+  const s = clean({ id: 'a', messages: [], model: ' claude-haiku-5-5 ' });
+  assert.equal(s.model, 'claude-haiku-5-5');
   assert.equal(modelOf(s), 'claude-haiku-5-5');
+  assert.equal(clean({ id: 'a', messages: [], model: 3 }).model, '');
   assert.equal(modelOf(null), 'claude-sonnet-5-5');
-  S.models.claude = 'claude-opus-5-5';
+  S.model = 'claude-opus-5-5';
   assert.equal(modelOf(null), 'claude-opus-5-5');
 });
 
@@ -93,30 +94,30 @@ test('keepWarm renvoie la dernière requête de narration avec max_tokens 0, san
   assert.deepEqual(w.system, real.system, 'même préfixe système');
   assert.deepEqual(w.messages, real.messages, 'mêmes messages, mêmes marqueurs de cache');
   assert.deepEqual(w.output_config, { effort: 'low' }, 'même effort : il fait partie du préfixe');
-  assert.equal(SESSION['claude/claude-opus-5-5'][2], 2, 'la relance est comptée dans les statistiques');
-  assert.equal(SESSION['claude/claude-opus-5-5'][4], 4000, 'cache lu compté à part');
+  assert.equal(SESSION['claude-opus-5-5'][2], 2, 'la relance est comptée dans les statistiques');
+  assert.equal(SESSION['claude-opus-5-5'][4], 4000, 'cache lu compté à part');
 });
 
 test('lastTurn garde le dernier tour de narration, ni la mémoire ni la relance du cache', async () => {
   await chat(ms, { primary: true, model: 'claude-opus-5-5' });
   const t = lastTurn();
-  assert.equal(t.key, 'claude/claude-opus-5-5');
+  assert.equal(t.key, 'claude-opus-5-5');
   assert.deepEqual(t.e.slice(2), [1, 0, 2000, 0, 0], 'une requête réelle, cache lu compté');
-  await chat(ms, { model: MEM_CLAUDE });
+  await chat(ms, { model: MEM_MODEL });
   await keepWarm();
   assert.equal(lastTurn(), t);
 });
 
 test('keepWarm ne fait rien sans clé', async () => {
   await chat(ms, { primary: true });
-  S.keys = {};
+  S.key = '';
   assert.equal(await keepWarm(), false);
   assert.equal(bodies.length, 1);
 });
 
 test('une requête de mémoire ne remplace pas la requête à maintenir', async () => {
   await chat(ms, { primary: true, model: 'claude-opus-5-5' });
-  await chat(ms, { model: MEM_CLAUDE });
+  await chat(ms, { model: MEM_MODEL });
   assert.equal(lastWarmable().body.model, 'claude-opus-5-5');
 });
 

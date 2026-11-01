@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
 import { costMap, costOf, money, parseAmount, parsePrice, priceOf } from '../js/cost.js';
-import { SESSION, cacheOf, clear, merge, record, total, watch } from '../js/stats.js';
-import { normU } from '../js/ai.js';
+import { SESSION, clear, merge, record, total, watch } from '../js/stats.js';
 
 const near = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, a + ' ≠ ' + b);
 
@@ -12,12 +11,12 @@ beforeEach(() => {
 });
 
 test('priceOf : tarif personnalisé, puis public, y compris pour un identifiant daté', () => {
-  assert.deepEqual(priceOf('claude/claude-sonnet-5-5'), [2, 10, 0.1]);
-  assert.deepEqual(priceOf('claude/claude-haiku-4-5-20251001'), [1, 5, 0.1]);
-  assert.deepEqual(priceOf('claude/claude-opus-5-5', { 'claude/claude-opus-5-5': [1, 2] }), [1, 2]);
-  assert.equal(priceOf('groq/llama-3.3-70b-versatile'), null);
-  assert.deepEqual(priceOf('groq/llama', { 'groq/llama': [0, 0] }), [0, 0]);
-  assert.deepEqual(priceOf('claude/claude-opus-5-5-x'), [4, 20, 0.2], 'pas confondu avec claude-opus-5');
+  assert.deepEqual(priceOf('claude-sonnet-5-5'), [2, 10, 0.1]);
+  assert.deepEqual(priceOf('claude-haiku-4-5-20251001'), [1, 5, 0.1]);
+  assert.deepEqual(priceOf('claude-opus-5-5', { 'claude-opus-5-5': [1, 2] }), [1, 2]);
+  assert.equal(priceOf('claude-inconnu-9'), null);
+  assert.deepEqual(priceOf('claude-inconnu-9', { 'claude-inconnu-9': [0, 0] }), [0, 0]);
+  assert.deepEqual(priceOf('claude-opus-5-5-x'), [4, 20, 0.2], 'pas confondu avec claude-opus-5');
 });
 
 test('costOf compte à part le cache lu et écrit', () => {
@@ -33,11 +32,11 @@ test('costOf compte à part le cache lu et écrit', () => {
 });
 
 test('costMap additionne les modèles tarifés et liste les autres', () => {
-  const m = { 'claude/claude-haiku-5-5': [1e6, 1e6, 1, 0], 'groq/x': [5, 5, 1, 0] };
+  const m = { 'claude-haiku-5-5': [1e6, 1e6, 1, 0], 'claude-inconnu-9': [5, 5, 1, 0] };
   const r = costMap(m, {});
   near(r.sum, 0.6);
   assert.ok(r.any);
-  assert.deepEqual(r.unknown, ['groq/x']);
+  assert.deepEqual(r.unknown, ['claude-inconnu-9']);
   assert.deepEqual(costMap({}, {}), { sum: 0, any: false, unknown: [] });
 });
 
@@ -57,20 +56,13 @@ test('parsePrice lit « 2 / 10 », les virgules, et refuse le reste', () => {
 });
 
 test('record garde le cache lu et écrit, et les totaux restent compatibles', () => {
-  record('claude/a', 1000, 100, false, Date.now(), [600, 50, 0]);
-  record('claude/a', 1000, 100, false, Date.now(), [400, 0, 20]);
-  record('groq/b', 10, 5);
-  assert.deepEqual(SESSION['claude/a'], [2000, 200, 2, 0, 1000, 50, 20]);
-  assert.deepEqual(SESSION['groq/b'], [10, 5, 1, 0], 'sans cache, l’entrée garde quatre cases');
+  record('a', [1000, 100, 1, 0, 600, 50, 0]);
+  record('a', [1000, 100, 1, 0, 400, 0, 20]);
+  record('b', [10, 5, 1, 0]);
+  assert.deepEqual(SESSION['a'], [2000, 200, 2, 0, 1000, 50, 20]);
+  assert.deepEqual(SESSION['b'], [10, 5, 1, 0], 'sans cache, l’entrée garde quatre cases');
   assert.deepEqual(total(SESSION), [2010, 205, 3, 0, 1000, 50, 20]);
   assert.deepEqual(merge({ k: [1, 1, 1, 0] }, { k: [1, 1, 1, 0, 3] }).k, [2, 2, 2, 0, 3]);
-});
-
-test('cacheOf lit l’usage normalisé de Claude', () => {
-  const u = normU({ input_tokens: 40, cache_read_input_tokens: 3000, cache_creation_input_tokens: 120, output_tokens: 9 });
-  assert.deepEqual(cacheOf(u), [3000, 120]);
-  assert.deepEqual(cacheOf({ prompt_tokens: 50, prompt_tokens_details: { cached_tokens: 20 } }), [20, 0]);
-  assert.deepEqual(cacheOf(null), [0, 0]);
 });
 
 test('montants : unités et espaces acceptés, illisible ou nul refusé', () => {

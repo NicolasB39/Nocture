@@ -44,7 +44,7 @@ const ms = [
 ];
 
 beforeEach(() => {
-  Object.assign(S, { keys: { claude: 'k' }, models: {}, tpm: 0, tpms: {}, c1h: false });
+  Object.assign(S, { key: 'k', model: '', c1h: false });
   reset();
 });
 
@@ -85,17 +85,17 @@ test('relais : le coût est compté pour le modèle qui a vraiment répondu', as
   queue([sse([start('claude-sonnet-5'), text('Repris par un autre modèle.'), stop('end_turn')])]);
   const r = await chat(ms, { od: () => {}, model: 'claude-sonnet-5-5', primary: true });
   assert.equal(r.t, 'Repris par un autre modèle.');
-  assert.equal(lastTurn().key, 'claude/claude-sonnet-5');
+  assert.equal(lastTurn().key, 'claude-sonnet-5');
 });
 
 test('Haiku 5.5 au-delà de 100 000 tokens de prompt : compté sous sa propre ligne, au tarif majoré', async () => {
   queue([sse([start('claude-haiku-5-5', { input_tokens: 120000, output_tokens: 1 }), text('Long.'), stop('end_turn')])]);
   await chat(ms, { od: () => {}, model: 'claude-haiku-5-5', primary: true });
-  assert.equal(lastTurn().key, 'claude/claude-haiku-5-5' + LONG);
+  assert.equal(lastTurn().key, 'claude-haiku-5-5' + LONG);
   assert.deepEqual(priceOf(lastTurn().key), [0.5, 2.5, 0.05]);
   queue([sse([start('claude-haiku-5-5', { input_tokens: 90000, output_tokens: 1 }), text('Court.'), stop('end_turn')])]);
   await chat(ms, { od: () => {}, model: 'claude-haiku-5-5', primary: true });
-  assert.equal(lastTurn().key, 'claude/claude-haiku-5-5');
+  assert.equal(lastTurn().key, 'claude-haiku-5-5');
 });
 
 test('changement d’effort en cours de partie : message d’effort dans l’historique, effort de départ gardé', () => {

@@ -28,7 +28,7 @@ const queue = rs => {
 const ms = [{ role: 'user', content: 'Bonjour' }];
 
 beforeEach(() => {
-  Object.assign(S, { keys: { claude: 'k' }, models: {}, tpm: 0, tpms: {} });
+  Object.assign(S, { key: 'k', model: '' });
   reset();
 });
 

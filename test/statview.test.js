@@ -44,18 +44,18 @@ test('la feuille se construit sans enfant invalide, vide comme remplie', () => {
   view();
   assert.ok(texts(reg['#usv']).some(t => /Rien depuis/.test(t)));
 
-  record('groq/llama-3.3-70b', 1200, 300);
-  record('openrouter/meta-llama/llama-4', 50, 20, true);
+  record('claude-sonnet-5-5', [1200, 300, 1, 0]);
+  record('claude-haiku-5-5', [50, 20, 1, 1]);
   view();
   const all = texts(reg['#usv']).join('|');
-  assert.match(all, /llama-3\.3-70b/);
-  assert.match(all, /llama-4/);
+  assert.match(all, /claude-sonnet-5-5/);
+  assert.match(all, /claude-haiku-5-5/);
   assert.match(all, /estimée/);
   assert.doesNotMatch(all, /null|object/);
 });
 
 test('les boutons de période déclenchent chaque vue sans erreur', () => {
-  record('groq/a', 10, 5);
+  record('a', [10, 5, 1, 0]);
   for (const m of ['day', 'month', 'session']) {
     reg['#ust'].onclick({ target: { closest: () => ({ dataset: { m } }) } });
     assert.ok(reg['#usv'].kids.length > 0);

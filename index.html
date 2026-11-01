@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="009948e5ab">
+<meta name="app-version" content="a77352c7d3">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -357,9 +357,6 @@
 
 <details>
 <summary>Compteurs et débit</summary>
-<label for="ctpm">Tokens par minute</label>
-<input id="ctpm" type="number" min="0" inputmode="numeric" placeholder="8000">
-<p class="note">Vide : aucune jauge. Sert de repli tant qu'aucune réponse n'a donné la limite de débit de votre compte. La valeur se corrige toute seule dès qu'une réponse la contient.</p>
 <label><input id="ctc" type="checkbox">Afficher les compteurs sous la conversation</label>
 <p class="note">Tokens envoyés et jauge de débit. Masqués, la jauge réapparaît quand un envoi doit attendre.</p>
 <label><input id="cjr" type="checkbox">Journal des appels</label>

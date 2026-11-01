@@ -17,7 +17,7 @@ import { $, LS, dlg, el, ic, num, nz, pickAccent, toast } from './util.js';
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
 const genNotes = () => {
-  const def = S.models[API.k] || API.m,
+  const def = S.model || API.m,
     m = $('#smo').value.trim() || def;
   $('#smo').placeholder = def;
   $('#sefn').textContent = EFF_NOTE + (!effortOk(m) ? ' ' + m + ' ne prend pas ce réglage en charge : rien n’est envoyé.' : '');
@@ -36,7 +36,7 @@ const extrasNote = () => {
     e.textContent = 'Ni choix ni état dans les dernières réponses : rien à payer en plus.';
     return;
   }
-  const pr = priceOf(API.k + '/' + modelOf(), S.prices),
+  const pr = priceOf(modelOf(), S.prices),
     per = pr ? (x.avg * pr[1]) / 1e6 : null,
     tk = v => Math.round(v) + (Math.round(v) > 1 ? ' tokens' : ' token');
   e.textContent =
@@ -93,7 +93,7 @@ export function openSc() {
   const c = app.cur.remote ? ctx : app.cur;
   ACC = app.cur.accent || '';
   accView();
-  $('#smo').value = app.cur.models?.[API.k] || '';
+  $('#smo').value = app.cur.model || '';
   $('#sef').value = app.cur.effort || '';
   genNotes();
   extrasNote();
@@ -249,10 +249,7 @@ $('#dss').onclick = async () => {
   app.cur.accent = ACC;
   app.cur.maxTok = +$('#smx').value || 0;
   effortSet(app.cur, $('#sef').value);
-  const mo = $('#smo').value.trim();
-  app.cur.models ??= {};
-  if (mo) app.cur.models[API.k] = mo;
-  else delete app.cur.models[API.k];
+  app.cur.model = $('#smo').value.trim();
   app.cur.memN = num('#smm');
   app.cur.recallN = num('#srcl');
   app.cur.loreDepth = +$('#sld').value || 0;
@@ -273,12 +270,6 @@ const streamInfo = () => {
   if (!x) return 'Aucune réponse reçue pour le moment dans cette session.';
   const sec = (x.ms / 1000).toFixed(1).replace('.', ',');
   if (x.mode == 'off') return 'Dernière réponse : le streaming est désactivé dans ces réglages.';
-  if (x.mode == 'block')
-    return (
-      "Dernière réponse : reçue d'un seul bloc après " +
-      sec +
-      " s. Le service ou le modèle n'a pas diffusé le texte au fur et à mesure."
-    );
   if (x.chunks < 4)
     return (
       'Dernière réponse : diffusée en ' +
@@ -291,24 +282,22 @@ const streamInfo = () => {
   return 'Dernière réponse : diffusée en ' + x.chunks + ' morceaux (' + sec + ' s).';
 };
 function openCfg() {
-  const p = API.k;
-  $('#ck').value = S.keys[p] || '';
-  $('#cm').value = S.models[p] || '';
+  $('#ck').value = S.key || '';
+  $('#cm').value = S.model || '';
   $('#cm').placeholder = API.m;
-  $('#cmm').value = S.memModels?.[p] || '';
+  $('#cmm').value = S.memModel || '';
   $('#cmm').placeholder = memModel();
   $('#cwa').checked = S.warm !== false;
-  $('#cn').checked = !!S.ns?.[p];
+  $('#cn').checked = !!S.noStream;
   $('#cch').checked = !!S.c1h;
   $('#cjr').checked = !!S.journal;
   fillLec();
   $('#cst').textContent =
     streamInfo() +
     (S.cpt ? ' Estimation calibrée : ' + S.cpt.toFixed(2) + ' caractères par token.' : '') +
-    (S.nj?.[p]
+    (S.memTagged
       ? ' Mémoire : réponses en texte balisé (deux réponses JSON illisibles d’affilée).'
       : ' Mémoire : réponses en JSON.');
-  $('#ctpm').value = S.tpm || '';
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
   $('#cpr').value = S.proto || '';
@@ -402,12 +391,11 @@ $('#imf').onchange = async e => {
 };
 $('#dcc').onclick = () => $('#dc').close();
 $('#dcs').onclick = async () => {
-  const p = API.k;
-  if ($('#cm').value.trim() !== (S.models[p] || '')) rlReset();
-  S.keys[p] = $('#ck').value.trim();
-  S.models[p] = $('#cm').value.trim();
-  (S.memModels ??= {})[p] = $('#cmm').value.trim();
-  (S.ns ??= {})[p] = $('#cn').checked;
+  if ($('#cm').value.trim() !== (S.model || '')) rlReset();
+  S.key = $('#ck').value.trim();
+  S.model = $('#cm').value.trim();
+  S.memModel = $('#cmm').value.trim();
+  S.noStream = $('#cn').checked;
   S.c1h = $('#cch').checked;
   S.warm = $('#cwa').checked;
   const rp = $('#crp').value.trim();
@@ -415,7 +403,6 @@ $('#dcs').onclick = async () => {
   S.repo = rp;
   S.pre = $('#cpre').value.trim();
   S.proto = $('#cpr').value;
-  S.tpm = +$('#ctpm').value || 0;
   S.counters = $('#ctc').checked;
   S.journal = $('#cjr').checked;
   await saveSet();

@@ -76,10 +76,7 @@ export const clean = x => {
           .sort((a, b) => a[0] - b[0])
           .slice(-20)
       : [],
-    models:
-      x.models && typeof x.models == 'object'
-        ? Object.fromEntries(Object.entries(x.models).filter(([, v]) => typeof v == 'string' && v.trim()))
-        : {},
+    model: s(x.model).trim(),
     memN: o(x.memN),
     recallN: o(x.recallN),
     loreDepth: n(x.loreDepth),
@@ -322,13 +319,17 @@ export const clearCalls = () =>
     t.oncomplete = () => res();
     fail(t, rej);
   });
+// Réglages de la version multi-fournisseurs (v49 et avant), oubliés au chargement : l'ancienne clé API
+// n'y reste pas stockée.
+const OLD = ['provider', 'keys', 'models', 'memModels', 'ns', 'nj', 'tpm', 'tpms', 'temp', 'top', 'ctxLim', 'reserve'];
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);
+    for (const k of OLD) delete S[k];
   });
 export const saveSet = () => tx('settings', 'readwrite', s => s.put({ key: 'main', value: S })).then(told('set'));
-export const loadStats = () => tx('settings', 'readonly', s => s.get('stats')).then(r => r?.value || null);
-export const saveStats = v => tx('settings', 'readwrite', s => s.put({ key: 'stats', value: v })).then(told('stats'));
+export const loadStats = () => tx('settings', 'readonly', s => s.get('usage')).then(r => r?.value || null);
+export const saveStats = v => tx('settings', 'readwrite', s => s.put({ key: 'usage', value: v })).then(told('stats'));
 export const save = (s = app.cur) => {
   s.updated = Date.now();
   return put(s);

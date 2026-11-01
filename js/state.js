@@ -1,7 +1,6 @@
-// Claude seul : les autres fournisseurs (Groq, Gemini, Mistral, OpenRouter) restent dans le tag git multi-ia.
-// Clé, modèles et statistiques restent rangés sous k.
-export const API = { k: 'claude', u: 'https://api.anthropic.com/v1', m: 'claude-sonnet-5-5' };
-export const S = { keys: {}, models: {} };
+// API Claude et modèle de narration par défaut.
+export const API = { u: 'https://api.anthropic.com/v1', m: 'claude-sonnet-5-5' };
+export const S = { key: '', model: '' };
 export const ctx = { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', decors: [], decorDef: '', intro: '' };
 export const IMG = {};
 export const app = {

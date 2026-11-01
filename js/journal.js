@@ -129,7 +129,7 @@ const draw = () => {
         h = el(
           'button',
           { class: 'sch', 'aria-expanded': 'false' },
-          el('span', { class: 'sct' }, hm(c.t) + ' · ' + (c.kind || 'appel') + ' · ' + String(c.key || '').replace(/^claude\/claude-/, ''), el('span', { class: 'scv' })),
+          el('span', { class: 'sct' }, hm(c.t) + ' · ' + (c.kind || 'appel') + ' · ' + String(c.key || '').replace(/^claude-/, ''), el('span', { class: 'scv' })),
           el('span', { class: 'scm', text: head(c) })
         ),
         g = el('div', { class: 'scg' }, h);
