@@ -8,28 +8,8 @@ import { settled } from '../js/format.js';
 import { S, ctx } from '../js/state.js';
 
 beforeEach(() => {
-  S.ctxLim = 0;
-  S.reserve = 0;
   S.proto = '';
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
-});
-
-test('la fenêtre reste immobile plusieurs tours après avoir avancé', () => {
-  S.ctxLim = 600;
-  S.reserve = 100;
-  const s = clean({ id: 'w', system: 'SYS', noChoices: true, messages: [] });
-  const wins = [];
-  for (let t = 0; t < 30; t++) {
-    s.messages.push({ role: 'user', content: 'x'.repeat(120) });
-    const r = buildInfo(s);
-    assert.ok(r.used <= r.budget);
-    assert.equal(r.msgs[1].role, 'user');
-    s.messages.push({ role: 'assistant', content: 'y'.repeat(200) });
-    s.mem.win = r.win;
-    wins.push(r.win);
-  }
-  const moves = wins.slice(10).filter((w, i, a) => i && w !== a[i - 1]).length;
-  assert.ok(moves <= 7, 'la fenêtre bouge à ' + moves + ' tours sur 19');
 });
 
 test('zéro souvenir injecté n’en envoie aucun', () => {
@@ -80,7 +60,7 @@ test('sans consigne de style, les choix ne demandent pas d’astérisques', () =
 });
 
 test('en mode concis, l’ordre état puis choix est explicite', () => {
-  const p = protocol({ model: 'gpt-5', stat: true, choices: true }).sys;
+  const p = protocol({ model: 'claude-sonnet-5-5', stat: true, choices: true }).sys;
   assert.match(p, /avant le bloc <choix>/);
   assert.equal((p.match(/Termine par/g) || []).length, 1);
 });

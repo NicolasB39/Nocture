@@ -80,8 +80,6 @@ export const clean = x => {
       x.models && typeof x.models == 'object'
         ? Object.fromEntries(Object.entries(x.models).filter(([, v]) => typeof v == 'string' && v.trim()))
         : {},
-    temp: o(x.temp),
-    top: o(x.top),
     memN: o(x.memN),
     recallN: o(x.recallN),
     loreDepth: n(x.loreDepth),
@@ -101,7 +99,6 @@ export const clean = x => {
             .slice(-24)
         : [],
       relations: rel,
-      win: Math.min(n(mm.win), messages.length),
       upto: Math.min(n(mm.upto), messages.length)
     }
   };
@@ -114,7 +111,6 @@ export const forkOf = (s, i, name, id) => {
   Object.assign(c, { id, name, pin: false });
   c.messages = c.messages.slice(0, n);
   c.mem.lines = cutLines(c.mem.lines, n);
-  c.mem.win = Math.min(c.mem.win || 0, n);
   c.mem.upto = Math.min(c.mem.upto, n);
   effortCut(c, n);
   return c;

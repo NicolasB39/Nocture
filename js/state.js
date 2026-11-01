@@ -1,15 +1,7 @@
-export const PROVIDERS = {
-  groq: { n: 'Groq', u: 'https://api.groq.com/openai/v1', m: 'llama-3.3-70b-versatile' },
-  gemini: {
-    n: 'Gemini',
-    u: 'https://generativelanguage.googleapis.com/v1beta/openai',
-    m: 'gemini-flash-latest'
-  },
-  mistral: { n: 'Mistral', u: 'https://api.mistral.ai/v1', m: 'mistral-small-latest' },
-  openrouter: { n: 'OpenRouter', u: 'https://openrouter.ai/api/v1', m: 'openrouter/free' },
-  claude: { n: 'Claude (Anthropic)', u: 'https://api.anthropic.com/v1', m: 'claude-sonnet-5-5', fmt: 'anthropic' }
-};
-export const S = { provider: 'groq', keys: {}, models: {} };
+// Claude seul : les autres fournisseurs (Groq, Gemini, Mistral, OpenRouter) restent dans le tag git multi-ia.
+// Clé, modèles et statistiques restent rangés sous k.
+export const API = { k: 'claude', u: 'https://api.anthropic.com/v1', m: 'claude-sonnet-5-5' };
+export const S = { keys: {}, models: {} };
 export const ctx = { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', decors: [], decorDef: '', intro: '' };
 export const IMG = {};
 export const app = {

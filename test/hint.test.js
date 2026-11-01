@@ -18,7 +18,6 @@ const sc = () =>
   });
 
 beforeEach(() => {
-  Object.assign(S, { ctxLim: 0, reserve: 0 });
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 

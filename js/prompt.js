@@ -1,22 +1,15 @@
 import { SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, modelOf, protocol } from './protocol.js';
 import { RECALL_N, recall, recallTag } from './recall.js';
-import { PROVIDERS, S, ctx } from './state.js';
+import { S, ctx } from './state.js';
 import { nz } from './util.js';
 
 export const estTok = t => Math.ceil(t.length / (S.cpt || 3.4)) + 4;
-export const budgetOf = s => {
-  const L = S.ctxLim || 0;
-  if (!L) return 0;
-  return L - Math.min(s.maxTok || S.reserve || 1000, Math.floor(L / 2));
-};
 export const statOn = s => s.stat ?? !!(s.remote && ctx.stat);
 export const statFields = s =>
   (s.statFields || '').trim() || (s.remote ? ctx.stat : '') || DEFAULT_FIELDS;
 
-const CAST_FREE = 900;
 const MEM_N = 20;
-const WIN_STEP = 8;
 
 const textOf = ms =>
   nz(
@@ -25,17 +18,16 @@ const textOf = ms =>
       .join('\n')
   );
 const loreTag = a => (a.length ? '\n\n<lorebook>\n' + a.map(e => e.text).join('\n\n') + '\n</lorebook>' : '');
-// Avec Claude (sans limite de tokens), la partie fixe du prompt est relue en cache à un dixième du prix d'entrée
-// au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est
-// payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie
-// fixe que par morceaux en fin de requête ; au-delà de CACHED_FREE, ou sans cache, seuls les actifs partent.
+// La partie fixe du prompt est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et
+// Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des
+// fiches et un lorebook modestes coûtent donc moins en entier dans la partie fixe que par morceaux en fin de
+// requête ; au-delà de CACHED_FREE, seuls les actifs partent.
 const CACHED_FREE = 3000;
-const cached = () => PROVIDERS[S.provider]?.fmt == 'anthropic' && !S.ctxLim;
 // Rapport fixe, pas S.cpt : recalibré à chaque réponse, il ferait basculer fiches et lorebook d'un tour à l'autre
 // entre la partie fixe du prompt et la fin du dernier message, et réécrire tout le cache de Claude.
 const toks = L => L.reduce((a, x) => a + Math.ceil(x.text.length / 3.4) + 4, 0);
 // Lorebook entier en partie fixe, sauf limite d'entrées choisie dans le scénario.
-const loreAll = max => cached() && !max && toks(ctx.lore || []) <= CACHED_FREE;
+const loreAll = max => !max && toks(ctx.lore || []) <= CACHED_FREE;
 const lorePerm = max => (ctx.lore || []).filter(e => e.always || loreAll(max)).sort((x, y) => y.pr - x.pr);
 const loreFor = (ms, max) => {
   if (loreAll(max)) return '';
@@ -48,7 +40,7 @@ export const inScene = ms => {
   const t = textOf(ms);
   return (ctx.chars || []).filter(c => (c.keys || []).some(r => r.test(t)));
 };
-const small = C => toks(C) <= (cached() ? CACHED_FREE : CAST_FREE);
+const small = C => toks(C) <= CACHED_FREE;
 const charsPerm = () => {
   const C = (ctx.chars || []).filter(c => c.text);
   return small(C) ? C : C.filter(c => c.always);
@@ -195,10 +187,9 @@ export function buildInfo(s, cont, hint) {
       '\n</personnages>';
   }
   // Passages anciens : en queue, comme le lorebook déclenché, pour ne rien invalider du cache.
-  // On ne fouille que ce qui n'est plus envoyé tel quel : déjà résumé, ou sorti de la fenêtre au tour précédent.
-  const before = Math.max(start, Math.min(s.mem.win || 0, s.messages.length));
+  // On ne fouille que ce qui n'est plus envoyé tel quel : déjà résumé.
   add += recallTag(
-    recall(s.messages, before, textOf(s.messages.slice(-2)), s.recallN ?? RECALL_N),
+    recall(s.messages, start, textOf(s.messages.slice(-2)), s.recallN ?? RECALL_N),
     nm || 'Joueur'
   );
   if (statOn(s)) {
@@ -220,42 +211,16 @@ export function buildInfo(s, cont, hint) {
   add += P.tail;
   if (add && l?.role == 'user') l.content += U(add);
 
-  const sysMsg = sys.trim() ? [{ role: 'system', content: sys, cut }] : [],
-    B = budgetOf(s),
-    n = ms.length,
-    cost = ms.map(m => estTok(m.content)),
-    base = sysMsg.length ? estTok(sys) : 0;
-  const fits = f => base + cost.slice(f).reduce((a, b) => a + b, 0);
-  const align = f => {
-    while (f < n - 1 && ms[f].role == 'assistant') f++;
-    return f;
-  };
-  let from = 0;
-  if (B && n > 1) {
-    let g = n - 1,
-      acc = base + cost[n - 1];
-    for (let i = n - 2; i >= 0 && acc + cost[i] <= B; i--) {
-      acc += cost[i];
-      g = i;
-    }
-    g = align(g);
-    from = Math.max(0, Math.min((s.mem.win || 0) - start, n - 1));
-    if (from < g) {
-      while (from < g) from += WIN_STEP;
-      from = align(Math.min(from, (g + n) >> 1));
-      if (ms[from].role == 'assistant') from = g;
-    } else if (from > g + 2 * WIN_STEP) from = g;
-  }
-  const eff = effortPlan(s, start + from);
+  const sysMsg = sys.trim() ? [{ role: 'system', content: sys, cut }] : [];
+  const eff = effortPlan(s, start);
   for (const [at, v] of eff.marks) if (at - start < ms.length) ms[at - start].effBefore = v;
   return {
-    msgs: [...sysMsg, ...ms.slice(from)],
+    msgs: [...sysMsg, ...ms],
     effort: eff.base,
-    used: fits(from),
-    budget: B,
-    omitted: from,
-    win: start + from,
-    over: B > 0 && fits(from) > B
+    // Estimation des tokens envoyés (compteur sous la conversation).
+    used: (sysMsg.length ? estTok(sys) : 0) + ms.reduce((a, m) => a + estTok(m.content), 0),
+    // Premier message envoyé tel quel : ceux d'avant sont dans la mémoire.
+    win: start
   };
 }
 // Coût des extras, mesuré sur les dernières réponses : tokens moyens d'un bloc <choix> et d'un bloc <etat>
@@ -288,4 +253,3 @@ export const extrasOf = (ms, n = 30) => {
     share: (ch + st) / out
   };
 };
-export const omittedCount = s => buildInfo(s).omitted;

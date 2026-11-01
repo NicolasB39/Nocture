@@ -7,7 +7,7 @@ import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
-import { app, PROVIDERS, S } from './state.js';
+import { API, app, S } from './state.js';
 import { save, saveSet } from './store.js';
 import { $, dlg, el, err, fit, LS, strip } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
@@ -35,7 +35,7 @@ const cold = (s, old) => {
   return Date.now() - t > (S.c1h ? 3600e3 : 300e3);
 };
 export const sessionSum = (s, old) =>
-  PROVIDERS[S.provider]?.fmt == 'anthropic' && !S.ctxLim && s.messages.length - s.mem.upto >= SUM_START && cold(s, old)
+  s.messages.length - s.mem.upto >= SUM_START && cold(s, old)
     ? summarize(s, true)
     : null;
 function setBusy(b) {
@@ -46,8 +46,7 @@ function setBusy(b) {
 }
 export async function ask(old, cont, hint) {
   const s = app.cur,
-    p = S.provider,
-    k = S.keys[p],
+    k = S.keys[API.k],
     again = cont ? () => ask(null, true) : old ? () => regen(hint) : () => ask(null, false, hint),
     // Réessayer n'a de sens que si le fil finit encore comme au départ : tour du joueur à envoyer, ou
     // réponse à continuer (le joueur a pu supprimer ou modifier des messages entre-temps).
@@ -134,9 +133,7 @@ export async function ask(old, cont, hint) {
     const r = await chat(info.msgs, {
       max: +s.maxTok || 0,
       ac,
-      od: S.ns?.[p] ? null : live,
-      temp: s.temp ?? S.temp,
-      top: s.top ?? S.top,
+      od: S.ns?.[API.k] ? null : live,
       model: modelOf(s),
       effort: s.effort || 'low',
       effBase: info.effort,
@@ -152,7 +149,7 @@ export async function ask(old, cont, hint) {
         }
       }
     });
-    app.stream = { mode: S.ns?.[p] ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
+    app.stream = { mode: S.ns?.[API.k] ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
     app.pt = r.pt ? { id: s.id, n: r.pt } : null;
     const lt = lastTurn();
     app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key, S.prices)) };
@@ -181,7 +178,6 @@ export async function ask(old, cont, hint) {
       );
     }
     old = null;
-    s.mem.win = info.win;
     await save(s);
     saveSet();
   } catch (e) {
@@ -281,7 +277,7 @@ function warmArm(s) {
   warmStop();
   warmS = s;
   const L = lastWarmable();
-  if (!L || S.warm === false || S.c1h || L.p !== S.provider || warmN >= WARM_N) return;
+  if (!L || S.warm === false || S.c1h || warmN >= WARM_N) return;
   const age = Date.now() - L.at;
   if (age >= 295000) return;
   warmT = setTimeout(async () => {

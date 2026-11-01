@@ -1,7 +1,7 @@
 // Coût estimé des statistiques d'usage. Tarifs en dollars par million de tokens :
 // [entrée, sortie, lecture du cache]. L'écriture du cache coûte 1,25 × l'entrée (5 min) ou 2 × (1 h).
 // La lecture du cache vaut 0,1 × l'entrée, sauf Fable 5.1 (0,025 ×), Opus 5.5 et Sonnet 5.5 (0,05 ×).
-// Tarifs publics d'Anthropic vérifiés le 31 octobre 2026. Les autres fournisseurs se renseignent dans la feuille.
+// Tarifs publics d'Anthropic vérifiés le 31 octobre 2026. Un modèle absent de la liste se renseigne dans la feuille.
 // Haiku 5.5 coûte cinq fois plus au-delà de 100 000 tokens de prompt (cache compris) : ces requêtes sont
 // comptées sous leur propre clé (ai.js), avec le suffixe LONG.
 export const HAIKU_LONG = 100000;

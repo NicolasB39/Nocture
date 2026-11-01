@@ -42,7 +42,7 @@ const stub = () => {
 };
 
 beforeEach(() => {
-  Object.assign(S, { provider: 'claude', keys: { claude: 'k', groq: 'k' }, models: {}, memModels: {}, tpm: 0, tpms: {}, c1h: false });
+  Object.assign(S, { keys: { claude: 'k' }, models: {}, memModels: {}, tpm: 0, tpms: {}, c1h: false });
   app.cur = null;
   clear();
   stub();
@@ -62,20 +62,19 @@ test('toAnt n’envoie l’effort qu’aux modèles qui le prennent, et seulemen
   assert.equal(toAnt(ms, { model: 'claude-sonnet-5-5' }).output_config, undefined);
 });
 
-test('la mémoire passe par Haiku 5.5 avec Claude, sauf choix explicite', () => {
-  assert.equal(memModel('claude'), MEM_CLAUDE);
+test('la mémoire passe par Haiku 5.5, sauf choix explicite', () => {
+  assert.equal(memModel(), MEM_CLAUDE);
   S.memModels.claude = 'claude-sonnet-5-5';
-  assert.equal(memModel('claude'), 'claude-sonnet-5-5');
-  assert.equal(memModel('groq'), '');
+  assert.equal(memModel(), 'claude-sonnet-5-5');
 });
 
-test('le modèle du scénario l’emporte pour son fournisseur seulement', () => {
+test('le modèle du scénario l’emporte sur celui des Réglages', () => {
   const s = clean({ id: 'a', messages: [], models: { claude: 'claude-haiku-5-5', groq: '  ', x: 3 } });
   assert.deepEqual(s.models, { claude: 'claude-haiku-5-5' });
   assert.equal(modelOf(s), 'claude-haiku-5-5');
-  S.provider = 'groq';
-  assert.equal(modelOf(s), 'llama-3.3-70b-versatile');
-  assert.equal(modelOf(null), 'llama-3.3-70b-versatile');
+  assert.equal(modelOf(null), 'claude-sonnet-5-5');
+  S.models.claude = 'claude-opus-5-5';
+  assert.equal(modelOf(null), 'claude-opus-5-5');
 });
 
 test('clean garde un effort connu et oublie le reste', () => {
@@ -108,9 +107,9 @@ test('lastTurn garde le dernier tour de narration, ni la mémoire ni la relance 
   assert.equal(lastTurn(), t);
 });
 
-test('keepWarm ne fait rien après un changement de fournisseur', async () => {
+test('keepWarm ne fait rien sans clé', async () => {
   await chat(ms, { primary: true });
-  S.provider = 'groq';
+  S.keys = {};
   assert.equal(await keepWarm(), false);
   assert.equal(bodies.length, 1);
 });

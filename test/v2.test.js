@@ -16,7 +16,7 @@ const ms = [
 ];
 
 test('toAnt : système et avant-dernier message marqués pour le cache', () => {
-  const b = toAnt(ms, { model: 'm', max: 0, temp: null, top: null, stream: true });
+  const b = toAnt(ms, { model: 'm', max: 0, stream: true });
   assert.deepEqual(b.system, [{ type: 'text', text: 'SYS', cache_control: { type: 'ephemeral' } }]);
   assert.equal(b.max_tokens, 4096);
   assert.equal(b.stream, true);
@@ -28,7 +28,7 @@ test('toAnt : système et avant-dernier message marqués pour le cache', () => {
 });
 
 test('toAnt : durée d’une heure, jamais d’échantillonnage (API 2026-10-21)', () => {
-  const b = toAnt(ms, { model: 'm', max: 900, temp: 0.8, top: 0.9, ttl: true });
+  const b = toAnt(ms, { model: 'm', max: 900, ttl: true });
   assert.equal(b.system[0].cache_control.ttl, '1h');
   assert.equal(b.max_tokens, 900);
   for (const k of ['temperature', 'top_p', 'top_k']) assert.ok(!(k in b), k);
@@ -40,7 +40,7 @@ test('toAnt : requête à un seul message, sans marqueur de message', () => {
   assert.equal(typeof b.messages[0].content, 'string');
 });
 
-test('normU convertit l’usage Claude, laisse l’usage OpenAI intact', () => {
+test('normU convertit l’usage Claude au format des compteurs', () => {
   const u = normU({ input_tokens: 50, cache_read_input_tokens: 1000, cache_creation_input_tokens: 200, output_tokens: 300 });
   assert.equal(u.prompt_tokens, 1250);
   assert.equal(u.completion_tokens, 300);
@@ -48,8 +48,6 @@ test('normU convertit l’usage Claude, laisse l’usage OpenAI intact', () => {
   assert.equal(u.prompt_tokens_details.cached_tokens, 1000);
   assert.equal(u.cache_write, 200);
   assert.equal(u.rl, 250);
-  const o = { prompt_tokens: 5, completion_tokens: 2 };
-  assert.equal(normU(o), o);
   assert.equal(normU(null), null);
 });
 

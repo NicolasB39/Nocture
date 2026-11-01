@@ -10,7 +10,7 @@ const { S } = await import('../js/state.js');
 const { reset } = await import('../js/rate.js');
 
 const ok = t =>
-  new Response(JSON.stringify({ choices: [{ message: { content: t }, finish_reason: 'stop' }] }), {
+  new Response(JSON.stringify({ content: [{ type: 'text', text: t }], stop_reason: 'end_turn' }), {
     status: 200,
     headers: { 'content-type': 'application/json' }
   });
@@ -28,7 +28,7 @@ const queue = rs => {
 const ms = [{ role: 'user', content: 'Bonjour' }];
 
 beforeEach(() => {
-  Object.assign(S, { provider: 'groq', keys: { groq: 'k' }, models: {}, tpm: 0, tpms: {} });
+  Object.assign(S, { keys: { claude: 'k' }, models: {}, tpm: 0, tpms: {} });
   reset();
 });
 
@@ -69,6 +69,33 @@ test('une erreur 400 part tout de suite, sans nouvel essai', async () => {
   assert.equal(calls.length, 1);
 });
 
+test('un 429 attend le délai de retry-after (entre 3 et 90 s), sinon 15 s', async () => {
+  const first = async h => {
+    const ac = new AbortController();
+    let w0 = 0;
+    queue([new Response(JSON.stringify({ error: { message: 'limite' } }), { status: 429, headers: h }), ok('jamais')]);
+    await assert.rejects(
+      chat(ms, {
+        ac,
+        onWait: (w, why) => {
+          if (w && !w0) {
+            w0 = w;
+            assert.equal(why, 'retry');
+            // Après coup : la pause d'une seconde qui suit écoute alors l'annulation et s'arrête aussitôt.
+            setTimeout(() => ac.abort('stop'));
+          }
+        }
+      }),
+      /Annulé/
+    );
+    return w0;
+  };
+  assert.equal(await first({ 'retry-after': '7' }), 7);
+  assert.equal(await first({ 'retry-after': '1' }), 3);
+  assert.equal(await first({ 'retry-after': '600' }), 90);
+  assert.equal(await first({}), 15);
+});
+
 test('annuler pendant l’attente arrête les essais', async () => {
   const ac = new AbortController();
   const calls = queue([fail(503), ok('jamais')]);
@@ -98,28 +125,25 @@ const sse = (parts, cut = false) => {
     { status: 200, headers: { 'content-type': 'text/event-stream' } }
   );
 };
-const oa = t => 'data: ' + JSON.stringify({ choices: [{ delta: { content: t } }] }) + '\n\n';
 const ev = o => 'event: ' + o.type + '\ndata: ' + JSON.stringify(o) + '\n\n';
 const antStart = ev({ type: 'message_start', message: { usage: { input_tokens: 50, output_tokens: 1 } } }),
   antText = t => ev({ type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: t } });
-const useClaude = () => Object.assign(S, { provider: 'claude', keys: { claude: 'k' } });
 
 test('une coupure réseau en pleine réponse garde le texte reçu', async () => {
-  queue([sse([oa('La pluie tombe. '), oa('Il se tait.')], true)]);
+  queue([sse([antStart, antText('La pluie tombe. '), antText('Il se tait.')], true)]);
   const r = await chat(ms, { od: () => {} });
   assert.equal(r.t, 'La pluie tombe. Il se tait.');
   assert.equal(r.partial, true);
 });
 
 test('un flux fermé sans fin annoncée est une réponse incomplète', async () => {
-  queue([sse([oa('Début du récit.')])]);
+  queue([sse([antStart, antText('Début du récit.')])]);
   assert.equal((await chat(ms, { od: () => {} })).partial, true);
-  queue([sse([oa('Récit entier.'), 'data: ' + JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }] }) + '\n\n', 'data: [DONE]\n\n'])]);
+  queue([sse([antStart, antText('Récit entier.'), ev({ type: 'message_delta', delta: { stop_reason: 'end_turn' } }), ev({ type: 'message_stop' })])]);
   assert.equal((await chat(ms, { od: () => {} })).partial, false);
 });
 
 test('une surcharge annoncée dans le flux de Claude avant tout texte est retentée', async () => {
-  useClaude();
   const why = [];
   const calls = queue([
     sse([antStart, ev({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } })]),
@@ -132,7 +156,6 @@ test('une surcharge annoncée dans le flux de Claude avant tout texte est retent
 });
 
 test('une réponse de Claude interrompue compte une sortie estimée, pas 1 jeton', async () => {
-  useClaude();
   const t = 'Une longue phrase de récit, reçue avant la coupure du réseau. '.repeat(10);
   queue([sse([antStart, antText(t)], true)]);
   const r = await chat(ms, { od: () => {}, primary: true });

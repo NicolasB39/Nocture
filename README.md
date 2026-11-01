@@ -1,6 +1,6 @@
 # Nocturne
 
-Application web installable (PWA) pour jouer des histoires interactives avec une IA. Tout tourne dans le navigateur : les scénarios, l'historique et la mémoire sont stockés localement (IndexedDB), les requêtes partent directement vers le fournisseur d'IA choisi.
+Application web installable (PWA) pour jouer des histoires interactives avec une IA. Tout tourne dans le navigateur : les scénarios, l'historique et la mémoire sont stockés localement (IndexedDB), les requêtes partent directement vers l'API de Claude (Anthropic).
 
 ## Mise en ligne (GitHub Pages)
 
@@ -48,9 +48,9 @@ L'IA reçoit **en permanence** la liste de tous les personnages du monde, une li
 
 La **fiche complète** n'est envoyée que lorsque le personnage est en scène : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
 
-Tant que l'ensemble des fiches tient dans un petit budget (environ 900 tokens), aucune n'est filtrée : un scénario à deux ou trois personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable.
+Tant que l'ensemble des fiches tient dans un budget modeste (environ 3 000 tokens), aucune n'est filtrée : un scénario de quelques personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable. Le lorebook suit la même règle, avec le même budget.
 
-**Avec Claude** (sans limite de tokens), ce budget passe à environ 3 000 tokens, pour les fiches comme pour le lorebook : la partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Le lorebook garde son fonctionnement par mots-clés si « Entrées max » est réglé dans le scénario, et tout redevient déclenché au-delà du budget, avec une limite de tokens ou avec un autre fournisseur, dont le cache n'est pas garanti.
+La partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Le lorebook garde son fonctionnement par mots-clés si « Entrées max » est réglé dans le scénario, et tout redevient déclenché au-delà du budget.
 
 Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie stable, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène. L'IA peut ainsi montrer un personnage dès son entrée, sans attendre le tour suivant.
 
@@ -111,7 +111,7 @@ L'application est propriétaire du **protocole** : les formats du bloc `<etat>`,
 Conséquences :
 
 - Faire évoluer un format se fait en un seul endroit, pour tous les scénarios à la fois.
-- Le protocole peut s'adapter au modèle. Réglages, « Consignes de format » : **Automatique** choisit des consignes détaillées pour les modèles moyens et concises pour les gros, **Détaillées** et **Concises** forcent l'un ou l'autre. Le mode concis raccourcit les consignes et supprime le rappel de fin, ce qui économise environ 250 caractères par requête.
+- Le protocole peut s'adapter au modèle. Réglages, « Consignes de format » : **Automatique** choisit des consignes concises pour Sonnet et Opus, qui les suivent bien, et détaillées pour les autres (Haiku, Fable), **Détaillées** et **Concises** forcent l'un ou l'autre. Le mode concis raccourcit les consignes et supprime le rappel de fin, ce qui économise environ 250 caractères par requête.
 - Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Scénario : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
 
 Le **préambule commun** (Réglages) est votre texte à vous, ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
@@ -146,7 +146,7 @@ Le récit est composé en **Literata** (SIL Open Font License, `fonts/LICENSE-Li
 
 « Nouveau » demande un nom, puis propose un point de départ : enquête contemporaine, fantasy de voyage, huis clos, ou page blanche. Le canevas choisi remplit le prompt système, qui s'ouvre aussitôt pour être réécrit. Les canevas ne décrivent que la fiction : aucun ne touche au protocole (voir « Protocole et préambule »).
 
-Tant qu'aucune clé API n'est enregistrée pour le fournisseur courant, un bandeau le signale en haut de la liste et mène aux Réglages.
+Tant qu'aucune clé API Claude n'est enregistrée, un bandeau le signale en haut de la liste et mène aux Réglages.
 
 ### Actions d'un message
 
@@ -168,7 +168,7 @@ Sous le dernier message restent les actions qu'on utilise en lisant : écouter, 
 - Pendant l'attente de la réponse, le premier personnage en scène « réfléchit » (avec son avatar), sur trois lignes fantômes ; sans personnage, « Réflexion… ». Le compteur de secondes apparaît après 2 secondes.
 - Ouvrir une histoire depuis la liste fait glisser sa couverture jusqu'à l'en-tête (transition de vue, environ 0,4 s ; aucune animation si l'appareil demande moins d'animations ou ne gère pas les transitions de vue).
 - Couleur d'accent par scénario (feuille Scénario, sous la couverture) : au choix, ou tirée de la couverture (la teinte la plus vive, éclaircie pour rester lisible). Elle colore le liseré des tours, les numéros des choix, la lettrine, les intertitres et le bouton d'envoi de cette histoire seulement. « Par défaut » revient à la couleur de l'appli.
-- Les compteurs (option « Afficher les compteurs ») tiennent dans une pastille : tokens du dernier envoi et coût estimé du tour, quand le modèle a un tarif. La toucher affiche le détail (budget, cache, messages envoyés).
+- Les compteurs (option « Afficher les compteurs ») tiennent dans une pastille : tokens du dernier envoi et coût estimé du tour, quand le modèle a un tarif. La toucher affiche le détail (tokens envoyés, cache, messages envoyés).
 - Les suggestions sont des lignes numérotées : toucher le texte l'envoie, le crayon à droite le place dans la zone de saisie.
 
 **Bifurquer d'ici** crée une nouvelle histoire qui reprend jusqu'à ce message inclus, et l'ouvre : on essaie une autre direction sans rien perdre de l'originale, qui reste intacte dans la liste. La copie garde les réglages du scénario, la note, les souvenirs et les relations ; les lignes récentes et les repères de la mémoire sont coupés au point de bifurcation. Le résumé, lui, ne peut pas être coupé : si le message choisi est déjà résumé, la notification invite à relire le résumé (… › Mémoire), qui peut raconter la suite.
@@ -183,11 +183,11 @@ Le protocole demande par défaut au modèle d'écrire **les gestes entre astéri
 
 ### Statistiques d'utilisation
 
-Le bouton en forme d'histogramme, dans l'en-tête de la liste, ouvre les **tokens consommés par modèle**, selon trois périodes : *Session* (depuis l'ouverture de l'application, jusqu'à sa fermeture complète), *Jour* et *Mois*. Pour les deux dernières, les flèches parcourent l'historique ; la vue du mois ajoute un histogramme jour par jour. Chaque modèle affiche son total, ses tokens en entrée et en sortie, et son nombre de requêtes, sous le nom du fournisseur.
+Le bouton en forme d'histogramme, dans l'en-tête de la liste, ouvre les **tokens consommés par modèle**, selon trois périodes : *Session* (depuis l'ouverture de l'application, jusqu'à sa fermeture complète), *Jour* et *Mois*. Pour les deux dernières, les flèches parcourent l'historique ; la vue du mois ajoute un histogramme jour par jour. Chaque modèle affiche son total, ses tokens en entrée et en sortie, et son nombre de requêtes, sous le nom « Claude ». Les statistiques enregistrées autrefois pour un autre fournisseur restent affichées, sous son nom technique (par exemple « groq »).
 
-L'usage est relevé à chaque requête réussie, narration comme mémoire, à partir du décompte renvoyé par le fournisseur. La sortie comprend les tokens de réflexion quand le fournisseur les compte dans son total. Si un fournisseur ne renvoie aucun décompte (c'est fréquent en streaming), la requête est **estimée** avec le même calcul que la jauge, et la feuille le signale (« 3 requêtes sont estimées »). Les requêtes annulées ou en erreur sans texte ne comptent pas ; un refus de Claude, lui, compte, car l'API le facture (au moins l'entrée, et le texte déjà écrit s'il survient en cours de réponse).
+L'usage est relevé à chaque requête réussie, narration comme mémoire, à partir du décompte renvoyé par Claude. La sortie comprend les tokens de réflexion, facturés comme de la sortie. Si une réponse arrive sans décompte, la requête est **estimée** avec le même calcul que la jauge, et la feuille le signale (« 3 requêtes sont estimées »). Les requêtes annulées ou en erreur sans texte ne comptent pas ; un refus de Claude, lui, compte, car l'API le facture (au moins l'entrée, et le texte déjà écrit s'il survient en cours de réponse).
 
-La feuille affiche aussi un **coût estimé**, pour la période et par modèle. Les tarifs publics des modèles Claude sont intégrés (`js/cost.js`, vérifiés le 31 octobre 2026), cache compris : les tokens lus en cache sont comptés au tarif réduit (un dixième de l'entrée, un vingtième pour Opus 5.5 et Sonnet 5.5, un quarantième pour Fable 5.1), ceux écrits au tarif majoré (1,25 fois l'entrée, 2 fois avec le cache d'une heure). Pour les autres fournisseurs, « Ajouter un tarif » sous le modèle demande les prix en dollars par million de tokens (`entrée / sortie`, et en option le cache lu) ; `0 / 0` pour une offre gratuite. Le même bouton, « Tarif », remplace un tarif intégré, et un champ vide y revient. Un modèle sans tarif est signalé et n'est pas compté. Les tarifs étant publiés en dollars, « Devise » permet d'afficher en euros avec le taux de votre choix. C'est une estimation : votre facture fait foi. Haiku 5.5 coûte cinq fois plus quand le prompt dépasse 100 000 tokens (cache compris) : ces requêtes ont leur propre ligne, « claude-haiku-5-5 (prompt > 100 k) », comptée au tarif majoré. Quand Claude refuse une réponse et que le relais la confie à un autre modèle (voir « Refus »), elle est comptée pour le modèle qui a vraiment répondu. Les tarifs personnalisés et le taux sont gardés dans les réglages de l'appareil. Les statistiques enregistrées avant cette version n'ont pas le détail du cache : elles sont comptées au tarif plein de l'entrée.
+La feuille affiche aussi un **coût estimé**, pour la période et par modèle. Les tarifs publics des modèles Claude sont intégrés (`js/cost.js`, vérifiés le 31 octobre 2026), cache compris : les tokens lus en cache sont comptés au tarif réduit (un dixième de l'entrée, un vingtième pour Opus 5.5 et Sonnet 5.5, un quarantième pour Fable 5.1), ceux écrits au tarif majoré (1,25 fois l'entrée, 2 fois avec le cache d'une heure). Pour un modèle absent de `js/cost.js`, « Ajouter un tarif » sous le modèle demande les prix en dollars par million de tokens (`entrée / sortie`, et en option le cache lu) ; `0 / 0` pour une offre gratuite. Le même bouton, « Tarif », remplace un tarif intégré, et un champ vide y revient. Un modèle sans tarif est signalé et n'est pas compté. Les tarifs étant publiés en dollars, « Devise » permet d'afficher en euros avec le taux de votre choix. C'est une estimation : votre facture fait foi. Haiku 5.5 coûte cinq fois plus quand le prompt dépasse 100 000 tokens (cache compris) : ces requêtes ont leur propre ligne, « claude-haiku-5-5 (prompt > 100 k) », comptée au tarif majoré. Quand Claude refuse une réponse et que le relais la confie à un autre modèle (voir « Refus »), elle est comptée pour le modèle qui a vraiment répondu. Les tarifs personnalisés et le taux sont gardés dans les réglages de l'appareil. Les statistiques enregistrées avant cette version n'ont pas le détail du cache : elles sont comptées au tarif plein de l'entrée.
 
 **Plafond mensuel** (bouton de la feuille Statistiques) : un montant, dans la devise affichée, au-delà duquel l'application prévient. Une notification apparaît à 80 % puis à 100 % du plafond, une fois par mois et par seuil, avec un bouton « Voir » qui ouvre la vue du mois ; la feuille affiche en permanence la dépense du mois et sa jauge, qui passe en rouge une fois le plafond atteint. Le plafond ne bloque aucun envoi : il compte sur le coût estimé, donc seulement les modèles qui ont un tarif. Il est gardé en dollars, comme les tarifs, et converti à l'affichage. Le montant et le taux de change acceptent une unité ou des espaces (« 15 € », « 1 000 ») ; une saisie illisible est refusée au lieu d'effacer le réglage, et réenregistrer le même plafond ne refait pas partir les notifications du mois.
 
@@ -229,20 +229,15 @@ Section « Lecture » des Réglages (roue dentée de la liste, ou menu « … »
 
 Limites : la synthèse vocale est celle de l'appareil, donc les voix disponibles et leur qualité varient. Elle se met en pause en coupant puis en relisant le morceau en cours (phrase ou deux), ce qui fonctionne partout. Sur iPhone, le navigateur exige un premier toucher pour parler : la lecture automatique peut rester muette tant que vous n'avez pas lancé une lecture une fois.
 
-## Budget de tokens
+## Prompt, cache et débit
 
-Les Réglages sont groupés : fournisseur, clé et modèles en haut, puis « Narration », « Budget de tokens » et « GitHub et sauvegarde » dans des sections repliées.
+Les Réglages sont groupés : clé API Claude, modèles, streaming et cache en haut, puis « Lecture », « Narration », « Compteurs et débit » et « GitHub et sauvegarde » dans des sections repliées.
 
-Pour un modèle qui refuse les requêtes trop grosses (par exemple 8000 tokens), renseignez dans « Budget de tokens » :
+À chaque envoi partent le prompt système, la mémoire et tous les messages que la mémoire n'a pas encore résumés (voir « Mémoire »).
 
-- **Limite de tokens de l'IA** : le maximum accepté par le modèle, entrée et réponse comprises (par exemple 8000).
-- **Réserve pour la réponse** : la place gardée pour la réponse de l'IA (1000 par défaut). Si la longueur maximale du scénario est renseignée, elle sert de réserve pour ce scénario. La réserve est plafonnée à la moitié de la limite.
+### Placement dans le prompt et cache
 
-L'entrée est limitée à « limite − réserve » (7000 avec 8000 et 1000). À chaque envoi, l'application garde toujours le prompt système et votre dernier message, puis ajoute les messages récents en partant du plus récent, tant qu'ils tiennent : les plus anciens ne sont pas envoyés. La suite envoyée commence toujours par un message du joueur.
-
-### Placement dans le prompt et cache du fournisseur
-
-Les fournisseurs qui pratiquent le cache de prompt réutilisent le calcul d'un **préfixe exact**. Dès le premier caractère qui diffère, tout ce qui suit est recalculé. Chez certains, les tokens servis depuis le cache ne comptent pas dans la limite par minute, ce qui en fait le levier principal sur une offre gratuite.
+Le cache de prompt de Claude réutilise le calcul d'un **préfixe exact**. Dès le premier caractère qui diffère, tout ce qui suit est recalculé, et payé plein tarif.
 
 L'application range donc le prompt par volatilité croissante :
 
@@ -256,19 +251,15 @@ queue    dernier message, lorebook déclenché, fiches en scène, passages ancie
 
 Le choix du niveau suit un arbitrage simple. Un bloc placé avant l'historique est gratuit les tours où il ne bouge pas, mais le tour où il change, il invalide aussi tout l'historique. Pour un bloc de C tokens qui change tous les K tours avec un historique de H tokens, le remonter vaut le coup si `(C + H) / K < C`.
 
-La mémoire change par paliers d'une dizaine de messages (avec Claude, surtout en début de séance, voir plus bas) : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou toutes les fiches d'un petit scénario, et avec Claude tout un lorebook et des fiches modestes) montent dans la partie fixe. L'état précédent et le rappel changent à chaque tour par nature.
+La mémoire ne change que par paliers, surtout en début de séance (voir « API Claude ») : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou tout un lorebook et des fiches modestes, voir « Fiches de personnages ») montent dans la partie fixe. L'état précédent et le rappel changent à chaque tour par nature.
 
-Si votre fournisseur ne pratique pas le cache, ce placement ne change rien au total envoyé. Vous pouvez alors baisser « Souvenirs injectés » à 3 pour revenir à l'ancien volume.
+Le compteur sous la conversation indique par exemple « ≈ 6 953 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 », et une ligne « l'IA lit à partir d'ici » marque dans le fil le premier message envoyé tel quel : au-dessus, l'IA n'a plus que la mémoire.
 
-La fenêtre n'avance pas d'un message à la fois : quand le budget est dépassé, elle recule d'un bloc, puis ne bouge plus pendant plusieurs tours. Le début du prompt reste ainsi identique d'un tour à l'autre, ce que les fournisseurs facturent moins cher et comptent moins dans les quotas par minute.
+Le compteur et la jauge de débit sont **masqués par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Compteurs et débit ») les rend permanents. Masquée, la jauge réapparaît d'elle-même dans le cas où elle sert : un envoi qui doit attendre la minute suivante.
 
-Quand au moins 6 messages ne sont plus envoyés, ils sont résumés dans la mémoire, pour que l'IA n'en perde pas le fil. Le compteur sous la conversation indique par exemple « ≈ 6 953 / 7 000 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 », et une ligne « l'IA lit à partir d'ici » marque la limite dans le fil. Si le prompt de base dépasse à lui seul la limite, le compteur passe en rouge.
+### API Claude
 
-Le compteur et la jauge de débit sont **masqués par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Budget de tokens ») les rend permanents. Masqués, ils réapparaissent d'eux-mêmes dans les deux cas où ils servent : prompt de base au-dessus de la limite, et envoi qui doit attendre la minute suivante.
-
-### Claude (Anthropic)
-
-Claude passe par son API native (`/v1/messages`), pas par la couche de compatibilité OpenAI d'Anthropic, qui ne gère pas le cache de prompt. Choisissez « Claude (Anthropic) » dans Réglages, avec une clé de la console Anthropic ; il n'y a pas d'offre gratuite. Modèle par défaut : `claude-sonnet-5-5` (`claude-haiku-5-5` coûte moins cher).
+L'application appelle l'API native de Claude (`/v1/messages`). Renseignez « Clé API Claude » dans Réglages, avec une clé de la console Anthropic ; il n'y a pas d'offre gratuite. Modèle par défaut : `claude-sonnet-5-5` (`claude-haiku-5-5` coûte moins cher).
 
 L'application pose trois marqueurs de cache :
 
@@ -278,46 +269,46 @@ L'application pose trois marqueurs de cache :
 
 Tout l'historique stable est ainsi relu depuis le cache à un dixième du prix, et seule la dernière paire message-réponse est écrite à chaque tour.
 
-Avec Claude, et tant qu'aucune limite de tokens n'est réglée, la mémoire garde toujours au moins 40 messages mot pour mot, et choisit son moment pour avancer, parce qu'une mise à jour réécrit tout le cache de la mémoire et de l'historique :
+La mémoire garde toujours au moins 40 messages mot pour mot, et choisit son moment pour avancer, parce qu'une mise à jour réécrit tout le cache de la mémoire et de l'historique :
 
 - **En début de séance**, quand le cache a expiré (rien envoyé pour cette histoire depuis 5 minutes, ou une heure avec « Garder le cache une heure »), le premier envoi réécrira tout le prompt de toute façon. La mémoire avance alors dès 50 messages en attente, jusqu'à n'en garder que 40, et la réécriture porte directement le prompt raccourci. Le résumé part dès l'ouverture de l'histoire, pendant que vous relisez ; si vous envoyez avant qu'il soit fini, l'envoi l'attend au plus 30 secondes (« Mise à jour de la mémoire avant l'envoi… », Arrêter coupe l'attente), puis part quand même. Le résumé, fait par le modèle de mémoire (Haiku 5.5 par défaut), coûte environ dix fois moins que ce qu'il évite de réécrire et de relire.
 - **En cours de séance**, la mémoire n'avance qu'au-delà de 120 messages en attente : une longue séance peut donc se jouer sans aucune réécriture due à la mémoire.
 
-Les résumés partent par appels de 20 messages (10 avec les autres fournisseurs, qui gardent leur fonctionnement : mise à jour dès 40 messages en attente). Sur une séance mesurée de 13 tours, la mise à jour en cours de jeu et la fenêtre de 70 messages au départ pesaient ensemble environ 20 % du coût. En contrepartie, l'IA voit 40 messages mot pour mot en début de séance (une vingtaine de tours), puis jusqu'à 120. Le cache dure 5 minutes, prolongées à chaque tour ; « Garder le cache une heure » (Réglages, visible pour Claude) l'allonge, avec une écriture plus chère. Il est réécrit quand la mémoire se met à jour, quand la fenêtre avance, quand un ancien message est modifié ou après une pause plus longue que sa durée. Le compteur sous la conversation affiche les tokens « lus en cache » et « mis en cache » pour vérifier l'économie réelle.
+Les résumés partent par appels de 20 messages. Sur une séance mesurée de 13 tours, la mise à jour en cours de jeu et la fenêtre de 70 messages au départ pesaient ensemble environ 20 % du coût. En contrepartie, l'IA voit 40 messages mot pour mot en début de séance (une vingtaine de tours), puis jusqu'à 120. Le cache dure 5 minutes, prolongées à chaque tour ; « Garder le cache une heure » (Réglages) l'allonge, avec une écriture plus chère. Il est réécrit quand la mémoire se met à jour, quand un ancien message est modifié ou après une pause plus longue que sa durée. Le compteur sous la conversation affiche les tokens « lus en cache » et « mis en cache » pour vérifier l'économie réelle.
 
 **Maintien du cache pendant les pauses.** Lire une réponse puis écrire son tour dépasse souvent 5 minutes : le cache expirait, et le tour suivant réécrivait tout le prompt à 1,25 fois le prix d'entrée. Quand « Garder le cache au chaud pendant les pauses » est coché (Réglages, par défaut), l'application renvoie la dernière requête de narration avec `max_tokens: 0` environ 4 minutes 30 après son début : l'API relit le préfixe au tarif réduit (un dixième de l'entrée, un vingtième sur Opus 5.5), repousse l'échéance de 5 minutes et ne génère rien. Seul le dernier message, hors cache, est payé plein tarif. La relance part sans streaming (refusé avec `max_tokens: 0`) mais avec le même effort, qui fait partie du préfixe. Elle n'a lieu que tant que la conversation est ouverte et la page visible, au plus trois fois d'affilée (une vingtaine de minutes) sans nouvel envoi ; au-delà, mieux vaut laisser expirer. Elle est sans objet avec le cache d'une heure, qui reste préférable pour des pauses régulières de plus de 20 minutes. Les relances sont comptées dans les statistiques.
 
-**Effort.** Sonnet 5.5 et les modèles récents réfléchissent avant de répondre, et cette réflexion, invisible, est facturée comme de la sortie. Réglages du scénario, section Génération : « Effort (Claude) », **Faible par défaut**, Moyen ou Élevé, envoyé dans `output_config.effort`. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. L'effort n'est envoyé qu'aux modèles qui le prennent en charge (Opus et Sonnet 4.6 et suivants, Opus 4.5, Haiku 5.5, Fable, Mythos) ; Haiku 4.5 et Sonnet 4.5 le refusent, l'application s'en abstient et la note le signale. Les résumés de mémoire partent toujours en effort faible.
+**Effort.** Sonnet 5.5 et les modèles récents réfléchissent avant de répondre, et cette réflexion, invisible, est facturée comme de la sortie. Réglages du scénario, section Génération : « Effort », **Faible par défaut**, Moyen ou Élevé, envoyé dans `output_config.effort`. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. L'effort n'est envoyé qu'aux modèles qui le prennent en charge (Opus et Sonnet 4.6 et suivants, Opus 4.5, Haiku 5.5, Fable, Mythos) ; Haiku 4.5 et Sonnet 4.5 le refusent, l'application s'en abstient et la note le signale. Les résumés de mémoire partent toujours en effort faible.
 
 **Changer l'effort en cours de partie** ne réécrit pas le cache avec Fable 5.1, Mythos 5.1, Opus 5.5, Opus 5, Sonnet 5.5 et Haiku 5.5. L'effort envoyé en tête de la requête reste celui du premier message envoyé ; le changement devient un court message d'effort glissé dans l'historique, juste avant le tour du joueur où il commence (fonction bêta `mid-conversation-output-config-2026-07-01`). L'histoire garde la liste de ses changements (`effLog`) pour les replacer au même endroit à chaque tour. Ils rejoignent l'effort de tête quand la mémoire se met à jour, qui réécrit le cache de toute façon. Changer l'effort puis régénérer la dernière réponse l'applique à cette réponse. Avec les autres modèles, l'effort change en tête de requête, ce qui réécrit le cache une fois.
 
-**Refus.** Claude peut refuser d'écrire une réponse, y compris au milieu du texte, notamment sur des scènes très sombres. L'application l'affiche clairement (« Claude a refusé d'écrire cette réponse », avec le motif quand l'API le donne), ne garde pas le texte déjà reçu, qui n'est pas une réponse complète, et propose « Indication… » pour orienter la scène plutôt que de renvoyer la même requête, qui serait refusée de même. Le filtre de contenu d'un fournisseur compatible OpenAI est traité de la même façon. Pour la narration avec Fable 5.1, Opus 5.5, Opus 5 et Sonnet 5.5, l'application demande aussi le **relais** d'Anthropic (`fallbacks: "default"`, bêta `server-side-fallback-2026-07-01`) : une requête refusée est reprise côté serveur par un autre modèle choisi selon le motif. Avec Sonnet 5.5, seuls les refus « cybersécurité » et « développement d'IA » sont relayés ; les refus « contenu sensible », les plus probables en fiction, reviennent comme refus. Haiku 5.5 n'a pas de relais. Une requête qui porte un changement d'effort part sans relais, car le modèle de secours pourrait ne pas le prendre en charge.
+**Refus.** Claude peut refuser d'écrire une réponse, y compris au milieu du texte, notamment sur des scènes très sombres. L'application l'affiche clairement (« Claude a refusé d'écrire cette réponse », avec le motif quand l'API le donne), ne garde pas le texte déjà reçu, qui n'est pas une réponse complète, et propose « Indication… » pour orienter la scène plutôt que de renvoyer la même requête, qui serait refusée de même. Pour la narration avec Fable 5.1, Opus 5.5, Opus 5 et Sonnet 5.5, l'application demande aussi le **relais** d'Anthropic (`fallbacks: "default"`, bêta `server-side-fallback-2026-07-01`) : une requête refusée est reprise côté serveur par un autre modèle choisi selon le motif. Avec Sonnet 5.5, seuls les refus « cybersécurité » et « développement d'IA » sont relayés ; les refus « contenu sensible », les plus probables en fiction, reviennent comme refus. Haiku 5.5 n'a pas de relais. Une requête qui porte un changement d'effort part sans relais, car le modèle de secours pourrait ne pas le prendre en charge.
 
-**Mémoire sur Haiku 5.5.** Quand « Modèle pour la mémoire » est vide et que le fournisseur est Claude, les résumés partent vers `claude-haiku-5-5` (0,10 $ / 0,50 $ par million de tokens, une vingtaine de fois moins que Sonnet 5.5) plutôt que vers le modèle de narration. Renseigner le champ reprend la main.
+**Mémoire sur Haiku 5.5.** Quand « Modèle pour la mémoire » est vide, les résumés partent vers `claude-haiku-5-5` (0,10 $ / 0,50 $ par million de tokens, une vingtaine de fois moins que Sonnet 5.5) plutôt que vers le modèle de narration. Renseigner le champ reprend la main.
 
-**Version de l'API et échantillonnage.** L'application appelle Claude avec la version d'API `2026-10-21` (en-tête `anthropic-version`, constante `ANT_VERSION` dans `ai.js`). Dans cette version, `temperature`, `top_p` et `top_k` sont refusés (erreur 400) sur tous les modèles, même à leur valeur par défaut : l'application ne les envoie donc jamais à Claude, même s'ils sont renseignés dans les Réglages ou dans ceux du scénario, et une note le signale sous ces champs. Ils restent appliqués aux autres fournisseurs (Groq, Gemini, Mistral, OpenRouter). Conséquence avec Sonnet 4.6, Opus 4.6 et Haiku 4.5, les seuls modèles Claude qui acceptaient encore une température : ils écrivent désormais avec l'échantillonnage par défaut, et il n'existe pas de réglage de remplacement. Les autres changements de cette version (documents dans un message de l'IA, citations dans un message du joueur, champs de l'API d'administration) ne concernent pas l'application. Guide de migration : https://platform.claude.com/docs/en/api/migration-2026-10-21
+**Version de l'API et échantillonnage.** L'application appelle Claude avec la version d'API `2026-10-21` (en-tête `anthropic-version`, constante `ANT_VERSION` dans `ai.js`). Dans cette version, `temperature`, `top_p` et `top_k` sont refusés (erreur 400) sur tous les modèles, même à leur valeur par défaut : l'application ne les envoie donc jamais. Conséquence avec Sonnet 4.6, Opus 4.6 et Haiku 4.5, les seuls modèles Claude qui acceptaient encore une température : ils écrivent désormais avec l'échantillonnage par défaut, et il n'existe pas de réglage de remplacement. Les autres changements de cette version (documents dans un message de l'IA, citations dans un message du joueur, champs de l'API d'administration) ne concernent pas l'application. Guide de migration : https://platform.claude.com/docs/en/api/migration-2026-10-21
 
-Les appels partent directement du navigateur avec l'en-tête `anthropic-dangerous-direct-browser-access`, comme pour les autres fournisseurs : la clé reste sur l'appareil. Les en-têtes de débit `anthropic-ratelimit-*` alimentent la jauge, et une surcharge (529) est relancée comme les autres erreurs passagères du fournisseur (voir « Jauge de débit »), sans toucher à la jauge. Le résumé de mémoire n'utilise pas le mode JSON, que Claude ne propose pas : le format balisé ou la lecture tolérante du JSON prennent le relais.
+Les appels partent directement du navigateur avec l'en-tête `anthropic-dangerous-direct-browser-access` : la clé reste sur l'appareil. Les en-têtes de débit `anthropic-ratelimit-*` alimentent la jauge, et une surcharge (529) est relancée comme les autres erreurs passagères (voir « Jauge de débit »), sans toucher à la jauge. Le résumé de mémoire demande du JSON par sa seule consigne, sans paramètre de l'API : la lecture tolérante du JSON, puis le format balisé, prennent le relais (voir « Mémoire »).
 
 ### Jauge de débit
 
 Sous le compteur, une barre indique les tokens restants dans la minute en cours : « 2 400 / 8 000 tokens par minute · prochain tour dans ~7 s ». Elle passe en rouge quand le tour suivant ne tient pas dans ce qui reste.
 
-Deux sources, dans cet ordre. Si le fournisseur expose ses en-têtes `x-ratelimit-*` au navigateur, la jauge part de son chiffre exact et mémorise la limite. Entre deux réponses, elle ne recrédite que les tokens de vos propres requêtes qui viennent réellement de sortir de la fenêtre de soixante secondes, jamais un réapprovisionnement théorique. Sinon elle retombe sur une fenêtre glissante de soixante secondes calculée à partir des `usage` de vos propres requêtes, et le signale par « estimation locale ». Dans ce cas, renseignez « Tokens par minute du fournisseur » dans Réglages pour lui donner un plafond ; la valeur se corrigera toute seule si un jour les en-têtes arrivent.
+Deux sources, dans cet ordre. Quand une réponse porte les en-têtes `anthropic-ratelimit-*`, la jauge part de leur chiffre exact et mémorise la limite. Entre deux réponses, elle ne recrédite que les tokens de vos propres requêtes qui viennent réellement de sortir de la fenêtre de soixante secondes, jamais un réapprovisionnement théorique. Sinon elle retombe sur une fenêtre glissante de soixante secondes calculée à partir des `usage` de vos propres requêtes, et le signale par « estimation locale ». Dans ce cas, renseignez « Tokens par minute » dans Réglages (section « Compteurs et débit ») pour lui donner un plafond ; la valeur se corrige toute seule dès qu'une réponse donne la limite.
 
 Quand le tour suivant ne tient pas dans ce qui reste, l'application **attend d'elle-même** au lieu de partir dans une erreur de limite. Le décompte s'affiche sous la conversation (« envoi dans 55 s… »), rien n'est envoyé pendant ce temps, et le bouton d'arrêt annule l'attente et vous rend la main. Votre message reste dans la conversation, prêt à être renvoyé. L'attente s'applique aussi à la requête de mémoire, dont les tokens sont décomptés comme les autres.
 
-Le compteur affiche aussi les tokens servis depuis le cache du fournisseur quand il les rapporte. C'est le moyen de vérifier que le préfixe stable du prompt est bien réutilisé : chez certains fournisseurs, les tokens en cache ne comptent pas dans la limite par minute.
+Le compteur affiche aussi les tokens lus et mis en cache. C'est le moyen de vérifier que le préfixe stable du prompt est bien réutilisé.
 
 Le suivi est tenu **par modèle**, parce que les limites le sont aussi : confier les résumés à un autre modèle lui donne son propre compteur, et la jauge de la narration n'en voit rien.
 
-En cas de refus pour dépassement (429), l'application relance jusqu'à trois fois. Le délai est lu dans le message du fournisseur (« Please try again in 4.2s » ou « in 340ms »), à défaut dans l'en-tête `retry-after` ou `x-ratelimit-reset-tokens`, avec un minimum de 3 secondes et un plafond de 90. Le décompte est affiché pendant l'attente, y compris pour la requête de mémoire.
+En cas de refus pour dépassement (429), l'application relance jusqu'à trois fois. Le délai est lu dans l'en-tête `retry-after`, à défaut 15, 30 puis 45 secondes, avec un minimum de 3 secondes et un plafond de 90. Le décompte est affiché pendant l'attente, y compris pour la requête de mémoire.
 
-Les **erreurs passagères** sont relancées de la même façon, jusqu'à trois fois : surcharge ou panne du fournisseur (500, 502, 503, 504, 529) et coupure réseau avant toute réponse. L'attente double à chaque essai (2, 4 puis 8 secondes), sauf si le fournisseur indique lui-même un délai (`retry-after`, plafonné à 60 secondes). Le message dit la cause (« le fournisseur est surchargé ou en panne », « connexion perdue ») et le bouton d'arrêt annule l'attente. Ces erreurs ne touchent pas la jauge de débit, puisqu'elles ne disent rien de votre quota. Une erreur de requête (400, clé refusée…) n'est jamais relancée, et une coupure au milieu d'une réponse diffusée garde le texte reçu, que « Continuer » peut prolonger, plutôt que de tout redemander. Le délai maximal sans réponse repart de zéro après chaque attente.
+Les **erreurs passagères** sont relancées de la même façon, jusqu'à trois fois : surcharge ou panne de l'API (500, 502, 503, 504, 529) et coupure réseau avant toute réponse. L'attente double à chaque essai (2, 4 puis 8 secondes), sauf si l'API indique elle-même un délai (`retry-after`, plafonné à 60 secondes). Le message dit la cause (« Claude est surchargé ou en panne », « connexion perdue ») et le bouton d'arrêt annule l'attente. Ces erreurs ne touchent pas la jauge de débit, puisqu'elles ne disent rien de votre quota. Une erreur de requête (400, clé refusée…) n'est jamais relancée, et une coupure au milieu d'une réponse diffusée garde le texte reçu, que « Continuer » peut prolonger, plutôt que de tout redemander. Le délai maximal sans réponse repart de zéro après chaque attente.
 
-Deux messages distincts selon l'origine de l'attente : « Pause pour respecter la limite de débit du fournisseur » quand l'application temporise d'elle-même, avant l'envoi, parce que le tour ne tiendrait pas dans ce qui reste de la minute ; « Le fournisseur a refusé l'envoi » quand il a réellement répondu 429. Après un refus, la jauge est remise à zéro le temps de l'attente, puis rétablie dès qu'une réponse passe, même si le fournisseur n'expose pas ses en-têtes de débit.
+Deux messages distincts selon l'origine de l'attente : « Pause pour respecter la limite de débit de Claude » quand l'application temporise d'elle-même, avant l'envoi, parce que le tour ne tiendrait pas dans ce qui reste de la minute ; « Claude a refusé l'envoi » quand l'API a réellement répondu 429. Après un refus, la jauge est remise à zéro le temps de l'attente, puis rétablie dès qu'une réponse passe.
 
-Le décompte part de 3,4 caractères par token, puis **se calibre tout seul** : chaque réponse du fournisseur indique le nombre réel de tokens de l'entrée, et l'application ajuste son rapport caractères/token. La valeur courante s'affiche dans Réglages. Au bout de quelques messages, l'estimation colle au modèle que vous utilisez.
+Le décompte part de 3,4 caractères par token, puis **se calibre tout seul** : chaque réponse de Claude indique le nombre réel de tokens de l'entrée, et l'application ajuste son rapport caractères/token. La valeur courante s'affiche dans Réglages. Au bout de quelques messages, l'estimation colle au modèle que vous utilisez.
 
 ## Mémoire
 
@@ -337,7 +328,7 @@ Les deux listes sont plafonnées : 12 relations, 60 souvenirs. Au-delà, les ent
 
 Certains modèles recopient pourtant ces sections dans le résumé, surtout quand ils décorent leurs intitulés (`**Souvenirs**`, `## Relations`). Comme le résumé est renvoyé au modèle à chaque mise à jour, l'erreur s'entretenait d'elle-même, et les mêmes souvenirs et relations partaient deux fois dans le prompt. L'application coupe désormais le résumé au premier intitulé Souvenirs, Relations, Lignes ou Objectif, y compris sous une forme qualifiée (« Lignes récentes », « Objectif actuel », « Souvenirs durables »…), et verse les souvenirs et relations trouvés dans leurs listes (les doublons sont fusionnés comme d'habitude) ; Lignes et Objectif sont simplement écartés. Cela s'applique à la réponse du modèle comme au résumé existant, qui est nettoyé à la prochaine mise à jour de la mémoire. Une phrase qui commence par « Relations tendues… » sans être un intitulé est laissée intacte.
 
-Une relation enregistrée peut dater : la mémoire ne résume les messages qu'avec un retard de 30 à 40 messages (par lots d'une dizaine ; 40 à 80 avec Claude), et l'IA lit pourtant la relation d'un personnage en scène en fin de prompt, juste avant d'écrire. Pour qu'elle ne l'emporte pas sur une évolution récente, cette ligne est envoyée sous la forme « Relation (état enregistré, peut dater ; les événements récents priment) : … », et le bloc `<relations>` de la mémoire porte la même mise en garde en tête. La liste complète ne change qu'à chaque mise à jour de la mémoire, comme le résumé : elle est donc relue depuis le cache sans le réécrire d'un tour à l'autre, quel que soit le personnage en scène.
+Une relation enregistrée peut dater : la mémoire ne résume les messages qu'avec un retard de 40 à 120 messages (par lots de 20, voir « API Claude »), et l'IA lit pourtant la relation d'un personnage en scène en fin de prompt, juste avant d'écrire. Pour qu'elle ne l'emporte pas sur une évolution récente, cette ligne est envoyée sous la forme « Relation (état enregistré, peut dater ; les événements récents priment) : … », et le bloc `<relations>` de la mémoire porte la même mise en garde en tête. La liste complète ne change qu'à chaque mise à jour de la mémoire, comme le résumé : elle est donc relue depuis le cache sans le réécrire d'un tour à l'autre, quel que soit le personnage en scène.
 
 Le résumé et les souvenirs restent modifiables à la main dans la feuille Mémoire. Les relations, elles, n'y figurent plus : elles sont mises à jour par le modèle et affichées en lecture seule dans la fenêtre Personnages. Enregistrer la feuille Mémoire ne les touche pas.
 
@@ -345,7 +336,7 @@ L'objectif courant ne vit pas dans la mémoire mais dans le panneau d'état, qui
 
 Tout est régénéré par une requête de résumé lancée pendant que vous lisez la réponse précédente. Dans Réglages, « Modèle pour la mémoire » permet de confier ce travail à un modèle plus petit que celui de la narration.
 
-Cette requête demande une réponse **en JSON**, avec `response_format` quand le fournisseur le gère. La narration, elle, reste en texte balisé : le JSON empêcherait l'affichage au fil de l'eau et abîmerait l'écriture, alors que la mémoire n'est jamais affichée telle quelle et gagne beaucoup en fiabilité. Trois filets successifs : si le fournisseur refuse le paramètre, la requête est rejouée sans lui et la note des Réglages le signale ; si la réponse n'est pas du JSON exploitable, l'application retombe sur le format balisé ; si rien ne passe, la mémoire reste inchangée et l'essai reprend au tour suivant.
+Cette requête demande une réponse **en JSON**, par sa consigne seule, sans paramètre de l'API. La narration, elle, reste en texte balisé : le JSON empêcherait l'affichage au fil de l'eau et abîmerait l'écriture, alors que la mémoire n'est jamais affichée telle quelle et gagne beaucoup en fiabilité. Trois filets successifs : si la réponse n'est pas du JSON exploitable, l'application y cherche le format balisé ; après deux réponses JSON illisibles d'affilée, la mémoire passe au format balisé pour les requêtes suivantes, et la note des Réglages le signale ; si rien ne passe, la mémoire reste inchangée et l'essai reprend au tour suivant.
 
 Avec un modèle **à raisonnement**, trois précautions. Le JSON est cherché à plusieurs endroits du texte, et non plus seulement à partir de la première accolade : un modèle qui cite le schéma dans sa réflexion (`{"resume": …}`) ne fait plus échouer la lecture. Une balise `</think>` isolée, sans balise ouvrante, est traitée comme la fin de la réflexion et tout ce qui la précède est écarté, ce qui vaut aussi pour la narration. Enfin, cette requête n'est pas diffusée, donc son délai maximal est de 5 minutes au lieu de 2. Si le modèle épuise sa limite de jetons en réfléchissant et ne répond rien, le message indique de choisir un modèle sans raisonnement dans « Modèle pour la mémoire ».
 
@@ -353,9 +344,9 @@ Avec un modèle **à raisonnement**, trois précautions. Le JSON est cherché à
 
 Le résumé perd forcément des détails : la couleur d'un objet, la phrase exacte d'un personnage, le nom d'une auberge. Quand la scène actuelle en reparle, l'application retrouve le vieux passage et en joint un extrait (600 caractères au plus) à votre message, dans un bloc `<passages_anciens>` qui prévient l'IA qu'il peut dater.
 
-La recherche se fait sur l'appareil, sans requête supplémentaire : les mots de vos deux derniers messages (et de l'état) sont comparés à ceux des messages qui ne sont plus envoyés tels quels, déjà résumés ou sortis de la fenêtre au tour précédent. Un passage n'est retenu que s'il partage au moins deux mots avec la scène, dont un distinctif, c'est-à-dire présent dans un passage sur trois au plus : les mots courants (« pluie », « regard ») et les mots outils ne suffisent jamais. Les plus pertinents passent en premier, puis sont remis dans l'ordre du récit ; l'extrait est le paragraphe qui contient le plus de mots communs.
+La recherche se fait sur l'appareil, sans requête supplémentaire : les mots de vos deux derniers messages (et de l'état) sont comparés à ceux des messages qui ne sont plus envoyés tels quels, parce que la mémoire les a déjà résumés. Un passage n'est retenu que s'il partage au moins deux mots avec la scène, dont un distinctif, c'est-à-dire présent dans un passage sur trois au plus : les mots courants (« pluie », « regard ») et les mots outils ne suffisent jamais. Les plus pertinents passent en premier, puis sont remis dans l'ordre du récit ; l'extrait est le paragraphe qui contient le plus de mots communs.
 
-Le bloc part en queue, avec le lorebook déclenché : il n'invalide rien du cache, et ses tokens entrent dans le compteur et dans le budget comme le reste du dernier message. Réglages du scénario, section « Mémoire et lorebook » : « Passages anciens rappelés » (2 par défaut, 0 pour désactiver).
+Le bloc part en queue, avec le lorebook déclenché : il n'invalide rien du cache, et ses tokens entrent dans le compteur comme le reste du dernier message. Réglages du scénario, section « Mémoire et lorebook » : « Passages anciens rappelés » (2 par défaut, 0 pour désactiver).
 
 ## Panneau d'état
 
@@ -365,7 +356,7 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 
 ## Repères dans la conversation
 
-- **Limite de contexte** : une ligne « l'IA lit à partir d'ici » traverse le fil à l'endroit où commence la fenêtre envoyée. Au-dessus, l'IA ne dispose que du résumé. C'est la version visible du compteur de tokens.
+- **Limite de contexte** : une ligne « l'IA lit à partir d'ici » traverse le fil au premier message envoyé tel quel. Au-dessus, l'IA ne dispose que de la mémoire. C'est la version visible du compteur de tokens.
 - **Sommaire** (menu « … ») : les scènes du récit dans l'ordre, une par lieu (le même découpage que les intertitres), sur toute l'histoire. Les scènes sont repliées : chacune affiche son lieu et son nombre de tours, et la scène en cours est soulignée. Toucher une scène l'ouvre (ou la referme) : elle montre alors sa première phrase, les lignes récentes de la mémoire qui la résument (24 au plus pour toute l'histoire, donc surtout pour les scènes récentes) et un bouton « Aller à cette scène ». Ce bouton ou une ligne mène au message, qui clignote à l'arrivée. Un lieu revisité apparaît deux fois, à sa place dans le récit. Sans champ « Lieu » dans l'état, le Sommaire reste la liste des lignes récentes.
 - **Recherche dans l'histoire** (menu « … ») : cherche dans tous les messages, affiche un extrait autour de chaque occurrence et saute au message choisi, même s'il est au-delà des messages affichés.
 - **Panneau d'état** : chaque valeur numérique affiche sa variation depuis le tour précédent (▲ +1, ▼ −4).
@@ -393,13 +384,12 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 - Coût estimé par modèle et par période dans les statistiques, en dollars ou en euros.
 - Le bouton stop (et la sortie de la conversation) conserve le texte déjà reçu, que « Continuer » peut prolonger.
 - Mémoire à trois étages : résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note utilisateur (menu « … » de la conversation), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
-- Température et Top P : globaux (Réglages) ou par scénario. Ils ne sont jamais envoyés à Claude, dont l'API les refuse (voir « Claude (Anthropic) »).
-- Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut avec Claude).
-- Modèle et effort par scénario (section Génération des réglages du scénario). Le modèle vaut pour le fournisseur choisi : vide, ou avec un autre fournisseur, le scénario reprend celui des Réglages. Il sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les consignes de format automatiques, la jauge de débit et les statistiques.
+- Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut).
+- Modèle et effort par scénario (section Génération des réglages du scénario). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les consignes de format automatiques, la jauge de débit et les statistiques.
 - Coût des extras affiché sous les cases Choix et Panneau d'état (section Narration) : taille moyenne d'un bloc, part de la sortie et coût pour 100 réponses, mesurés sur les dernières réponses de l'histoire. Ces blocs sont réécrits par l'IA à chaque réponse et payés comme sortie : décochez ceux qui ne servent pas.
 - Protocole de sortie centralisé, adapté au modèle, et préambule commun à tous les scénarios.
-- Liste des modèles du fournisseur (Réglages, Lister les modèles).
-- Budget de tokens : limite réglable et estimation des tokens envoyés dans le compteur sous la conversation (voir ci-dessous).
+- Liste des modèles Claude disponibles (Réglages, Lister les modèles).
+- Compteurs : estimation des tokens envoyés et jauge de débit sous la conversation (voir « Prompt, cache et débit »).
 - Recherche dans la liste, export d'une histoire en `.md`, sauvegarde JSON (clés API exclues) avec rappel tous les 30 jours, synchronisation en ligne sur un dépôt GitHub privé.
 - Bouton retour du téléphone géré, y compris pour fermer une feuille ouverte depuis la liste, fonctionnement hors ligne.
 
@@ -459,11 +449,11 @@ js/
   bus.js            annonces entre modules (on / emit), pour éviter les imports en boucle
   store.js          base locale (IndexedDB) : scénarios, réglages, import validé, bifurcation
   scenarios.js      scénarios GitHub : arbre de fichiers, couvertures, personnages, images, lorebook
-  rate.js           suivi du débit : en-têtes du fournisseur ou fenêtre locale
-  prompt.js         assemblage du prompt : casting, mémoire, lorebook, budget
+  rate.js           suivi du débit : en-têtes de Claude ou fenêtre locale
+  prompt.js         assemblage du prompt : casting, mémoire, lorebook, estimation des tokens
   recall.js         rappel de passages anciens par mots distinctifs (sans DOM, testé unitairement)
   protocol.js       formats de sortie imposés par l'application (état, choix, images)
-  ai.js             appel au fournisseur d'IA (streaming) et résumé de mémoire
+  ai.js             appel à l'API Claude (streaming) et résumé de mémoire
   format.js         mise en forme du texte (Markdown léger, images, choix, état)
   scene.js          scènes : choix du décor, détection de la transparence, placement du personnage
   read.js           lecture : taille du texte, mode lecture, lecture à voix haute
@@ -486,7 +476,7 @@ reparer.html        page de réparation (vide les caches, garde les histoires)
 sw.js               service worker (hors ligne)
 tools/build.mjs     numérotation de version, liste du service worker, contrôles
 test/               tests unitaires (node --test), sans aucune dépendance
-test/e2e.mjs        test de bout en bout dans Chromium (fournisseurs et GitHub simulés)
+test/e2e.mjs        test de bout en bout dans Chromium (API Claude et GitHub simulées)
 .claude/agents/     relecteur.md : agent Claude Code qui relit une modification selon les règles ci-dessous
 ```
 
@@ -504,7 +494,11 @@ Règles du projet :
 - Quand vous ajoutez un fichier JavaScript dans `js/`, il est repris automatiquement par `npm run build` (service worker et `modulepreload`). Rien à déclarer à la main.
 - Les numéros de version sont calculés à partir du contenu des fichiers par `npm run build`, lancé par le workflow à chaque déploiement. Ne les modifiez pas à la main.
 - La logique sans DOM (fusion, validation, construction du prompt) doit rester testable : ajoutez un test dans `test/` quand vous la touchez.
-- Les messages construits par `prompt.js` peuvent porter des repères internes (`cut` sur le message système : la fin de la partie fixe, que `toAnt` utilise pour placer les marqueurs de cache de Claude). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude, et `toOai` ne garde que `role` et `content` pour les fournisseurs compatibles OpenAI, dont certains (Groq) refusent toute la requête au moindre champ inconnu. Le faux Groq du test de bout en bout est aussi strict.
+- Les messages construits par `prompt.js` peuvent porter des repères internes (`cut` sur le message système : la fin de la partie fixe, que `toAnt` utilise pour placer les marqueurs de cache ; `effBefore` sur un message : un changement d'effort à glisser juste avant lui). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role`, `content` et `output_config`.
+
+### Historique : autres fournisseurs
+
+Avant de ne plus parler qu'à Claude, l'application parlait aussi aux fournisseurs compatibles OpenAI (Groq, Gemini, Mistral, OpenRouter), avec une limite de tokens, une température et un Top P réglables. Ce code est conservé dans le tag git `multi-ia`, posé sur le dernier commit qui le contient : `git checkout multi-ia` pour le consulter. Pour le remettre, il faudrait l'adapter au code actuel, qui a continué d'évoluer sans lui.
 
 ## Déploiement et dépannage
 
@@ -527,12 +521,12 @@ Si l'application ne répond plus malgré tout :
 
 ## Politique de sécurité (CSP)
 
-`index.html` contient une politique de sécurité qui limite les scripts à ceux de l'application et les connexions réseau aux services connus (fournisseurs d'IA, GitHub). Conséquence : pour ajouter un fournisseur d'IA ou un autre service, ajoutez son adresse à `connect-src` dans cette balise, sinon le navigateur bloquera les requêtes. Une erreur « Refused to connect » dans la console du navigateur indique ce cas.
+`index.html` contient une politique de sécurité qui limite les scripts à ceux de l'application et les connexions réseau aux deux services utilisés : `api.anthropic.com` (Claude) et `api.github.com`. Conséquence : pour ajouter un autre service, ajoutez son adresse à `connect-src` dans cette balise, sinon le navigateur bloquera les requêtes. Une erreur « Refused to connect » dans la console du navigateur indique ce cas.
 
 ## Streaming
 
-Le texte s'affiche au fur et à mesure quand le fournisseur le diffuse. Si ce n'est pas le cas, Réglages indique comment la dernière réponse est arrivée : diffusée en N morceaux, reçue d'un seul bloc (le service ne diffuse pas) ou streaming désactivé. Les modèles « à raisonnement » réfléchissent avant de répondre : l'application affiche alors « Réflexion… » et le texte n'apparaît qu'ensuite.
+Le texte s'affiche au fur et à mesure que Claude le diffuse. Réglages indique comment la dernière réponse est arrivée : diffusée en N morceaux, reçue d'un seul bloc ou streaming désactivé (case « Désactiver le streaming »). Les modèles « à raisonnement » réfléchissent avant de répondre : l'application affiche alors « Réflexion… » et le texte n'apparaît qu'ensuite.
 
 ## Sécurité
 
-La clé API est stockée en clair dans le navigateur de l'appareil et envoyée uniquement au fournisseur choisi. Ne l'utilisez pas sur un appareil partagé. Elle n'est jamais incluse dans les sauvegardes.
+La clé API est stockée en clair dans le navigateur de l'appareil et envoyée uniquement à l'API de Claude. Ne l'utilisez pas sur un appareil partagé. Elle n'est jamais incluse dans les sauvegardes.

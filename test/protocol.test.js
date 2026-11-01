@@ -8,36 +8,34 @@ import { S, ctx } from '../js/state.js';
 beforeEach(() => {
   S.proto = '';
   S.pre = '';
-  S.ctxLim = 0;
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 
 test('les gros modèles passent en consignes concises', () => {
-  assert.equal(family('llama-3.3-70b-versatile'), 'full');
-  assert.equal(family('mistral-small-latest'), 'full');
+  assert.equal(family('claude-haiku-5-5'), 'full');
   assert.equal(family('claude-sonnet-4-6'), 'lean');
-  assert.equal(family('gpt-5'), 'lean');
+  assert.equal(family('claude-opus-5-5'), 'lean');
   assert.equal(family(''), 'full');
 });
 
 test('le réglage manuel l’emporte sur la détection', () => {
   S.proto = 'lean';
-  assert.equal(family('llama-3.3-70b-versatile'), 'lean');
+  assert.equal(family('claude-haiku-5-5'), 'lean');
   S.proto = 'full';
-  assert.equal(family('gpt-5'), 'full');
+  assert.equal(family('claude-sonnet-5-5'), 'full');
 });
 
 test('le mode concis est plus court et supprime le rappel', () => {
   const o = { stat: true, fields: 'Lieu', choices: true, images: true };
-  const a = protocol({ ...o, model: 'llama-3.3-70b-versatile' });
-  const b = protocol({ ...o, model: 'gpt-5' });
+  const a = protocol({ ...o, model: 'claude-haiku-5-5' });
+  const b = protocol({ ...o, model: 'claude-sonnet-5-5' });
   assert.ok(b.sys.length < a.sys.length);
   assert.match(a.tail, /<rappel>/);
   assert.equal(b.tail, '');
 });
 
 test('lieu annoncé en tête : demandé seulement si l’état suit un lieu', () => {
-  for (const model of ['llama-3.3-70b-versatile', 'gpt-5']) {
+  for (const model of ['claude-haiku-5-5', 'claude-sonnet-5-5']) {
     assert.match(protocol({ model, stat: true, fields: 'Objectif, Lieu actuel, Humeur' }).sys, /<lieu>nouveau lieu<\/lieu>[^\n]*champ Lieu actuel/);
     assert.doesNotMatch(protocol({ model, stat: true, fields: 'Objectif, Humeur' }).sys, /<lieu>/);
     assert.doesNotMatch(protocol({ model, stat: false, fields: 'Lieu' }).sys, /<lieu>/);
@@ -72,9 +70,10 @@ test('une sauvegarde importée ne garde pas l’annonce du lieu', () => {
 });
 
 test('le rappel ne liste que les blocs activés', () => {
-  assert.match(protocol({ stat: true, choices: false }).tail, /le bloc <etat>\.$/m);
-  assert.match(protocol({ stat: true, choices: true }).tail, /<etat> puis le bloc <choix>/);
-  assert.equal(protocol({ stat: false, choices: false }).tail, '');
+  const model = 'claude-haiku-5-5';
+  assert.match(protocol({ model, stat: true, choices: false }).tail, /le bloc <etat>\.$/m);
+  assert.match(protocol({ model, stat: true, choices: true }).tail, /<etat> puis le bloc <choix>/);
+  assert.equal(protocol({ model, stat: false, choices: false }).tail, '');
 });
 
 test('aucun format n’est émis pour ce qui est désactivé', () => {
@@ -83,7 +82,7 @@ test('aucun format n’est émis pour ce qui est désactivé', () => {
 });
 
 test('la consigne d’images demande de les placer dans le récit, pas en tête', () => {
-  for (const model of ['gpt-4o', 'llama-3.1-8b']) {
+  for (const model of ['claude-sonnet-5-5', 'claude-haiku-5-5']) {
     const s = protocol({ model, images: true }).sys;
     assert.match(s, /\{\{img::code\}\}/);
     assert.match(s, /récit|texte/);

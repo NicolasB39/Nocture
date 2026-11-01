@@ -984,11 +984,6 @@ hr {
   color: var(--mu);
   font-size: 12px;
   text-align: right;
-}
-#tk.w {
-  color: var(--dg);
-}
-#tk:not(.w) {
   display: flex;
   justify-content: flex-end;
 }

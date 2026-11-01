@@ -66,7 +66,7 @@ test('record garde le cache lu et écrit, et les totaux restent compatibles', ()
   assert.deepEqual(merge({ k: [1, 1, 1, 0] }, { k: [1, 1, 1, 0, 3] }).k, [2, 2, 2, 0, 3]);
 });
 
-test('cacheOf lit l’usage normalisé de Claude comme celui des autres', () => {
+test('cacheOf lit l’usage normalisé de Claude', () => {
   const u = normU({ input_tokens: 40, cache_read_input_tokens: 3000, cache_creation_input_tokens: 120, output_tokens: 9 });
   assert.deepEqual(cacheOf(u), [3000, 120]);
   assert.deepEqual(cacheOf({ prompt_tokens: 50, prompt_tokens_details: { cached_tokens: 20 } }), [20, 0]);

@@ -10,35 +10,17 @@ import { fillLec, setReading } from './read.js';
 import { reset as rlReset } from './rate.js';
 import { tocOf } from './scene.js';
 import { TERR, coverOf, getTree, loadCtx } from './scenarios.js';
-import { PROVIDERS, S, app, ctx } from './state.js';
+import { API, S, app, ctx } from './state.js';
 import { clean, put, save, saveSet } from './store.js';
 import { $, LS, dlg, el, ic, num, nz, pickAccent, toast } from './util.js';
 
-// Prévient que température et Top P ne partiront pas : l'API Claude les refuse sur tous les modèles.
-const sampNote = (e, p) => {
-  const off = PROVIDERS[p]?.fmt == 'anthropic';
-  e.hidden = !off;
-  e.textContent = off
-    ? 'Claude n’accepte que l’échantillonnage par défaut : la température et le Top P ne lui sont pas envoyés. Ils servent aux autres fournisseurs.'
-    : '';
-};
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
 const genNotes = () => {
-  const p = S.provider,
-    P = PROVIDERS[p],
-    def = S.models[p] || P.m,
+  const def = S.models[API.k] || API.m,
     m = $('#smo').value.trim() || def;
   $('#smo').placeholder = def;
-  $('#smon').textContent =
-    'Vide : le modèle des Réglages. Vaut pour ' + P.n + ' seulement : avec un autre fournisseur, le scénario reprend celui des Réglages.';
-  $('#sefn').textContent =
-    EFF_NOTE +
-    (P.fmt != 'anthropic'
-      ? ' Sans effet avec ' + P.n + '.'
-      : !effortOk(m)
-        ? ' ' + m + ' ne prend pas ce réglage en charge : rien n’est envoyé.'
-        : '');
+  $('#sefn').textContent = EFF_NOTE + (!effortOk(m) ? ' ' + m + ' ne prend pas ce réglage en charge : rien n’est envoyé.' : '');
 };
 $('#smo').oninput = genNotes;
 // Ce que coûtent les choix et l'état, mesuré sur les dernières réponses de l'histoire.
@@ -54,7 +36,7 @@ const extrasNote = () => {
     e.textContent = 'Ni choix ni état dans les dernières réponses : rien à payer en plus.';
     return;
   }
-  const pr = priceOf(S.provider + '/' + modelOf(), S.prices),
+  const pr = priceOf(API.k + '/' + modelOf(), S.prices),
     per = pr ? (x.avg * pr[1]) / 1e6 : null,
     tk = v => Math.round(v) + (Math.round(v) > 1 ? ' tokens' : ' token');
   e.textContent =
@@ -111,8 +93,7 @@ export function openSc() {
   const c = app.cur.remote ? ctx : app.cur;
   ACC = app.cur.accent || '';
   accView();
-  sampNote($('#stpn'), S.provider);
-  $('#smo').value = app.cur.models?.[S.provider] || '';
+  $('#smo').value = app.cur.models?.[API.k] || '';
   $('#sef').value = app.cur.effort || '';
   genNotes();
   extrasNote();
@@ -133,8 +114,6 @@ export function openSc() {
   COVER = app.cur.cover || '';
   cvView();
   $('#smx').value = app.cur.maxTok || '';
-  $('#stmp').value = app.cur.temp ?? '';
-  $('#stk').value = app.cur.top ?? '';
   $('#smm').value = app.cur.memN ?? '';
   $('#srcl').value = app.cur.recallN ?? '';
   $('#sld').value = app.cur.loreDepth || '';
@@ -272,10 +251,8 @@ $('#dss').onclick = async () => {
   effortSet(app.cur, $('#sef').value);
   const mo = $('#smo').value.trim();
   app.cur.models ??= {};
-  if (mo) app.cur.models[S.provider] = mo;
-  else delete app.cur.models[S.provider];
-  app.cur.temp = num('#stmp');
-  app.cur.top = num('#stk');
+  if (mo) app.cur.models[API.k] = mo;
+  else delete app.cur.models[API.k];
   app.cur.memN = num('#smm');
   app.cur.recallN = num('#srcl');
   app.cur.loreDepth = +$('#sld').value || 0;
@@ -291,22 +268,6 @@ $('#dss').onclick = async () => {
   render();
   $('#ds').close();
 };
-$('#cp').replaceChildren(
-  ...Object.entries(PROVIDERS).map(([k, v]) => el('option', { value: k, text: v.n }))
-);
-function fillCfg() {
-  const p = $('#cp').value;
-  $('#ck').value = S.keys[p] || '';
-  $('#cm').value = S.models[p] || '';
-  $('#cm').placeholder = PROVIDERS[p].m;
-  $('#cmm').value = S.memModels?.[p] || '';
-  $('#cmm').placeholder = memModel(p) || S.models[p] || PROVIDERS[p].m;
-  $('#cwa').checked = S.warm !== false;
-  $('#cn').checked = !!S.ns?.[p];
-  $('#cch').checked = !!S.c1h;
-  $('#cchw').hidden = PROVIDERS[p].fmt != 'anthropic';
-  sampNote($('#ctpn'), p);
-}
 const streamInfo = () => {
   const x = app.stream;
   if (!x) return 'Aucune réponse reçue pour le moment dans cette session.';
@@ -330,19 +291,22 @@ const streamInfo = () => {
   return 'Dernière réponse : diffusée en ' + x.chunks + ' morceaux (' + sec + ' s).';
 };
 function openCfg() {
-  $('#cp').value = S.provider;
-  fillCfg();
+  const p = API.k;
+  $('#ck').value = S.keys[p] || '';
+  $('#cm').value = S.models[p] || '';
+  $('#cm').placeholder = API.m;
+  $('#cmm').value = S.memModels?.[p] || '';
+  $('#cmm').placeholder = memModel();
+  $('#cwa').checked = S.warm !== false;
+  $('#cn').checked = !!S.ns?.[p];
+  $('#cch').checked = !!S.c1h;
   fillLec();
   $('#cst').textContent =
     streamInfo() +
     (S.cpt ? ' Estimation calibrée : ' + S.cpt.toFixed(2) + ' caractères par token.' : '') +
-    (S.nj?.[S.provider]
-      ? ' Mémoire : réponses en texte balisé (ce fournisseur refuse le mode JSON).'
+    (S.nj?.[p]
+      ? ' Mémoire : réponses en texte balisé (deux réponses JSON illisibles d’affilée).'
       : ' Mémoire : réponses en JSON.');
-  $('#ctp').value = S.temp ?? '';
-  $('#ctk').value = S.top ?? '';
-  $('#ccx').value = S.ctxLim || '';
-  $('#crs').value = S.reserve || '';
   $('#ctpm').value = S.tpm || '';
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
@@ -377,19 +341,17 @@ $('#cfg2').onclick = () => {
   $('#dmn').close();
   openCfg();
 };
-$('#cp').onchange = fillCfg;
 $('#cl').onclick = async () => {
-  const p = $('#cp').value,
-    k = $('#ck').value.trim();
+  const k = $('#ck').value.trim();
   if (!k) {
     dlg('Clé API manquante', { m: 'Saisissez la clé avant de lister les modèles.' });
     return;
   }
   try {
-    const r = await fetch(PROVIDERS[p].u + '/models', { headers: authH(p, k) });
+    const r = await fetch(API.u + '/models?limit=1000', { headers: authH(k) });
     const j = await r.json();
-    const a = (j.data || j.models || [])
-      .map(x => String(x.id || x.name || '').replace(/^models\//, ''))
+    const a = (j.data || [])
+      .map(x => String(x.id || ''))
       .filter(Boolean)
       .sort();
     if (!a.length) throw new Error(j.error?.message || 'liste vide');
@@ -439,9 +401,8 @@ $('#imf').onchange = async e => {
 };
 $('#dcc').onclick = () => $('#dc').close();
 $('#dcs').onclick = async () => {
-  const p = $('#cp').value;
-  if (p !== S.provider || $('#cm').value.trim() !== (S.models[S.provider] || '')) rlReset();
-  S.provider = p;
+  const p = API.k;
+  if ($('#cm').value.trim() !== (S.models[p] || '')) rlReset();
   S.keys[p] = $('#ck').value.trim();
   S.models[p] = $('#cm').value.trim();
   (S.memModels ??= {})[p] = $('#cmm').value.trim();
@@ -451,12 +412,8 @@ $('#dcs').onclick = async () => {
   const rp = $('#crp').value.trim();
   if (rp !== (S.repo || '')) LS.del('tree');
   S.repo = rp;
-  S.temp = num('#ctp');
-  S.top = num('#ctk');
   S.pre = $('#cpre').value.trim();
   S.proto = $('#cpr').value;
-  S.ctxLim = +$('#ccx').value || 0;
-  S.reserve = +$('#crs').value || 0;
   S.tpm = +$('#ctpm').value || 0;
   S.counters = $('#ctc').checked;
   await saveSet();

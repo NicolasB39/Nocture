@@ -9,8 +9,7 @@ const sc = (o = {}) =>
   clean({ id: 's', name: 'S', system: 'SYS', messages: [], ...o });
 
 beforeEach(() => {
-  S.ctxLim = 0;
-  S.reserve = 0;
+  S.proto = '';
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 
@@ -46,7 +45,7 @@ test('clean normalise les variantes', () => {
   assert.equal(u.messages[0].alts, undefined);
 });
 
-test('sans limite, tous les messages partent', () => {
+test('tous les messages non résumés partent', () => {
   const s = sc({
     noChoices: true,
     messages: Array.from({ length: 6 }, (_, i) => ({
@@ -55,45 +54,13 @@ test('sans limite, tous les messages partent', () => {
     }))
   });
   const r = buildInfo(s);
-  assert.equal(r.omitted, 0);
+  assert.equal(r.win, 0);
   assert.equal(r.msgs.length, 7);
   assert.equal(r.msgs[0].role, 'system');
-  assert.equal(r.over, false);
-});
-
-test('avec une limite, les anciens messages sont coupés et la suite démarre sur le joueur', () => {
-  S.ctxLim = 1000;
-  S.reserve = 400;
-  const long = 'x'.repeat(600);
-  const s = sc({
-    noChoices: true,
-    messages: Array.from({ length: 8 }, (_, i) => ({
-      role: i % 2 ? 'assistant' : 'user',
-      content: long + i
-    }))
-  });
-  const r = buildInfo(s);
-  assert.ok(r.omitted > 0);
-  assert.ok(r.used <= r.budget);
-  assert.equal(r.msgs[1].role, 'user');
-});
-
-test('la réserve est plafonnée à la moitié de la limite', () => {
-  S.ctxLim = 1000;
-  S.reserve = 900;
-  const r = buildInfo(sc({ noChoices: true, messages: [{ role: 'user', content: 'a' }] }));
-  assert.equal(r.budget, 500);
-});
-
-test('un prompt de base trop long lève le drapeau over', () => {
-  S.ctxLim = 200;
-  S.reserve = 50;
-  const s = sc({ noChoices: true, system: 'y'.repeat(5000), messages: [{ role: 'user', content: 'a' }] });
-  const r = buildInfo(s);
-  assert.equal(r.over, true);
 });
 
 test('le format des choix vit dans le système, le rappel sur le dernier message', () => {
+  S.proto = 'full';
   const s = sc({ messages: [{ role: 'user', content: 'bonjour' }] });
   const r = buildInfo(s);
   assert.match(r.msgs[0].content, /# Format des choix/);
@@ -118,41 +85,10 @@ test('le prompt système ne bouge pas quand l’historique avance', () => {
   assert.equal(a.msgs[0].content, b.msgs[0].content);
 });
 
-test('la fenêtre reste collante tant qu’elle tient dans le budget', () => {
-  S.ctxLim = 1000;
-  S.reserve = 400;
-  const msgs = Array.from({ length: 10 }, (_, i) => ({
-    role: i % 2 ? 'assistant' : 'user',
-    content: 'x'.repeat(300) + i
-  }));
-  const s = sc({ noChoices: true, messages: msgs });
-  const first = buildInfo(s);
-  s.mem.win = first.win;
-  s.messages.push({ role: 'assistant', content: 'court' }, { role: 'user', content: 'court' });
-  assert.equal(buildInfo(s).win, first.win);
-});
-
-test('la fenêtre avance par blocs quand le budget est dépassé', () => {
-  S.ctxLim = 900;
-  S.reserve = 300;
-  const s = sc({
-    noChoices: true,
-    messages: Array.from({ length: 20 }, (_, i) => ({
-      role: i % 2 ? 'assistant' : 'user',
-      content: 'y'.repeat(400) + i
-    }))
-  });
-  s.mem.win = 0;
-  const r = buildInfo(s);
-  assert.ok(r.win > 0);
-  assert.equal(r.msgs[1].role, 'user');
-  assert.ok(r.used <= r.budget);
-});
-
 test('le casting liste tous les personnages, les fiches ne suivent que les actifs, les images sont en cache', () => {
   ctx.chars = [
-    { name: 'Alice', sum: 'herboriste', text: 'A'.repeat(4000), always: false, images: ['alice_x'], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] },
-    { name: 'Bob', sum: 'garde', text: 'B'.repeat(4000), always: false, images: [], keys: [/(^|[^a-z0-9])bob(?![a-z0-9])/] }
+    { name: 'Alice', sum: 'herboriste', text: 'A'.repeat(6000), always: false, images: ['alice_x'], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] },
+    { name: 'Bob', sum: 'garde', text: 'B'.repeat(6000), always: false, images: [], keys: [/(^|[^a-z0-9])bob(?![a-z0-9])/] }
   ];
   ctx.images = [{ code: 'alice_x', url: 'u' }];
   const r = buildInfo(sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'je parle à Alice' }] }));
@@ -239,14 +175,14 @@ test('tous les souvenirs récents partent, plafonnés par memN', () => {
   assert.match(few.msgs[0].content, /fait 29/);
 });
 
-test('lorebook et fiches restent en queue, où ils n’invalident rien', () => {
+test('fiches trop grosses et lorebook limité restent en queue, où ils n’invalident rien', () => {
   ctx.chars = [
-    { name: 'Alice', sum: 'a', text: 'A'.repeat(4000), always: false, images: [], keys: [/alice/] },
-    { name: 'Bob', sum: 'b', text: 'B'.repeat(4000), always: false, images: [], keys: [/bob/] }
+    { name: 'Alice', sum: 'a', text: 'A'.repeat(6000), always: false, images: [], keys: [/alice/] },
+    { name: 'Bob', sum: 'b', text: 'B'.repeat(6000), always: false, images: [], keys: [/bob/] }
   ];
   ctx.lore = [{ keys: [/porte/], always: false, pr: 0, text: 'La porte grince.' }];
   const r = buildInfo(
-    sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'alice ouvre la porte' }] })
+    sc({ noChoices: true, remote: true, loreMax: 1, messages: [{ role: 'user', content: 'alice ouvre la porte' }] })
   );
   assert.doesNotMatch(r.msgs[0].content, /## Alice/);
   assert.doesNotMatch(r.msgs[0].content, /<lorebook>/);
@@ -325,21 +261,19 @@ test('win est l’index absolu du premier message envoyé', () => {
 });
 
 test('le nombre envoyé tient compte des messages déjà résumés', () => {
-  S.ctxLim = 900;
-  S.reserve = 300;
   const msgs = Array.from({ length: 30 }, (_, i) => ({
     role: i % 2 ? 'assistant' : 'user',
     content: 'z'.repeat(400) + i
   }));
   const s = sc({ noChoices: true, messages: msgs, mem: { upto: 10 } });
   const r = buildInfo(s);
-  assert.ok(r.win > 10, 'la fenêtre démarre après le point de résumé');
+  assert.equal(r.win, 10, 'les messages partent à partir du point de résumé');
   assert.equal(r.msgs.length - 1, msgs.length - r.win, 'autant de messages que n − win');
 });
 
 test('les relations voyagent avec la mémoire ; celle d’un personnage en scène est aussi sous sa fiche', () => {
   ctx.chars = [
-    { name: 'Alice', sum: 'herboriste', text: 'Fiche d’Alice. ' + 'x'.repeat(4000), always: false, images: [], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] }
+    { name: 'Alice', sum: 'herboriste', text: 'Fiche d’Alice. ' + 'x'.repeat(12000), always: false, images: [], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] }
   ];
   const r = buildInfo(
     sc({
@@ -368,42 +302,29 @@ test('le message système ne dépend pas de qui est en scène, pour rester en ca
   assert.equal(sys('je parle à Alice'), sys('personne ici'));
 });
 
-test('Claude : fiches et lorebook modestes en entier dans la partie fixe, en cache', () => {
-  const p0 = S.provider;
-  try {
-    S.provider = 'claude';
-    ctx.chars = [
-      { name: 'Alice', sum: 'a', text: 'A'.repeat(4000), always: false, images: [], keys: [/alice/] },
-      { name: 'Bob', sum: 'b', text: 'B'.repeat(4000), always: false, images: [], keys: [/bob/] }
-    ];
-    ctx.lore = [
-      { keys: [/porte/], always: false, pr: 0, text: 'La porte grince.' },
-      { keys: [/forge/], always: false, pr: 1, text: 'La forge est froide.' }
-    ];
-    const s = sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'alice ouvre la porte' }] });
-    let r = buildInfo(s),
-      stable = r.msgs[0].content.slice(0, r.msgs[0].cut);
-    assert.match(stable, /## Alice[\s\S]*## Bob/, 'toutes les fiches, même hors scène');
-    assert.match(stable, /La forge est froide\.[\s\S]*La porte grince\./, 'tout le lorebook, par priorité');
-    assert.match(stable, /Leurs fiches détaillées suivent\./);
-    assert.doesNotMatch(r.msgs.at(-1).content, /## Alice|La porte grince/, 'rien en fin de requête');
-    // Limite d'entrées choisie : le lorebook reste déclenché, en fin de requête.
-    r = buildInfo({ ...s, loreMax: 1 });
-    assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /La forge/);
-    assert.match(r.msgs.at(-1).content, /La porte grince/);
-    // Limite de tokens réglée : comportement d'avant, seuls les actifs partent.
-    S.ctxLim = 100000;
-    r = buildInfo(s);
-    assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
-    assert.match(r.msgs.at(-1).content, /La porte grince[\s\S]*## Alice/);
-    // Trop gros (au-delà de 3 000 tokens) : seulement les actifs, même avec Claude.
-    S.ctxLim = 0;
-    ctx.chars[1].text = 'B'.repeat(9000);
-    r = buildInfo(s);
-    assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
-    assert.match(r.msgs.at(-1).content, /## Alice/);
-  } finally {
-    S.provider = p0;
-    S.ctxLim = 0;
-  }
+test('fiches et lorebook modestes en entier dans la partie fixe, en cache', () => {
+  ctx.chars = [
+    { name: 'Alice', sum: 'a', text: 'A'.repeat(4000), always: false, images: [], keys: [/alice/] },
+    { name: 'Bob', sum: 'b', text: 'B'.repeat(4000), always: false, images: [], keys: [/bob/] }
+  ];
+  ctx.lore = [
+    { keys: [/porte/], always: false, pr: 0, text: 'La porte grince.' },
+    { keys: [/forge/], always: false, pr: 1, text: 'La forge est froide.' }
+  ];
+  const s = sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'alice ouvre la porte' }] });
+  let r = buildInfo(s),
+    stable = r.msgs[0].content.slice(0, r.msgs[0].cut);
+  assert.match(stable, /## Alice[\s\S]*## Bob/, 'toutes les fiches, même hors scène');
+  assert.match(stable, /La forge est froide\.[\s\S]*La porte grince\./, 'tout le lorebook, par priorité');
+  assert.match(stable, /Leurs fiches détaillées suivent\./);
+  assert.doesNotMatch(r.msgs.at(-1).content, /## Alice|La porte grince/, 'rien en fin de requête');
+  // Limite d'entrées choisie : le lorebook reste déclenché, en fin de requête.
+  r = buildInfo({ ...s, loreMax: 1 });
+  assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /La forge/);
+  assert.match(r.msgs.at(-1).content, /La porte grince/);
+  // Trop gros (au-delà de 3 000 tokens) : seulement les actifs.
+  ctx.chars[1].text = 'B'.repeat(9000);
+  r = buildInfo(s);
+  assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
+  assert.match(r.msgs.at(-1).content, /## Alice/);
 });

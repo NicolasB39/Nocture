@@ -1,5 +1,5 @@
 import { costMap, costOf, money, parseAmount, parsePrice, priceOf } from './cost.js';
-import { PROVIDERS, S } from './state.js';
+import { S } from './state.js';
 import { saveSet } from './store.js';
 import {
   SESSION,
@@ -54,7 +54,7 @@ const rows = map => {
         'div',
         { class: 'uh' },
         el('b', { text: m }),
-        el('small', { text: PROVIDERS[p]?.n || p }),
+        el('small', { text: p == 'claude' ? 'Claude' : p }),
         el('span', { text: fmt(t) })
       ),
       el('i', { class: 'bar' }, el('u', { style: 'width:' + Math.max(2, (t / top) * 100) + '%' })),

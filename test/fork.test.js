@@ -26,7 +26,6 @@ test('la bifurcation garde les messages jusqu’au point choisi inclus', () => {
 test('la mémoire ne pointe plus au-delà du point de bifurcation', () => {
   const c = forkOf(s, 4, 'x', 'b');
   assert.equal(c.mem.upto, 5);
-  assert.equal(c.mem.win, 5);
   assert.deepEqual(c.mem.lines.map(l => l.i), [0, 1, 2, 3, 4]);
   assert.equal(c.mem.summary, 'Tout');
 });
@@ -43,5 +42,4 @@ test('bifurquer sur le dernier message garde la mémoire telle quelle', () => {
   const c = forkOf(s, 9, 'x', 'b');
   assert.equal(c.messages.length, 10);
   assert.equal(c.mem.upto, 8);
-  assert.equal(c.mem.win, 9);
 });

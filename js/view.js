@@ -24,17 +24,13 @@ export const infoOf = () => {
       l?.role,
       l?.content.length,
       m.upto,
-      m.win,
       m.summary.length,
       m.memories.length,
       m.lines?.length,
       Object.keys(m.relations || {}).length,
-      S.ctxLim,
-      S.reserve,
       S.cpt,
       S.pre?.length,
       S.proto,
-      S.provider,
       modelOf(),
       (ctx.chars || []).length,
       (ctx.lore || []).length
@@ -59,39 +55,29 @@ export function tk(info) {
     sentN = Math.max(0, n - r.win),
     f = x => x.toLocaleString('fr-FR'),
     k = x => (x < 1000 ? f(x) : (x / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' k');
-  e.className = r.over ? 'w' : e.classList.contains('open') ? 'open' : '';
-  if (r.over)
-    e.textContent =
-      'Prompt de base trop long pour la limite (≈ ' +
+  e.className = e.classList.contains('open') ? 'open' : '';
+  // Pastille courte (tokens et coût du dernier tour) ; le détail s'ouvre en la touchant.
+  // Compteurs réels du dernier envoi : seulement s'il venait de cette histoire.
+  const c = app.turn?.id == app.cur.id ? app.turn.cost : null,
+    mine = app.pt?.id == app.cur.id,
+    pt = mine ? app.pt.n : 0,
+    long =
+      '≈ ' +
       f(r.used) +
-      ' / ' +
-      f(r.budget) +
-      ' tokens) : réduisez le prompt système, le lorebook ou la mémoire.';
-  else {
-    // Pastille courte (tokens et coût du dernier tour) ; le détail s'ouvre en la touchant.
-    // Compteurs réels du dernier envoi : seulement s'il venait de cette histoire.
-    const c = app.turn?.id == app.cur.id ? app.turn.cost : null,
-      mine = app.pt?.id == app.cur.id,
-      pt = mine ? app.pt.n : 0,
-      long =
-        '≈ ' +
-        f(r.used) +
-        (r.budget ? ' / ' + f(r.budget) : '') +
-        ' tokens envoyés' +
-        (pt ? ' (réel : ' + f(pt) + ')' : '') +
-        (mine && rlLast.cached ? ' · ' + f(rlLast.cached) + ' lus en cache' : '') +
-        (mine && rlLast.wrote ? ' · ' + f(rlLast.wrote) + ' mis en cache' : '') +
-        (n ? ' · ' + sentN + (sentN > 1 ? ' messages envoyés' : ' message envoyé') + ' sur ' + n : '');
-    e.replaceChildren(
-      el(
-        'button',
-        { class: 'tks', 'aria-expanded': String(e.classList.contains('open')), 'aria-label': 'Détail des compteurs' },
-        '≈ ' + k(pt || r.used) + ' tokens' + (c != null ? ' · ' + money(c, S.fx) + ' ce tour' : '')
-      ),
-      el('span', { class: 'tkl', text: long })
-    );
-  }
-  e.hidden = !S.counters && !r.over;
+      ' tokens envoyés' +
+      (pt ? ' (réel : ' + f(pt) + ')' : '') +
+      (mine && rlLast.cached ? ' · ' + f(rlLast.cached) + ' lus en cache' : '') +
+      (mine && rlLast.wrote ? ' · ' + f(rlLast.wrote) + ' mis en cache' : '') +
+      (n ? ' · ' + sentN + (sentN > 1 ? ' messages envoyés' : ' message envoyé') + ' sur ' + n : '');
+  e.replaceChildren(
+    el(
+      'button',
+      { class: 'tks', 'aria-expanded': String(e.classList.contains('open')), 'aria-label': 'Détail des compteurs' },
+      '≈ ' + k(pt || r.used) + ' tokens' + (c != null ? ' · ' + money(c, S.fx) + ' ce tour' : '')
+    ),
+    el('span', { class: 'tkl', text: long })
+  );
+  e.hidden = !S.counters;
   rlView(r.used);
 }
 let rlEst = 0,

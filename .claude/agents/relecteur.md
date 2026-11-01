@@ -30,7 +30,7 @@ Ne signale que ce que tu as vérifié dans le code : pour chaque point, un scén
 **Appels à l'IA** (`ai.js`, `prompt.js`, `protocol.js`)
 - Ordre pour le cache de Claude : partie stable du système, puis mémoire, puis messages ; tout ce qui varie d'un tour à l'autre (lorebook déclenché, personnages en scène, passages anciens, état précédent, indication) est ajouté à la fin du **dernier** message joueur, jamais dans le système ni dans un message plus ancien. Un ajout mal placé fait relire tout le prompt au prix plein.
 - Claude (API `2026-10-21`) refuse `temperature`, `top_p`, `top_k` : `toAnt` ne doit jamais les envoyer.
-- Les fournisseurs compatibles OpenAI ne reçoivent que `role` et `content` (`toOai`) : Groq refuse la requête au moindre champ inconnu.
+- Les messages construits par `prompt.js` portent des repères internes (`cut` sur le système, `effBefore` sur un message) : `toAnt` construit ses propres blocs et ne doit jamais les laisser partir tels quels. L'API refuse la requête au moindre champ inconnu dans un message.
 - Une nouvelle balise demandée à l'IA doit être retirée partout où le texte est affiché, gardé ou relu : `split`, `body`, `plain`, et pendant l'écriture (balise encore incomplète).
 - Une consigne ajoutée existe dans les deux versions de `protocol.js` (`lean` et `full`).
 
@@ -53,4 +53,4 @@ En français, du plus grave au moins grave :
   Correction : la piste, en une phrase.
 ```
 
-Termine par une ligne sur ce que tu n'as pas pu vérifier (par exemple le rendu visuel, ou un fournisseur précis).
+Termine par une ligne sur ce que tu n'as pas pu vérifier (par exemple le rendu visuel, ou un modèle précis).

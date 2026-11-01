@@ -19,13 +19,13 @@ export const splitKey = k => {
 
 export const usageOf = u => {
   if (!u) return null;
-  const p = +u.prompt_tokens || +u.input_tokens || 0,
+  const p = +u.prompt_tokens || 0,
     t = +u.total_tokens || 0,
-    c = Math.max(+u.completion_tokens || +u.output_tokens || 0, t - p);
+    c = Math.max(+u.completion_tokens || 0, t - p);
   return p || c > 0 ? [p, Math.max(0, c)] : null;
 };
 
-// Cache lu et écrit, lus dans l'usage normalisé (normU pour Claude, prompt_tokens_details ailleurs).
+// Cache lu et écrit, lus dans l'usage normalisé par normU (ai.js).
 export const cacheOf = u => [+u?.prompt_tokens_details?.cached_tokens || 0, +u?.cache_write || 0];
 
 const bump = (map, key, p, c, est, ca) => {

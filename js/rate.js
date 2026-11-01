@@ -5,16 +5,6 @@ let use = [];
 const RL = {};
 export const last = { cached: 0, total: 0, wrote: 0 };
 
-export const resetDur = s => {
-  const m = String(s || '').match(
-    /(?:([\d.]+)\s*h)?(?:([\d.]+)\s*m(?!s))?(?:([\d.]+)\s*s)?(?:([\d.]+)\s*ms)?/
-  );
-  return m ? ((+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0)) * 1000 + (+m[4] || 0) : 0;
-};
-export const hintOf = t => {
-  const m = String(t || '').match(/(?:in|après)\s+((?:[\d.]+\s*(?:ms|[hms])\s*)+)/i);
-  return m ? resetDur(m[1]) : 0;
-};
 const local = m => {
   const t = Date.now() - W;
   use = use.filter(x => x[0] > t);
@@ -32,18 +22,18 @@ export function note(h, u, m, primary) {
   if (tot) spend(u?.rl ?? tot, m);
   if (primary) {
     last.total = tot || 0;
-    last.cached = u?.prompt_tokens_details?.cached_tokens ?? u?.cache_read_input_tokens ?? 0;
+    last.cached = u?.prompt_tokens_details?.cached_tokens ?? 0;
     last.wrote = u?.cache_write ?? 0;
   }
   const g = k => h?.get?.(k) ?? null,
-    lim = +g('x-ratelimit-limit-tokens') || +g('anthropic-ratelimit-input-tokens-limit') || 0,
-    rem = g('x-ratelimit-remaining-tokens') ?? g('anthropic-ratelimit-input-tokens-remaining');
+    lim = +g('anthropic-ratelimit-input-tokens-limit') || 0,
+    rem = g('anthropic-ratelimit-input-tokens-remaining');
   if (lim && rem != null && rem !== '') {
     RL[m] = {
       lim,
       rem: +rem,
       at: Date.now(),
-      req: +(g('x-ratelimit-remaining-requests') ?? g('anthropic-ratelimit-requests-remaining')) || 0
+      req: +g('anthropic-ratelimit-requests-remaining') || 0
     };
     (S.tpms ??= {})[m] = lim;
   } else if (RL[m]?.x) delete RL[m];

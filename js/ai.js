@@ -1,38 +1,32 @@
 import { HAIKU_LONG, LONG } from './cost.js';
-import { budgetOf, estTok, omittedCount } from './prompt.js';
+import { estTok } from './prompt.js';
 import { SUM_MAX, clip, mergeMem, mergeRel, splitSummary, unnum } from './memory.js';
-import { hintOf, hit429, note, resetDur, wait } from './rate.js';
+import { hit429, note, wait } from './rate.js';
 import { cacheOf, record, usageOf } from './stats.js';
-import { PROVIDERS, S, app, ctx } from './state.js';
+import { API, S, app, ctx } from './state.js';
 import { getOne, save } from './store.js';
 import { $, err, strip } from './util.js';
 
-const ANT = p => PROVIDERS[p]?.fmt == 'anthropic';
-// Claude sans limite de tokens : la mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
+// La mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
 // le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
 // cache a expiré et sera réécrit de toute façon, elle part dès SUM_START (sessionSum, send.js), avant le premier
 // envoi, qui écrit alors directement le prompt raccourci.
 export const SUM_KEEP = 40;
 export const SUM_PLAY = 120;
 export const SUM_START = 50;
-export const sumGate = (u, big, go, hi = SUM_PLAY) => (big ? u >= hi || (go && u > SUM_KEEP) : u >= 40);
-// Messages par appel de résumé. Avec Claude, deux paquets de 20 (au lieu de quatre de 10) : moitié moins
-// d'appels, et le résumé, les relations et les souvenirs ne repartent que deux fois. Pas plus de 20 : le
-// modèle doit rendre une ligne par message, et un compte faux fait perdre le lien des lignes à leur message.
-// om : messages sortis de la fenêtre (limite de tokens), à résumer en priorité.
-export const sumBatch = (big, om = 0) => (om >= 6 ? Math.min(om, 12) : big ? 20 : 10);
-export const authH = (p, k) =>
-  ANT(p)
-    ? { 'x-api-key': k, 'anthropic-version': ANT_VERSION, 'anthropic-dangerous-direct-browser-access': 'true' }
-    : { Authorization: 'Bearer ' + k };
-// Version de l'API Claude. Depuis 2026-10-21, temperature, top_p et top_k sont refusés (erreur 400)
-// sur tous les modèles : toAnt ne les envoie jamais, la température des Réglages ne vaut que pour
-// les autres fournisseurs.
+export const sumGate = (u, go, hi = SUM_PLAY) => u >= hi || (go && u > SUM_KEEP);
+// Messages par appel de résumé : deux paquets de 20 plutôt que quatre de 10, moitié moins d'appels, et le
+// résumé, les relations et les souvenirs ne repartent que deux fois. Pas plus de 20 : le modèle doit rendre
+// une ligne par message, et un compte faux fait perdre le lien des lignes à leur message.
+export const SUM_BATCH = 20;
+export const authH = k => ({ 'x-api-key': k, 'anthropic-version': ANT_VERSION, 'anthropic-dangerous-direct-browser-access': 'true' });
+// Version de l'API Claude. Depuis 2026-10-21, temperature, top_p et top_k sont refusés (erreur 400) sur tous
+// les modèles : toAnt ne les envoie jamais.
 export const ANT_VERSION = '2026-10-21';
-// Résumés de mémoire avec Claude quand aucun modèle n'est choisi : un résumé ne demande pas le meilleur
-// modèle, et Haiku 5.5 coûte une vingtaine de fois moins que Sonnet 5.5.
+// Résumés de mémoire quand aucun modèle n'est choisi : un résumé ne demande pas le meilleur modèle, et
+// Haiku 5.5 coûte une vingtaine de fois moins que Sonnet 5.5.
 export const MEM_CLAUDE = 'claude-haiku-5-5';
-export const memModel = (p = S.provider) => S.memModels?.[p] || (ANT(p) ? MEM_CLAUDE : '');
+export const memModel = () => S.memModels?.[API.k] || MEM_CLAUDE;
 export const EFFORTS = ['low', 'medium', 'high'];
 // L'effort (output_config.effort) règle la réflexion facturée avant chaque réponse. Accepté par Opus et
 // Sonnet 4.6 et suivants, Haiku 5.5, Fable et Mythos (et Opus 4.5) ; Haiku 4.5 et Sonnet 4.5 le refusent.
@@ -100,11 +94,9 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback }
     ...(stream ? { stream: true } : {})
   };
 };
-// Fournisseurs compatibles OpenAI : seulement role et content. Les messages internes portent des repères
-// (cut, la fin de la partie fixe du prompt, lu par toAnt) que Groq refuse et que les autres n'ont pas à voir.
-export const toOai = ms => ms.map(({ role, content }) => ({ role, content }));
+// Usage de Claude au format des compteurs : prompt_tokens comprend le cache lu et écrit.
 export const normU = u =>
-  u && !('prompt_tokens' in u) && ('input_tokens' in u || 'cache_read_input_tokens' in u)
+  u
     ? {
         prompt_tokens: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0),
         completion_tokens: u.output_tokens || 0,
@@ -123,31 +115,29 @@ let LAST = null;
 export const WARM_AT = 270000;
 export const lastWarmable = () => LAST;
 export async function keepWarm() {
-  const p = S.provider,
-    k = S.keys[p];
-  if (!LAST || LAST.p !== p || !ANT(p) || !k) return false;
+  const k = S.keys[API.k];
+  if (!LAST || !k) return false;
   // Sans relais (rien à relayer, et hors du préfixe) ; un changement d'effort, lui, fait partie du préfixe.
   const { stream, fallbacks, ...b } = LAST.body,
     bt = antBetas(b);
   LAST.at = Date.now();
   try {
-    const r = await fetch(PROVIDERS[p].u + '/messages', {
+    const r = await fetch(API.u + '/messages', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...authH(p, k), ...(bt ? { 'anthropic-beta': bt } : {}) },
+      headers: { 'Content-Type': 'application/json', ...authH(k), ...(bt ? { 'anthropic-beta': bt } : {}) },
       body: JSON.stringify({ ...b, max_tokens: 0 })
     });
     if (!r.ok) return false;
     const u = normU((await r.json().catch(() => ({}))).usage);
     note(r.headers, u, b.model, false);
-    track([], '', u, p + '/' + b.model);
+    track([], '', u, API.k + '/' + b.model);
     return true;
   } catch (e) {
     return false;
   }
 }
-// Refus de Claude (stop_reason « refusal », réponse 200) ou filtre de contenu d'un fournisseur compatible
-// OpenAI (finish_reason « content_filter »). Erreur marquée refusal : l'envoi propose une indication plutôt
-// que de renvoyer la même requête, qui serait refusée de même.
+// Refus de Claude (stop_reason « refusal », réponse 200). Erreur marquée refusal : l'envoi propose une
+// indication plutôt que de renvoyer la même requête, qui serait refusée de même.
 const WHY = {
   cyber: 'cybersécurité',
   bio: 'biologie',
@@ -155,12 +145,9 @@ const WHY = {
   frontier_llm: 'développement d’IA',
   reasoning_extraction: 'raisonnement interne'
 };
-export const refusal = (sd, A) => {
-  const c = A && sd?.category,
-    e = new Error(
-      (A ? 'Claude a refusé d’écrire cette réponse' : 'Le fournisseur a bloqué cette réponse (filtre de contenu)') +
-        (c ? ' (motif : ' + (WHY[c] || c) + ')' : '')
-    );
+export const refusal = sd => {
+  const c = sd?.category,
+    e = new Error('Claude a refusé d’écrire cette réponse' + (c ? ' (motif : ' + (WHY[c] || c) + ')' : ''));
   e.refusal = true;
   return e;
 };
@@ -186,7 +173,7 @@ const track = (ms, out, u, key, primary) => {
     if (x && base(key) == 'claude/claude-haiku-5-5' && x[0] > HAIKU_LONG) key = base(key) + LONG;
     if (x) {
       const [cr, cw] = cacheOf(u),
-        h1 = ANT(key.split('/')[0]) && S.c1h,
+        h1 = S.c1h,
         ca = [cr, h1 ? 0 : cw, h1 ? cw : 0];
       if (primary) TURN = { key, e: [x[0], x[1], 1, u.est ? 1 : 0, ...ca] };
       return record(key, x[0], x[1], !!u.est, Date.now(), ca);
@@ -206,16 +193,14 @@ const calib = (ms, u) => {
 };
 export async function chat(
   ms,
-  { max = 0, ac = new AbortController(), od = null, temp = null, top = null, model = '', effort = '', effBase = '', json = false, onWait = null, primary = false, timeout = 120000 } = {}
+  { max = 0, ac = new AbortController(), od = null, model = '', effort = '', effBase = '', onWait = null, primary = false, timeout = 120000 } = {}
 ) {
-  const p = S.provider,
+  const p = API.k,
     k = S.keys[p];
   if (!k) throw new Error('clé API manquante');
   if (primary) TURN = null;
-  let jm = json;
-  const A = ANT(p),
-    mdl = model || S.models[p] || PROVIDERS[p].m;
-  const est = (A ? ms.slice(-2) : ms).reduce((a, m) => a + estTok(m.content), 0) + (max || 500);
+  const mdl = model || S.models[p] || API.m;
+  const est = ms.slice(-2).reduce((a, m) => a + estTok(m.content), 0) + (max || 500);
   const hold = async (next, why) => {
     for (let w = next(); w > 0 && !ac.signal.aborted; w = next()) {
       onWait?.(w, why);
@@ -240,25 +225,15 @@ export async function chat(
   try {
     for (let a = 0; ; a++) {
       let r;
-      const body = A
-        ? toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary })
-        : {
-            model: mdl,
-            messages: toOai(ms),
-            ...(max ? { max_tokens: max } : {}),
-            ...(temp != null ? { temperature: +temp } : {}),
-            ...(top != null ? { top_p: +top } : {}),
-            ...(od ? { stream: true } : {}),
-            ...(jm ? { response_format: { type: 'json_object' } } : {})
-          };
-      // La dernière requête de narration Claude sert de modèle au maintien du cache (keepWarm).
-      if (A && primary) LAST = { p, body, at: Date.now() };
-      const bt = A ? antBetas(body) : '';
+      const body = toAnt(ms, { model: mdl, max, stream: !!od, ttl: S.c1h, effort, effBase, fallback: primary });
+      // La dernière requête de narration sert de modèle au maintien du cache (keepWarm).
+      if (primary) LAST = { body, at: Date.now() };
+      const bt = antBetas(body);
       try {
-        r = await fetch(PROVIDERS[p].u + (A ? '/messages' : '/chat/completions'), {
+        r = await fetch(API.u + '/messages', {
           method: 'POST',
           signal: ac.signal,
-          headers: { 'Content-Type': 'application/json', ...authH(p, k), ...(bt ? { 'anthropic-beta': bt } : {}) },
+          headers: { 'Content-Type': 'application/json', ...authH(k), ...(bt ? { 'anthropic-beta': bt } : {}) },
           body: JSON.stringify(body)
         });
       } catch (e) {
@@ -284,47 +259,27 @@ export async function chat(
           sd = null;
         const feed = l => {
           if (!l.startsWith('data:')) return;
-          const d = l.slice(5).trim();
-          if (A) {
-            try {
-              const o = JSON.parse(d),
-                dl = o.delta;
-              if (o.type == 'message_start') {
-                us = { ...o.message?.usage };
-                served = o.message?.model || served;
-              } else if (o.type == 'content_block_delta' && dl?.type == 'text_delta') {
-                tt += dl.text;
-                n++;
-                od(tt);
-              } else if (o.type == 'content_block_delta' && dl?.type == 'thinking_delta') od(tt, true);
-              else if (o.type == 'message_delta') {
-                if (dl?.stop_reason) fr = dl.stop_reason;
-                sd = dl?.stop_details || o.stop_details || sd;
-                us = { ...us, ...o.usage };
-              } else if (o.type == 'message_stop') fin = true;
-              else if (o.type == 'error') {
-                ex = o.error?.message || 'erreur du fournisseur';
-                et = o.error?.type || '';
-                fin = true;
-              }
-            } catch (e) {}
-            return;
-          }
-          if (d == '[DONE]') {
-            fin = true;
-            return;
-          }
           try {
-            const o = JSON.parse(d),
-              c = o.choices?.[0],
-              dl = c?.delta;
-            us = o.usage || o.x_groq?.usage || us;
-            if (dl?.content) {
-              tt += dl.content;
+            const o = JSON.parse(l.slice(5).trim()),
+              dl = o.delta;
+            if (o.type == 'message_start') {
+              us = { ...o.message?.usage };
+              served = o.message?.model || served;
+            } else if (o.type == 'content_block_delta' && dl?.type == 'text_delta') {
+              tt += dl.text;
               n++;
               od(tt);
-            } else if (dl?.reasoning_content || dl?.reasoning) od(tt, true);
-            if (c?.finish_reason) fr = c.finish_reason;
+            } else if (o.type == 'content_block_delta' && dl?.type == 'thinking_delta') od(tt, true);
+            else if (o.type == 'message_delta') {
+              if (dl?.stop_reason) fr = dl.stop_reason;
+              sd = dl?.stop_details || o.stop_details || sd;
+              us = { ...us, ...o.usage };
+            } else if (o.type == 'message_stop') fin = true;
+            else if (o.type == 'error') {
+              ex = o.error?.message || 'erreur de Claude';
+              et = o.error?.type || '';
+              fin = true;
+            }
           } catch (e) {}
         };
         try {
@@ -348,7 +303,7 @@ export async function chat(
             }
             throw new Error(ex);
           }
-          // Flux fermé sans fin annoncée (ni message_stop, ni [DONE], ni raison d'arrêt) : réponse incomplète.
+          // Flux fermé sans fin annoncée (ni message_stop, ni raison d'arrêt) : réponse incomplète.
           if (ex || (!fin && !fr)) part = true;
         } catch (e) {
           // Coupure après du texte (réseau, délai, Arrêter) : le texte reçu est gardé.
@@ -358,11 +313,11 @@ export async function chat(
         const key = p + '/' + (served || mdl);
         // Refus (relais compris) : le texte déjà reçu est jeté, il n'est pas une réponse complète. Ce qui a été
         // facturé est compté quand même.
-        if (fr == 'refusal' || fr == 'content_filter') {
+        if (fr == 'refusal') {
           us = normU(us);
           note(r.headers, us, mdl, primary);
           track(ms, strip(tt), us, key, primary);
-          throw refusal(sd, A);
+          throw refusal(sd);
         }
         const out = strip(tt);
         if (!out)
@@ -380,7 +335,7 @@ export async function chat(
         track(ms, out, us, key, primary);
         return {
           t: out,
-          cut: fr == 'length' || fr == 'max_tokens',
+          cut: fr == 'max_tokens',
           mode: 'stream',
           chunks: n,
           ms: Date.now() - t0,
@@ -389,20 +344,9 @@ export async function chat(
         };
       }
       const j = await r.json().catch(() => ({}));
-      const er = (Array.isArray(j) ? j[0] : j)?.error;
+      const er = j.error;
       if (r.status == 429 && a < TRIES) {
-        const secs = Math.min(
-            90,
-            Math.max(
-              3,
-              Math.round(
-                (hintOf(er?.message) ||
-                  (+r.headers.get('retry-after') || 0) * 1000 ||
-                  resetDur(r.headers.get('x-ratelimit-reset-tokens')) ||
-                  (a + 1) * 15000) / 1000
-              )
-            )
-          );
+        const secs = Math.min(90, Math.max(3, Math.round(+r.headers.get('retry-after') || (a + 1) * 15)));
         hit429(mdl, secs * 1000);
         await retry(secs, 'retry');
         continue;
@@ -411,31 +355,23 @@ export async function chat(
         await retry(backoff(a, r.headers.get('retry-after')), 'busy');
         continue;
       }
-      if (!r.ok && jm && /response_format|json/i.test(er?.message || '')) {
-        jm = false;
-        (S.nj ??= {})[p] = 1;
-        continue;
-      }
       if (!r.ok || er) throw new Error(er?.message || 'Erreur ' + r.status);
-      const ch = j.choices?.[0],
-        u = normU(j.usage);
+      const u = normU(j.usage);
       if (primary) calib(ms, u);
       note(r.headers, u, mdl, primary);
       const out = strip(
-        A
-          ? (j.content || [])
-              .filter(b => b.type == 'text')
-              .map(b => b.text)
-              .join('')
-          : (ch?.message?.content ?? '')
+        (j.content || [])
+          .filter(b => b.type == 'text')
+          .map(b => b.text)
+          .join('')
       );
-      track(ms, out, u, p + '/' + ((A && j.model) || mdl), primary);
-      if (A ? j.stop_reason == 'refusal' : ch?.finish_reason == 'content_filter') throw refusal(j.stop_details, A);
+      track(ms, out, u, p + '/' + (j.model || mdl), primary);
+      if (j.stop_reason == 'refusal') throw refusal(j.stop_details);
       if (!out)
         throw new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)');
       return {
         t: out,
-        cut: A ? j.stop_reason == 'max_tokens' : ch?.finish_reason == 'length',
+        cut: j.stop_reason == 'max_tokens',
         mode: 'block',
         chunks: 1,
         ms: Date.now() - t0,
@@ -446,7 +382,7 @@ export async function chat(
     if (ac.signal.aborted)
       throw new Error(
         ac.signal.reason == 'timeout'
-          ? 'Délai dépassé (' + Math.round(timeout / 1000) + ' s sans réponse du fournisseur).'
+          ? 'Délai dépassé (' + Math.round(timeout / 1000) + ' s sans réponse de Claude).'
           : 'Annulé.'
       );
     throw e;
@@ -457,12 +393,12 @@ export async function chat(
 // Texte d'attente affiché pendant une pause de chat() : `why` dit qui fait attendre.
 export const waitMsg = (w, why) =>
   (why == 'retry'
-    ? 'le fournisseur a refusé l’envoi (limite de débit)'
+    ? 'Claude a refusé l’envoi (limite de débit)'
     : why == 'busy'
-      ? 'le fournisseur est surchargé ou en panne'
+      ? 'Claude est surchargé ou en panne'
       : why == 'net'
         ? 'connexion perdue'
-        : 'pause pour respecter la limite de débit du fournisseur') +
+        : 'pause pour respecter la limite de débit de Claude') +
   (why == 'pace' ? ' : envoi dans ' : ' : nouvelle tentative dans ') +
   w +
   ' s…';
@@ -573,36 +509,22 @@ async function sumRun(s, start) {
   const mine = () => app.cur === s && !app.busy && [said, ''].includes($('#err').textContent);
   const say = t => mine() && err((said = t));
   try {
-    const big = ANT(S.provider) && !S.ctxLim;
     let go = false;
-    const need = () => {
-      go = sumGate(s.messages.length - s.mem.upto, big, go, start ? SUM_START : SUM_PLAY);
-      return go || (S.ctxLim && omittedCount(s) >= 6);
-    };
-    while (need()) {
+    while ((go = sumGate(s.messages.length - s.mem.upto, go, start ? SUM_START : SUM_PLAY))) {
       say('Mise à jour de la mémoire…');
       const pr = splitSummary(s.mem.summary);
       if (pr.summary && pr.summary !== (s.mem.summary || '').trim()) {
         absorb(s, pr);
         s.mem.summary = pr.summary;
       }
-      const om = S.ctxLim ? omittedCount(s) : 0,
-        // Avec Claude, jamais en dessous de SUM_KEEP messages gardés mot pour mot.
-        n = Math.min(sumBatch(big, om), s.messages.length - s.mem.upto - (big ? SUM_KEEP : 0)),
-        room = S.ctxLim
-          ? Math.max(400, budgetOf(s) - estTok(SUMP) - estTok(s.mem.summary || '') - 300)
-          : Infinity,
-        parts = [];
-      let acc = 0;
-      for (const m of s.messages.slice(s.mem.upto, s.mem.upto + n)) {
-        let x = (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + m.content.replace(/\{\{img::[^}]*\}\}/g, '').trim();
-        if (parts.length && acc + estTok(x) > room) break;
-        if (!parts.length && estTok(x) > room) x = x.slice(0, Math.floor(room * 3));
-        parts.push(x);
-        acc += estTok(x);
-      }
+      // Jamais en dessous de SUM_KEEP messages gardés mot pour mot.
+      const n = Math.min(SUM_BATCH, s.messages.length - s.mem.upto - SUM_KEEP),
+        parts = s.messages
+          .slice(s.mem.upto, s.mem.upto + n)
+          .map(m => (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + m.content.replace(/\{\{img::[^}]*\}\}/g, '').trim());
       const stale = batchGuard(s, parts.length);
-      const useJson = !S.nj?.[S.provider];
+      // Deux réponses JSON illisibles d'affilée : la mémoire passe au format balisé (SUMP).
+      const useJson = !S.nj?.[API.k];
       const { t } = await chat(
         [
           { role: 'system', content: useJson ? SUMJ : SUMP },
@@ -626,7 +548,6 @@ async function sumRun(s, start) {
         {
           model: memModel(),
           effort: 'low',
-          json: useJson,
           timeout: 300000,
           onWait: (w, why) => {
             if (said) say(w ? 'Mémoire : ' + waitMsg(w, why) : 'Mise à jour de la mémoire…');
@@ -637,7 +558,7 @@ async function sumRun(s, start) {
       const j = useJson ? asJson(t) : null;
       if (useJson && !j) {
         S.jf = (S.jf || 0) + 1;
-        if (S.jf >= 2) (S.nj ??= {})[S.provider] = 1;
+        if (S.jf >= 2) (S.nj ??= {})[API.k] = 1;
       } else if (useJson) S.jf = 0;
       if (j) {
         const x = splitSummary(j.resume);

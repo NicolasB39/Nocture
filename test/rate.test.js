@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { hintOf, hit429, note, reset, resetDur, status, wait } from '../js/rate.js';
+import { hit429, note, reset, status, wait } from '../js/rate.js';
 import { S } from '../js/state.js';
 
 const hdr = o => ({ get: k => (k in o ? o[k] : null) });
@@ -16,13 +16,12 @@ test('sans en-tête ni réglage, pas de jauge', () => {
   assert.equal(status(M), null);
 });
 
-test('les en-têtes du fournisseur font foi et mémorisent la limite', () => {
+test('les en-têtes de Claude font foi et mémorisent la limite', () => {
   note(
     hdr({
-      'x-ratelimit-limit-tokens': '8000',
-      'x-ratelimit-remaining-tokens': '2000',
-      'x-ratelimit-reset-tokens': '19.5s',
-      'x-ratelimit-remaining-requests': '14390'
+      'anthropic-ratelimit-input-tokens-limit': '8000',
+      'anthropic-ratelimit-input-tokens-remaining': '2000',
+      'anthropic-ratelimit-requests-remaining': '49'
     }),
     { prompt_tokens: 2100, completion_tokens: 500, prompt_tokens_details: { cached_tokens: 1700 } },
     M,
@@ -69,29 +68,6 @@ test('chaque modèle a son propre compteur', () => {
   assert.equal(status('memoire').rem, 7500);
 });
 
-test('resetDur lit les durées des en-têtes et des messages d’erreur', () => {
-  assert.equal(resetDur('19.5s'), 19500);
-  assert.equal(resetDur('2m59.56s'), 179560);
-  assert.equal(resetDur('1m23.4s'), 83400);
-  assert.equal(resetDur(''), 0);
-});
-
-test('resetDur lit les millisecondes comme des millisecondes', () => {
-  assert.equal(resetDur('340ms'), 340);
-  assert.equal(resetDur('1s250ms'), 1250);
-  assert.equal(resetDur('1m30s'), 90000);
-  assert.equal(resetDur('7.66s'), 7660);
-});
-
-test('hintOf lit le délai annoncé dans un message de limite de débit', () => {
-  assert.equal(hintOf('Limit 6000, Used 5200. Please try again in 4.1s. Visit https://x'), 4100);
-  assert.equal(hintOf('Please try again in 340ms. Visit https://x'), 340);
-  assert.equal(hintOf('Please try again in 1m30s.'), 90000);
-  assert.equal(hintOf('Veuillez réessayer après 12m3.5s'), 723500);
-  assert.equal(hintOf('Erreur inconnue'), 0);
-  assert.equal(hintOf(undefined), 0);
-});
-
 test('un 429 ne fausse plus la jauge une fois l’envoi passé sans en-têtes', () => {
   S.tpm = 8000;
   hit429(M, 1000);
@@ -102,7 +78,7 @@ test('un 429 ne fausse plus la jauge une fois l’envoi passé sans en-têtes', 
 
 test('la jauge ne recrédite pas de tokens qui n’ont pas quitté la fenêtre', () => {
   note(
-    hdr({ 'x-ratelimit-limit-tokens': '8000', 'x-ratelimit-remaining-tokens': '2000' }),
+    hdr({ 'anthropic-ratelimit-input-tokens-limit': '8000', 'anthropic-ratelimit-input-tokens-remaining': '2000' }),
     { total_tokens: 1200 },
     M,
     true

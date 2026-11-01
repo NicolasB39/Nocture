@@ -44,7 +44,7 @@ const ms = [
 ];
 
 beforeEach(() => {
-  Object.assign(S, { provider: 'claude', keys: { claude: 'k' }, models: {}, tpm: 0, tpms: {}, c1h: false });
+  Object.assign(S, { keys: { claude: 'k' }, models: {}, tpm: 0, tpms: {}, c1h: false });
   reset();
 });
 
@@ -71,7 +71,7 @@ test('un refus en plein texte est une erreur, le texte reçu n’est pas gardé'
   assert.ok(lastTurn(), 'ce qui a été facturé est compté');
 });
 
-test('refus sans réponse en bloc, et filtre de contenu d’un fournisseur compatible OpenAI', async () => {
+test('refus sans réponse en bloc', async () => {
   queue([
     new Response(JSON.stringify({ model: 'claude-sonnet-5-5', content: [], stop_reason: 'refusal', stop_details: { category: 'cyber' }, usage: { input_tokens: 9, output_tokens: 0 } }), {
       status: 200,
@@ -79,14 +79,6 @@ test('refus sans réponse en bloc, et filtre de contenu d’un fournisseur compa
     })
   ]);
   await assert.rejects(chat(ms, { model: 'claude-sonnet-5-5' }), e => e.refusal && /cybersécurité/.test(e.message));
-  Object.assign(S, { provider: 'groq', keys: { groq: 'k' } });
-  queue([
-    new Response(JSON.stringify({ choices: [{ message: { content: '' }, finish_reason: 'content_filter' }] }), {
-      status: 200,
-      headers: { 'content-type': 'application/json' }
-    })
-  ]);
-  await assert.rejects(chat(ms), e => e.refusal && /filtre de contenu/.test(e.message));
 });
 
 test('relais : le coût est compté pour le modèle qui a vraiment répondu', async () => {
@@ -150,7 +142,6 @@ test('effortSet et effortPlan : position du changement, régénération, fenêtr
 
 test('buildInfo pose le changement d’effort sur le bon message et donne l’effort de départ', () => {
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
-  S.ctxLim = 0;
   const s = {
     id: 's',
     system: 'SYS',

@@ -20,8 +20,6 @@ const story = () => {
 };
 
 beforeEach(() => {
-  S.ctxLim = 0;
-  S.reserve = 0;
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 

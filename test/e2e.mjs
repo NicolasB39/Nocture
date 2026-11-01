@@ -25,16 +25,18 @@ const srv = createServer(async (q, r) => {
 const base = 'http://localhost:' + srv.address().port;
 
 const CORS = { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' };
-// Comme le vrai Groq : un message qui porte autre chose que role et content fait refuser la requête.
+// Comme la vraie API : un message qui porte un champ inconnu (un repère interne, cut ou effBefore) fait refuser
+// la requête.
+const FIELDS = ['role', 'content', 'output_config'];
 const strict = q => {
-  const i = (JSON.parse(q.postData() || '{}').messages || []).findIndex(m => Object.keys(m).some(k => k != 'role' && k != 'content'));
+  const i = (JSON.parse(q.postData() || '{}').messages || []).findIndex(m => Object.keys(m).some(k => !FIELDS.includes(k)));
   return i < 0
     ? null
     : route =>
         route.fulfill({
           status: 400,
           headers: { ...CORS, 'content-type': 'application/json' },
-          body: JSON.stringify({ error: { message: "'messages." + i + "' : champ inconnu" } })
+          body: JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'messages.' + i + ' : champ inconnu' } })
         });
 };
 const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -52,9 +54,6 @@ const until = async (page, fn, arg, timeout = 20000) => {
 const story = n =>
   Array.from({ length: n }, () => '*Il lève les yeux.* La pluie tombe sur la ville, lente et grise, et personne ne parle.').join('\n\n') +
   '\n\n<choix>\n1. *Je recule.* Non.\n2. *J’avance.* Oui.\n3. *J’attends.* Peut-être.\n</choix>';
-const oaSSE = t =>
-  t.match(/[\s\S]{1,200}/g).map(c => 'data: ' + JSON.stringify({ choices: [{ delta: { content: c } }] }) + '\n\n').join('') +
-  'data: ' + JSON.stringify({ choices: [{ delta: {}, finish_reason: 'stop' }], usage: { prompt_tokens: 900, completion_tokens: 300 } }) + '\n\ndata: [DONE]\n\n';
 const antSSE = t =>
   [
     { type: 'message_start', message: { usage: { input_tokens: 40, cache_read_input_tokens: 3000, cache_creation_input_tokens: 120, output_tokens: 1 } } },
@@ -110,9 +109,8 @@ const github = async route => {
 let delay = 0,
   antReq = null,
   pg = null,
-  groqFail = false,
-  groqN = 0,
-  groqReq = null;
+  antFail = false,
+  antN = 0;
 // PW_CHANNEL=msedge (ou chrome) : navigateur déjà installé, sans le Chromium de Playwright.
 const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
 const errors = [];
@@ -127,29 +125,24 @@ try {
   pg = await ctx.newPage();
   watch(pg);
   await ctx.route('https://api.github.com/**', github);
-  await ctx.route('https://api.groq.com/**', async route => {
-    if (route.request().method() == 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
-    const bad = strict(route.request());
-    if (bad) return bad(route);
-    groqN++;
-    groqReq = JSON.parse(route.request().postData());
-    if (groqFail)
-      return route.fulfill({
-        status: 400,
-        headers: { ...CORS, 'content-type': 'application/json' },
-        body: JSON.stringify({ error: { message: 'Requête refusée (test)' } })
-      });
-    await wait(delay);
-    route.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'text/event-stream' }, body: oaSSE(story(5)) });
-  });
   await ctx.route('https://api.anthropic.com/**', async route => {
     const q = route.request();
     if (q.method() == 'OPTIONS') return route.fulfill({ status: 204, headers: CORS });
+    const bad = strict(q);
+    if (bad) return bad(route);
+    antN++;
     antReq = { h: q.headers(), b: JSON.parse(q.postData()) };
+    if (antFail)
+      return route.fulfill({
+        status: 400,
+        headers: { ...CORS, 'content-type': 'application/json' },
+        body: JSON.stringify({ type: 'error', error: { type: 'invalid_request_error', message: 'Requête refusée (test)' } })
+      });
+    await wait(delay);
     route.fulfill({
       status: 200,
       headers: { ...CORS, 'content-type': 'text/event-stream', 'anthropic-ratelimit-input-tokens-limit': '30000', 'anthropic-ratelimit-input-tokens-remaining': '29000' },
-      body: antSSE(story(3))
+      body: antSSE(story(5))
     });
   });
   const done = () => pg.waitForSelector('#send:not([hidden])', { timeout: 20000 });
@@ -183,7 +176,7 @@ try {
     assert.ok(!(await pg.evaluate(() => history.state?.d)));
   });
 
-  await step('envoi, réponse et choix avec un fournisseur OpenAI', async () => {
+  await step('envoi, réponse et choix', async () => {
     await pg.click('#cfg');
     await pg.fill('#ck', 'k');
     await pg.evaluate(() => (document.querySelector('#ctc').checked = true));
@@ -309,7 +302,7 @@ try {
   // Certaines relances partent après une écriture en base : on attend la requête, puis la fin de la réponse.
   const answered = async n0 => {
     const end = Date.now() + 20000;
-    while (groqN <= n0) {
+    while (antN <= n0) {
       if (Date.now() > end) throw new Error('aucune requête partie');
       await wait(50);
     }
@@ -317,14 +310,14 @@ try {
     await wait(200);
   };
   await step('erreur : le bouton Réessayer relance sans doubler le tour', async () => {
-    groqFail = true;
+    antFail = true;
     const users = await pg.locator('#msgs .m.user[data-i]').count();
     await pg.fill('#inp', 'Je tente.');
     await pg.click('#send');
     await pg.waitForSelector('#err.e button');
     assert.equal(await pg.textContent('#err.e button'), 'Réessayer');
-    groqFail = false;
-    const n0 = groqN;
+    antFail = false;
+    const n0 = antN;
     await pg.click('#err.e button');
     await answered(n0);
     assert.equal(await pg.textContent('#err'), '');
@@ -333,20 +326,20 @@ try {
   });
 
   await step('régénérer avec une indication (clic droit) : envoyée une fois, jamais enregistrée', async () => {
-    const n0 = groqN;
+    const n0 = antN;
     await pg.locator('#msgs .m[data-i] [aria-label="Régénérer"]').last().click({ button: 'right' });
     await pg.waitForSelector('#dq[open]');
     await pg.fill('#dqi', 'plus court');
     await pg.click('#dqo');
     await answered(n0);
-    const last = groqReq.messages.at(-1).content;
+    const last = antReq.b.messages.at(-1).content;
     assert.match(last, /<indication>[\s\S]*plus court/);
     assert.ok(!JSON.stringify(await msgsOf()).includes('indication'));
     assert.equal(await pg.textContent('.a .n'), '2/2');
-    const n1 = groqN;
+    const n1 = antN;
     await pg.locator('#msgs .m[data-i] [aria-label="Régénérer"]').last().click();
     await answered(n1);
-    assert.ok(!groqReq.messages.at(-1).content.includes('<indication>'), 'l’indication ne reste pas');
+    assert.ok(!antReq.b.messages.at(-1).content.includes('<indication>'), 'l’indication ne reste pas');
   });
 
   await step('modifier et renvoyer un tour : la suite est remplacée', async () => {
@@ -367,13 +360,13 @@ try {
     assert.match(await pg.textContent('#den'), /réponse suivante sera remplacée/);
     assert.equal(await pg.textContent('#des'), 'Renvoyer');
     await pg.fill('#et', 'Je tente autre chose.');
-    const n0 = groqN;
+    const n0 = antN;
     await pg.click('#des');
     await answered(n0);
     const after = await msgsOf();
     assert.equal(after.length, before.length);
     assert.deepEqual(after[i], ['user', 'Je tente autre chose.']);
-    assert.ok(groqReq.messages.at(-1).content.startsWith('Je tente autre chose.'));
+    assert.ok(antReq.b.messages.at(-1).content.startsWith('Je tente autre chose.'));
     // Le menu d'une réponse ne propose pas « Modifier et renvoyer ».
     await pg.locator('#msgs .m.assistant[data-i] [aria-label="Autres actions"]').last().click();
     assert.ok(!(await pg.isVisible('#maw')));
@@ -399,7 +392,6 @@ try {
   await step('Claude : en-têtes, marqueurs de cache et compteur', async () => {
     await pg.click('#mo');
     await pg.click('#cfg2');
-    await pg.selectOption('#cp', 'claude');
     assert.ok(await pg.isVisible('#cch'));
     await pg.fill('#ck', 'sk-test');
     await pg.click('#dcs');
@@ -563,10 +555,10 @@ try {
         : r.fulfill({ status: 200, contentType: p.endsWith('.png') ? 'image/png' : 'text/plain; charset=utf-8', body: b });
     });
     const R = [];
-    await c3.route('https://api.groq.com/**', r =>
+    await c3.route('https://api.anthropic.com/**', r =>
       r.request().method() == 'OPTIONS'
         ? r.fulfill({ status: 204, headers: CORS })
-        : (strict(r.request()) || (x => x.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'text/event-stream' }, body: oaSSE(R.shift() || 'Fin.') })))(r)
+        : (strict(r.request()) || (x => x.fulfill({ status: 200, headers: { ...CORS, 'content-type': 'text/event-stream' }, body: antSSE(R.shift() || 'Fin.') })))(r)
     );
     const say = async (t, r) => {
       R.push(r);
