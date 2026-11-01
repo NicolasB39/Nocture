@@ -1,3 +1,4 @@
+import { lastEtat } from './format.js';
 import { SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, modelOf, protocol } from './protocol.js';
 import { RECALL_N, recall, recallTag } from './recall.js';
@@ -61,7 +62,7 @@ const permBlock = loreMax => {
     (im.length
       ? '\n\n<images_disponibles>\n' +
         im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +
-        "\nÀ insérer au fil du récit, là où elles illustrent le texte, pas forcément en début de réponse. N'utilise que les images d'un personnage présent dans la scène.\n</images_disponibles>"
+        "\nN'utilise que les images d'un personnage présent dans la scène.\n</images_disponibles>"
       : '')
   );
 };
@@ -192,7 +193,7 @@ export function buildInfo(s, cont, hint) {
     nm || 'Joueur'
   );
   if (statOn(s)) {
-    const prev = [...s.messages].reverse().find(m => m.role == 'assistant' && m.state?.length)?.state;
+    const prev = lastEtat(s.messages);
     add +=
       '\n\n<etat_precedent>\n' +
       (prev

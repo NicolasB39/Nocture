@@ -71,7 +71,6 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, effBase, fallback, 
       for (const t of [m.content.slice(0, k), m.content.slice(k)])
         if (t.trim()) sys.push({ type: 'text', text: t, cache_control: cc });
     }
-  sys.slice(0, -3).forEach(b => delete b.cache_control);
   for (const m of ms) {
     if (m.role == 'system') continue;
     if (marks && EFFORTS.includes(m.effBefore))
@@ -135,7 +134,7 @@ export async function keepWarm() {
       return false;
     }
     const u = usageOf((await r.json().catch(() => ({}))).usage);
-    note(r.headers, u, b.model, false);
+    note(r.headers, u, b.model);
     journal('relance', w, { sid, key, ...track(u, key), ms: Date.now() - t0 });
     return true;
   } catch (e) {
@@ -220,6 +219,27 @@ export async function chat(
   const t0 = Date.now();
   // Dernière requête envoyée, pour le journal des appels, même en cas d'échec.
   let body = null;
+  // Fin commune des deux lectures (flux ou bloc) : compte l'usage, journalise, puis rend la réponse ou lève
+  // l'erreur. Un refus (relais compris) jette le texte déjà reçu, mais ce qui a été facturé est compté.
+  const finish = (h, { text, stop, sd, served, u, part = false, mode, chunks }) => {
+    const key = served || mdl,
+      out = text.trim();
+    // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de sortie). La
+    // sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
+    if (part && u && out && u.out < estTok(out)) u = { ...u, out: estTok(out), est: true };
+    note(h, u, mdl);
+    const x = { sid, key, ...track(u, key, primary), stop: stop || (part ? 'coupée' : ''), ms: Date.now() - t0 };
+    if (stop == 'refusal') {
+      journal(kind, body, x);
+      throw logged(refusal(sd));
+    }
+    if (!out) {
+      journal(kind, body, { ...x, err: 'réponse vide' });
+      throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
+    }
+    journal(kind, body, x);
+    return { t: out, cut: stop == 'max_tokens', mode, chunks, ms: Date.now() - t0, partial: part };
+  };
   const retry = async (secs, why) => {
     let left = secs;
     await hold(() => left--, why);
@@ -313,41 +333,13 @@ export async function chat(
           if (!tt) throw e;
           part = true;
         }
-        const key = served || mdl;
-        us = usageOf(us);
-        // Refus (relais compris) : le texte déjà reçu est jeté, il n'est pas une réponse complète. Ce qui a été
-        // facturé est compté quand même.
-        if (fr == 'refusal') {
-          note(r.headers, us, mdl, primary);
-          journal(kind, body, { sid, key, ...track(us, key, primary), stop: fr, ms: Date.now() - t0 });
-          throw logged(refusal(sd));
-        }
-        const out = tt.trim();
-        if (!out) {
-          note(r.headers, us, mdl, primary);
-          journal(kind, body, { sid, key, ...track(us, key, primary), err: 'réponse vide', stop: fr, ms: Date.now() - t0 });
-          throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
-        }
-        // Réponse arrêtée en route : Claude n'a donné que l'usage de message_start (environ 1 jeton de
-        // sortie). La sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
-        if (part && us && us.out < estTok(out)) us = { ...us, out: estTok(out), est: true };
-        note(r.headers, us, mdl, primary);
-        journal(kind, body, { sid, key, ...track(us, key, primary), stop: fr || (part ? 'coupée' : ''), ms: Date.now() - t0 });
-        return {
-          t: out,
-          cut: fr == 'max_tokens',
-          mode: 'stream',
-          chunks: n,
-          ms: Date.now() - t0,
-          partial: part,
-          pt: us?.in || 0
-        };
+        return finish(r.headers, { text: tt, stop: fr, sd, served, u: usageOf(us), part, mode: 'stream', chunks: n });
       }
       const j = await r.json().catch(() => ({}));
       const er = j.error;
       if (r.status == 429 && a < TRIES) {
         // La réponse 429 porte aussi les en-têtes de débit : la jauge existe même au premier envoi.
-        note(r.headers, null, mdl, false);
+        note(r.headers, null, mdl);
         const secs = Math.min(90, Math.max(3, Math.round(+r.headers.get('retry-after') || (a + 1) * 15)));
         hit429(mdl, secs * 1000);
         await retry(secs, 'retry');
@@ -358,29 +350,18 @@ export async function chat(
         continue;
       }
       if (!r.ok || er) throw new Error(er?.message || 'Erreur ' + r.status);
-      const u = usageOf(j.usage);
-      note(r.headers, u, mdl, primary);
-      const out = (j.content || [])
-        .filter(b => b.type == 'text')
-        .map(b => b.text)
-        .join('')
-        .trim();
-      const key = j.model || mdl,
-        x = { sid, key, ...track(u, key, primary), stop: j.stop_reason || '', ms: Date.now() - t0 };
-      if (j.stop_reason == 'refusal') {
-        journal(kind, body, x);
-        throw logged(refusal(j.stop_details));
-      }
-      journal(kind, body, out ? x : { ...x, err: 'réponse vide' });
-      if (!out) throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
-      return {
-        t: out,
-        cut: j.stop_reason == 'max_tokens',
+      return finish(r.headers, {
+        text: (j.content || [])
+          .filter(b => b.type == 'text')
+          .map(b => b.text)
+          .join(''),
+        stop: j.stop_reason || '',
+        sd: j.stop_details,
+        served: j.model,
+        u: usageOf(j.usage),
         mode: 'block',
-        chunks: 1,
-        ms: Date.now() - t0,
-        pt: u?.in || 0
-      };
+        chunks: 1
+      });
     }
   } catch (e) {
     // Échec sans réponse comptée (erreur de l'API, réseau, arrêt) ; un refus ou une réponse vide l'est déjà.
@@ -437,11 +418,9 @@ const SCHEMA = {
 };
 const SUMS = new Map();
 const LINES_MAX = 24;
-const known = () => (ctx.chars || []).map(c => c.name);
-const absorb = (s, x) => {
+const absorb = (s, x, keep) => {
   if (x.souvenirs.length) s.mem.memories = mergeMem(s.mem.memories, x.souvenirs);
-  if (Object.keys(x.relations).length)
-    s.mem.relations = mergeRel(s.mem.relations, x.relations, known());
+  if (Object.keys(x.relations).length) s.mem.relations = mergeRel(s.mem.relations, x.relations, keep);
 };
 // Histoire ouverte : on l'enregistre telle quelle, une copie relue en base pourrait dater d'avant la
 // réponse que l'envoi est en train d'enregistrer. Pendant un tour, rien : la mémoire est sur le même objet
@@ -496,13 +475,16 @@ async function sumRun(s, start) {
   let said = '';
   const mine = () => app.cur === s && !app.busy && [said, ''].includes($('#err').textContent);
   const say = t => mine() && err((said = t));
+  // Personnages à fiche, dont les relations ne sont jamais écartées : ceux du scénario ouvert, seulement si
+  // c'est bien cette histoire (on a pu en ouvrir une autre pendant la réponse).
+  const keep = app.cur === s ? (ctx.chars || []).map(c => c.name) : [];
   try {
     let go = false;
     while ((go = sumGate(s.messages.length - s.mem.upto, go, start ? SUM_START : SUM_PLAY))) {
       say('Mise à jour de la mémoire…');
       const pr = splitSummary(s.mem.summary);
       if (pr.summary && pr.summary !== (s.mem.summary || '').trim()) {
-        absorb(s, pr);
+        absorb(s, pr, keep);
         s.mem.summary = pr.summary;
       }
       // Jamais en dessous de SUM_KEEP messages gardés mot pour mot.
@@ -553,9 +535,9 @@ async function sumRun(s, start) {
         x = splitSummary(j.resume);
       if (!j.resume.trim()) throw new Error('résumé vide');
       s.mem.summary = clip(x.summary || j.resume.trim(), SUM_MAX);
-      absorb(s, x);
+      absorb(s, x, keep);
       s.mem.memories = mergeMem(s.mem.memories, list(j.souvenirs));
-      s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), known());
+      s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), keep);
       addLines(s, list(j.lignes), parts.length);
       s.mem.upto += parts.length;
       await persist(s);

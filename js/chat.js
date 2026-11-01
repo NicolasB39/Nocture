@@ -1,5 +1,5 @@
 import { on } from './bus.js';
-import { raw, split } from './format.js';
+import { raw, setBody, split } from './format.js';
 import { showList } from './list.js';
 import { cutLines } from './memory.js';
 import { effortCut } from './prompt.js';
@@ -27,7 +27,6 @@ export async function openScenario(id) {
   const n0 = app.cur.messages.length,
     back = Math.min(+LS.get('pos:' + id) || 0, n0 - 2);
   while (back > 0 && n0 - app.LIM > back) app.LIM += 50;
-  app.cur.mem ??= { summary: '', memories: [], upto: 0 };
   await loadCtx();
   const cf = conflicts(app.cur.remote ? ctx.system : app.cur.system);
   const warn = cf.length
@@ -182,13 +181,8 @@ async function forkFrom(i) {
   );
 }
 const useAlt = (m, k) => {
-  const v = m.alts[k];
   m.ai = k;
-  m.content = v.content;
-  delete m.choices;
-  delete m.state;
-  if (v.choices) m.choices = v.choices;
-  if (v.state) m.state = v.state;
+  setBody(m, m.alts[k]);
 };
 async function swipe(d) {
   stopSpeech();
@@ -299,11 +293,7 @@ $('#des').onclick = async () => {
     m = c.messages[i],
     p = split($('#et').value),
     old = m.content !== p.content && i < c.mem.upto;
-  m.content = p.content;
-  delete m.choices;
-  delete m.state;
-  if (p.choices) m.choices = p.choices;
-  if (p.state) m.state = p.state;
+  setBody(m, p);
   if (m.alts) m.alts[m.ai] = p;
   // Message déjà résumé : sa ligne récente racontait l'ancienne version, et le résumé la garde.
   if (old) c.mem.lines = (c.mem.lines || []).filter(l => l.i !== i);

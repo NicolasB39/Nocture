@@ -46,8 +46,8 @@ const styleBlock = lean =>
 
 const imageBlock = lean =>
   lean
-    ? "\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes fournis au tour courant. Place-la au fil du récit, là où elle illustre le texte, pas par défaut en tête de réponse."
-    : "\n\n# Images\nPour afficher une image, écris {{img::code}} seul sur sa propre ligne, avec un code de la liste fournie dans le tour courant. Place-la à l'endroit du récit qu'elle illustre : quand le personnage apparaît, réagit ou change d'expression, entre deux paragraphes, au milieu du texte. N'ouvre pas systématiquement ta réponse par une image : commence par la narration, puis insère l'image au moment voulu. Tu peux en utiliser plusieurs, chacune à sa place.";
+    ? "\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la au fil du récit, là où elle illustre le texte, pas par défaut en tête de réponse."
+    : "\n\n# Images\nPour afficher une image, écris {{img::code}} seul sur sa propre ligne, avec un code de la liste <images_disponibles>. Place-la à l'endroit du récit qu'elle illustre : quand le personnage apparaît, réagit ou change d'expression, entre deux paragraphes, au milieu du texte. N'ouvre pas systématiquement ta réponse par une image : commence par la narration, puis insère l'image au moment voulu. Tu peux en utiliser plusieurs, chacune à sa place.";
 
 export const DEFAULT_CHOICE =
   'Trois propositions courtes et variées, écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage.';

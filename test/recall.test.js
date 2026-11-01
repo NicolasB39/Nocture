@@ -14,7 +14,7 @@ const story = () => {
   ms[3] = {
     role: 'assistant',
     content:
-      'La pluie redouble.\n\nMirelle te tend un pendentif d’argent gravé d’un phare. « Garde-le, il vient de Kervoz. »\n\n<choix>\n1. *Je le prends.* Merci.\n</choix>'
+      'La pluie redouble.\n\nMirelle te tend un pendentif d’argent gravé d’un phare. « Garde-le, il vient de Kervoz. »'
   };
   return ms;
 };
@@ -29,7 +29,7 @@ test('retrouve l’ancien passage qui partage des mots rares avec la scène', ()
   assert.equal(r.length, 1);
   assert.equal(r[0].i, 3);
   assert.match(r[0].text, /pendentif d’argent/);
-  assert.doesNotMatch(r[0].text, /choix|La pluie redouble/, 'blocs retirés, paragraphe le plus pertinent');
+  assert.doesNotMatch(r[0].text, /La pluie redouble/, 'paragraphe le plus pertinent');
 });
 
 test('un seul mot commun, ou des mots trop répandus, ne suffisent pas', () => {

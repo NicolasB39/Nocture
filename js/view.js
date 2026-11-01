@@ -1,9 +1,9 @@
 import { face } from './cast.js';
 import { money } from './cost.js';
-import { body, fr, line, parseIntro } from './format.js';
+import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { modelOf } from './protocol.js';
-import { last as rlLast, status, wait } from './rate.js';
+import { status, wait } from './rate.js';
 import { refreshSpeech, ttsOk, visibleStart } from './read.js';
 import { coverOf } from './scenarios.js';
 import { decorFor, decorNow, decorsOf, lieuOf, scenesOf } from './scene.js';
@@ -41,15 +41,18 @@ export const infoOf = () => {
   }
   return IV;
 };
-export function tk(info) {
+// Compteurs sous la conversation. Masqués, le prompt n'est pas reconstruit (recherche des passages anciens
+// comprise) : la jauge de débit garde la dernière estimation.
+export function tk() {
   const e = $('#tk');
-  if (!app.cur || !app.cur.mem) {
+  if (!app.cur || !S.counters) {
     e.textContent = '';
     e.hidden = true;
-    $('#rl').hidden = true;
+    if (app.cur) rlView();
+    else $('#rl').hidden = true;
     return;
   }
-  const r = info || infoOf(),
+  const r = infoOf(),
     n = app.cur.messages.length,
     sentN = Math.max(0, n - r.win),
     f = x => x.toLocaleString('fr-FR'),
@@ -57,16 +60,16 @@ export function tk(info) {
   e.className = e.classList.contains('open') ? 'open' : '';
   // Pastille courte (tokens et coût du dernier tour) ; le détail s'ouvre en la touchant.
   // Compteurs réels du dernier envoi : seulement s'il venait de cette histoire.
-  const c = app.turn?.id == app.cur.id ? app.turn.cost : null,
-    mine = app.pt?.id == app.cur.id,
-    pt = mine ? app.pt.n : 0,
+  const t = app.turn?.id == app.cur.id ? app.turn : null,
+    c = t?.cost ?? null,
+    [pt = 0, , , , cr = 0, w5 = 0, w1 = 0] = t?.e || [],
     long =
       '≈ ' +
       f(r.used) +
       ' tokens envoyés' +
       (pt ? ' (réel : ' + f(pt) + ')' : '') +
-      (mine && rlLast.cached ? ' · ' + f(rlLast.cached) + ' lus en cache' : '') +
-      (mine && rlLast.wrote ? ' · ' + f(rlLast.wrote) + ' mis en cache' : '') +
+      (cr ? ' · ' + f(cr) + ' lus en cache' : '') +
+      (w5 + w1 ? ' · ' + f(w5 + w1) + ' mis en cache' : '') +
       (n ? ' · ' + sentN + (sentN > 1 ? ' messages envoyés' : ' message envoyé') + ' sur ' + n : '');
   e.replaceChildren(
     el(
@@ -76,7 +79,7 @@ export function tk(info) {
     ),
     el('span', { class: 'tkl', text: long })
   );
-  e.hidden = !S.counters;
+  e.hidden = false;
   rlView(r.used);
 }
 let rlEst = 0,
@@ -139,18 +142,12 @@ const numOf = v => {
   return m ? +m[1].replace(',', '.') : null;
 };
 const sig = st => (st || []).map(x => x[0] + '=' + x[1]).join('|');
-const prevState = i => {
-  const ms = app.cur.messages;
-  for (let j = i - 1; j >= 0; j--)
-    if (ms[j].role == 'assistant' && ms[j].state?.length) return ms[j].state;
-  return [];
-};
 // Panneau d'état : une rangée de pastilles (les premières valeurs, avec leur variation), dépliée d'un toucher
 // en grille détaillée avec les jauges. Le choix plié / déplié vaut pour toute l'appli.
 const ST_N = 3;
 const stCard = (i, m) => {
   if (!m.state?.length || !statOn(app.cur)) return null;
-  const pm = new Map(prevState(i)),
+  const pm = new Map(lastEtat(app.cur.messages, i) || []),
     open = LS.get('stOpen') == '1',
     rows = m.state.map(([k, v]) => {
       const a = numOf(v),
@@ -327,7 +324,7 @@ export function render(sc) {
     ms = app.cur.messages,
     n = ms.length,
     st = Math.max(0, n - app.LIM);
-  const info = app.cur.mem ? infoOf() : null,
+  const win = Math.min(app.cur.mem.upto, n),
     D = decorsOf(ms);
   LT = sceneStarts(ms);
   const cv = !st && coverOf(app.cur);
@@ -337,7 +334,7 @@ export function render(sc) {
       st && el('button', { class: 'more', text: 'Afficher les messages précédents' })
     ].filter(Boolean)
   );
-  const wi = info && info.win > st && info.win < n ? info.win : -1;
+  const wi = win > st && win < n ? win : -1;
   let cur = [...w.querySelectorAll(':scope > .m[data-i]')];
   for (const e of cur) {
     const i = +e.dataset.i;
@@ -452,7 +449,7 @@ export function render(sc) {
             { once: true }
           );
   }
-  tk(info);
+  tk();
   navView();
   refreshSpeech();
 }

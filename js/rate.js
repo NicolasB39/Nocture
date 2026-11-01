@@ -5,20 +5,17 @@ const W = 60000;
 // recrédite la jauge.
 let use = [];
 const RL = {};
-export const last = { cached: 0, wrote: 0 };
 
 export const reset = () => {
   use = [];
   for (const k in RL) delete RL[k];
-  Object.assign(last, { cached: 0, wrote: 0 });
 };
 
 // u : usage de la réponse (usageOf, ai.js). La limite compte l'entrée sauf le cache lu.
-export function note(h, u, m, primary) {
+export function note(h, u, m) {
   const t = Date.now();
   use = use.filter(x => x[0] > t - 4 * W);
   if (u && u.in > u.read) use.push([t, u.in - u.read, m]);
-  if (primary) Object.assign(last, { cached: u?.read || 0, wrote: u?.write || 0 });
   const g = k => h?.get?.(k) ?? null,
     lim = +g('anthropic-ratelimit-input-tokens-limit') || 0,
     rem = g('anthropic-ratelimit-input-tokens-remaining');

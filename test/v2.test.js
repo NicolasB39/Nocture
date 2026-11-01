@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { toAnt, usageOf } from '../js/ai.js';
 import { clip } from '../js/memory.js';
 import { merge } from '../js/merge.js';
-import { last, note, status } from '../js/rate.js';
+import { note, status } from '../js/rate.js';
 import { clean } from '../js/store.js';
 
 const ms = [
@@ -47,15 +47,13 @@ test('usageOf : entrée cache compris, sortie, cache lu et écrit', () => {
   assert.equal(usageOf(null), null);
 });
 
-test('note lit les en-têtes de débit d’Anthropic et le cache', () => {
+test('note lit les en-têtes de débit d’Anthropic', () => {
   const h = new Headers({
     'anthropic-ratelimit-input-tokens-limit': '30000',
     'anthropic-ratelimit-input-tokens-remaining': '29000',
     'anthropic-ratelimit-requests-remaining': '49'
   });
   note(h, usageOf({ input_tokens: 10, cache_read_input_tokens: 900, cache_creation_input_tokens: 90, output_tokens: 5 }), 'claude-x', true);
-  assert.equal(last.cached, 900);
-  assert.equal(last.wrote, 90);
   const s = status('claude-x');
   assert.equal(s.lim, 30000);
 });

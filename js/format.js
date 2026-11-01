@@ -61,10 +61,19 @@ export const parseIntro = t => {
   }
   return { pitch: rest.join('\n').trim(), starts };
 };
-export const lastEtat = ms => {
-  for (let i = ms.length - 1; i >= 0; i--)
+// Dernier état donné par le narrateur avant le message before (par défaut : sur tout l'historique).
+export const lastEtat = (ms, before = ms.length) => {
+  for (let i = before - 1; i >= 0; i--)
     if (ms[i].role == 'assistant' && ms[i].state?.length) return ms[i].state;
   return null;
+};
+// Remplace le texte, les choix et l'état d'un message par ceux de p (split, ou une variante).
+export const setBody = (m, p) => {
+  m.content = p.content;
+  delete m.choices;
+  delete m.state;
+  if (p.choices) m.choices = p.choices;
+  if (p.state) m.state = p.state;
 };
 const imgFor = c => {
   c = c.trim();

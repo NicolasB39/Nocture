@@ -201,7 +201,7 @@ export const getFull = () =>
       const ms = {},
         cv = new Map(c.map(x => [x.id, x.d]));
       for (const x of k) (ms[x.k[0]] ??= []).push(...x.m);
-      return h.map(({ nc, rev, ...x }) => ({ ...x, messages: x.messages || ms[x.id] || [], cover: cv.get(x.id) || '' }));
+      return h.map(({ nc, rev, ...x }) => ({ ...x, messages: ms[x.id] || [], cover: cv.get(x.id) || '' }));
     }
   );
 export const getOne = id =>
@@ -212,7 +212,7 @@ export const getOne = id =>
   }).then(({ h, k, c }) => {
     if (!h) return h;
     const { nc, rev, ...x } = h,
-      ms = x.messages || k.flatMap(y => y.m);
+      ms = k.flatMap(y => y.m);
     K[id] = { c: pack(ms), v: c?.d || '', rev };
     return clean({ ...x, messages: ms, cover: c?.d || '' });
   });
@@ -230,7 +230,7 @@ export const put = (o, fromSync = false) =>
     let nk = null;
     const r = A.get(o.id);
     r.onsuccess = () => {
-      const ok = k && r.result && r.result.rev === k.rev && !r.result.messages;
+      const ok = k && r.result && r.result.rev === k.rev;
       head.nc = c.length;
       head.rev = uid();
       A.put(head);

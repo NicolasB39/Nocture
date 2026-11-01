@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { hit429, last, note, reset, status, wait } from '../js/rate.js';
+import { hit429, note, reset, status, wait } from '../js/rate.js';
 
 const hdr = o => ({ get: k => (k in o ? o[k] : null) });
 const lim = (l, r) => hdr({ 'anthropic-ratelimit-input-tokens-limit': String(l), 'anthropic-ratelimit-input-tokens-remaining': String(r) });
@@ -30,7 +30,6 @@ test('les en-têtes de Claude font foi ; le cache lu ne compte pas dans la limit
   assert.equal(s.lim, 8000);
   assert.equal(s.req, 49);
   assert.ok(s.rem >= 2000 - 400 && s.rem <= 2000);
-  assert.deepEqual({ ...last }, { cached: 1700, wrote: 50 });
 });
 
 test('wait vaut zéro tant que le tour tient dans le reste ; un tour plus gros que la limite n’attend pas', () => {

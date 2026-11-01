@@ -174,10 +174,9 @@ export const pickAccent = px => {
   );
 };
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+// Texte enregistré (choix et état déjà à part, split) en texte simple : sans images, avec le nom du joueur.
 export const plain = (t, nm) =>
   t
-    .replace(/<choix>[\s\S]*?(?:<\/choix>|$)/gi, '')
-    .replace(/<etat>[\s\S]*?(?:<\/etat>|$)/gi, '')
     .replace(/\{\{img::[^}]*\}\}/g, '')
     .replace(/\{\{user\}\}/gi, nm?.trim() || 'Joueur')
     .trim();

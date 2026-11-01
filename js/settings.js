@@ -396,7 +396,7 @@ const SNIP = (t, q) => {
   const a = Math.max(0, i - 30);
   return (a ? '…' : '') + t.slice(a, i + q.length + 60).trim() + '…';
 };
-const hit = (i, role, text, onGo) =>
+const hit = (role, text, onGo) =>
   el(
     'button',
     { class: 'hit', onclick: onGo },
@@ -420,7 +420,7 @@ function srRun() {
     : 'Aucun résultat.';
   $('#srl').replaceChildren(
     ...r.map(x =>
-      hit(x.i, x.m.role, SNIP(x.m.content, q), () => {
+      hit(x.m.role, SNIP(x.m.content, q), () => {
         $('#dsr').close();
         jump(x.i);
       })
@@ -488,7 +488,7 @@ $('#msm').onclick = () => {
   } else
     $('#sml').replaceChildren(
       ...(L.length
-        ? L.map(x => hit(x.i, 'assistant', x.t, go(x.i)))
+        ? L.map(x => hit('assistant', x.t, go(x.i)))
         : [el('p', { class: 'note', text: 'Le sommaire se remplit à mesure que la mémoire résume les messages.' })])
     );
   $('#dsm').showModal();

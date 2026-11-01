@@ -13,6 +13,5 @@ export const app = {
   LIM: 50,
   FIL: 'all',
   stream: null,
-  reading: false,
-  pt: 0
+  reading: false
 };

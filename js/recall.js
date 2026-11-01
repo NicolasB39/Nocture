@@ -22,12 +22,17 @@ const STOP = new Set(
   ).split(' ')
 );
 
-const clean = t =>
-  t
-    .replace(/<(choix|etat)>[\s\S]*?(?:<\/\1>|$)/gi, '')
-    .replace(/\{\{[^}]*\}\}/g, '')
-    .trim();
+// Texte enregistré (choix et état déjà à part, split), sans les balises d'images.
+const clean = t => t.replace(/\{\{[^}]*\}\}/g, '').trim();
 const words = t => new Set((nz(t).match(/[a-z0-9]{4,}/g) || []).filter(w => !STOP.has(w)));
+// Mots de chaque message, gardés tant que son texte ne change pas : la recherche repasse sur toute la partie
+// résumée de l'histoire à chaque tour.
+const MW = new WeakMap();
+const wordsOf = m => {
+  let c = MW.get(m);
+  if (c?.t !== m.content) MW.set(m, (c = { t: m.content, w: words(clean(m.content)) }));
+  return c.w;
+};
 
 // Le paragraphe qui contient le plus de mots de la requête, élargi au suivant s'il est court.
 const excerpt = (t, q) => {
@@ -50,7 +55,7 @@ export function recall(ms, before, query, n = RECALL_N) {
   if (n <= 0 || before <= 0) return [];
   const q = words(query);
   if (!q.size) return [];
-  const docs = ms.slice(0, before).map(m => words(clean(m.content)));
+  const docs = ms.slice(0, before).map(wordsOf);
   const df = new Map();
   for (const d of docs) for (const w of d) if (q.has(w)) df.set(w, (df.get(w) || 0) + 1);
   // Il faut au moins un mot distinctif : présent dans un passage sur trois au plus (trois passages

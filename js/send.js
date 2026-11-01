@@ -2,13 +2,13 @@ import { chat, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, waitMsg, 
 import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
-import { fr, keepImgs, lieuTag, liveText, paintLive, split } from './format.js';
+import { fr, keepImgs, lieuTag, liveText, paintLive, setBody, split } from './format.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
 import { app, S } from './state.js';
-import { save, saveSet } from './store.js';
+import { save } from './store.js';
 import { $, dlg, el, err, fit, LS } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
 
@@ -151,7 +151,6 @@ export async function ask(old, cont, hint) {
       }
     });
     app.stream = { mode: S.noStream ? 'off' : r.mode, chunks: r.chunks, ms: r.ms };
-    app.pt = r.pt ? { id: s.id, n: r.pt } : null;
     const out = r.t;
     cut = r.cut;
     part = !!r.partial;
@@ -161,11 +160,7 @@ export async function ask(old, cont, hint) {
     if (!cont && !p2.content) throw new Error('réponse vide : aucun texte de récit reçu');
     if (cont) {
       const m = s.messages.at(-1);
-      m.content = m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) ? '' : ' ') + p2.content;
-      delete m.choices;
-      delete m.state;
-      if (p2.choices) m.choices = p2.choices;
-      if (p2.state) m.state = p2.state;
+      setBody(m, { ...p2, content: m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) ? '' : ' ') + p2.content });
       if (m.alts) m.alts[m.ai] = { content: m.content, choices: m.choices, state: m.state };
     } else {
       const base = old?.role == 'assistant' ? old.alts || [{ content: old.content, choices: old.choices, state: old.state }] : null,
@@ -178,7 +173,6 @@ export async function ask(old, cont, hint) {
     }
     old = null;
     await save(s);
-    saveSet();
   } catch (e) {
     msg = e.message;
     // Refus : renvoyer la même requête serait refusé de même ; on propose de reformuler ou d'orienter la scène.
@@ -191,7 +185,7 @@ export async function ask(old, cont, hint) {
   }
   // Coût du tour, refus compris (facturé) ; rien si la requête n'a pas abouti.
   const lt = lastTurn();
-  app.turn = lt && { id: s.id, cost: costOf(lt.e, priceOf(lt.key)) };
+  app.turn = lt && { id: s.id, e: lt.e, cost: costOf(lt.e, priceOf(lt.key)) };
   clearInterval(tick);
   cancelAnimationFrame(raf);
   pend = null;
