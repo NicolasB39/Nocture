@@ -1,3 +1,5 @@
+résumé: dragonneau mascotte de la guilde, enrhumé, éternue des étincelles
+
 # Grumble
 - Âge / rôle : dragonneau de 2 ans, mascotte de la guilde.
 - Apparence : de la taille d'un gros chat, écailles vertes ternes, ailes minuscules, nez rouge.

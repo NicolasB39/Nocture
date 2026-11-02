@@ -235,6 +235,7 @@ export const del = (id, fromSync = false) => {
   if (!fromSync) LS.set('bkd', Date.now());
   LS.del('draft:' + id);
   LS.del('pos:' + id);
+  LS.del('hot:' + id);
   delete K[id];
   return new Promise((res, rej) => {
     const t = db.transaction(['scenarios', 'chunks', 'covers', 'meta'], 'readwrite');

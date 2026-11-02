@@ -27,13 +27,14 @@ export async function regenHint() {
 // vie), le premier envoi réécrira donc tout le prompt. C'est le moment de faire avancer la mémoire jusqu'à
 // SUM_KEEP messages gardés (summarize, ai.js) : la réécriture porte directement le prompt raccourci, et la mise à
 // jour ne coûte qu'un appel au modèle de mémoire. Lancé à l'ouverture de l'histoire ; l'envoi l'attend au plus
-// SUM_WAIT. HOT : dernière requête de narration ou relance du cache par histoire, pendant cette visite.
+// SUM_WAIT. hot : dernière requête de narration ou relance du cache par histoire, gardée sur l'appareil pour
+// qu'un rechargement de la page ne prenne pas un cache relancé pour expiré.
 // UPTO : point d'arrivée de la mémoire au dernier envoi, par histoire (nextCast, prompt.js).
-const HOT = new Map(),
-  UPTO = new Map(),
+const UPTO = new Map(),
   SUM_WAIT = 30000;
+const heat = s => LS.set('hot:' + s.id, Date.now());
 const cold = (s, old) => {
-  const t = Math.max(HOT.get(s.id) || 0, old?.t || 0, s.messages.findLast(m => m.role == 'assistant')?.t || 0);
+  const t = Math.max(+LS.get('hot:' + s.id) || 0, old?.t || 0, s.messages.findLast(m => m.role == 'assistant')?.t || 0);
   return Date.now() - t > (S.c1h ? 3600e3 : 300e3);
 };
 export const sessionSum = (s, old) =>
@@ -132,7 +133,7 @@ export async function ask(old, cont, hint) {
     // Personnages récurrents : choisis quand ce qui les suit est réécrit de toute façon (nextCast, prompt.js).
     s.cast = nextCast(s, cold(s, old), UPTO.get(s.id));
     UPTO.set(s.id, s.mem.upto);
-    HOT.set(s.id, Date.now());
+    heat(s);
     const info = buildInfo(s, cont, hint);
     const r = await chat(info.msgs, {
       max: +s.maxTok || 0,
@@ -284,7 +285,7 @@ function warmArm(s) {
     if (app.busy || app.cur !== s || $('#chat').hidden || document.hidden) return;
     warmN++;
     if (await keepWarm()) {
-      HOT.set(s.id, Date.now());
+      heat(s);
       warmArm(s);
     }
   }, Math.max(0, WARM_AT - age));

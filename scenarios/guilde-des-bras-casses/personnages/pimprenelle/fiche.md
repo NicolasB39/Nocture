@@ -1,3 +1,5 @@
+résumé: voleuse de la guilde, sarcastique et cupide en façade, loyale au fond
+
 # Pimprenelle
 - Âge / rôle : 24 ans, voleuse de la guilde.
 - Apparence : petite, cheveux noirs courts en pétard, capuche verte, dagues et poches partout.
