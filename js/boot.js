@@ -3,18 +3,26 @@
   var box = null;
   // Hors ligne, vider les caches et retirer le service worker rendrait l'application inutilisable jusqu'au
   // retour du réseau : on vérifie d'abord que le serveur répond (le vrai sw.js, pas la page d'un portail
-  // Wi-Fi), sinon simple rechargement.
-  function repair() {
+  // Wi-Fi), sinon simple rechargement. then(vidé) : la suite, rechargement par défaut (reparer.js en donne une).
+  function repair(then) {
+    if (typeof then != 'function')
+      then = function () {
+        location.reload();
+      };
     return fetch('sw.js', { cache: 'no-store' })
       .then(function (r) {
         return r.ok ? r.text() : '';
       })
       .then(
         function (t) {
-          return t.indexOf("'nocturne-") >= 0 ? clear() : location.reload();
+          return t.indexOf("'nocturne-") >= 0
+            ? clear().then(function () {
+                then(true);
+              })
+            : then(false);
         },
         function () {
-          location.reload();
+          then(false);
         }
       );
   }
@@ -40,14 +48,7 @@
           );
         })
       );
-    return Promise.all(tasks).then(
-      function () {
-        location.reload();
-      },
-      function () {
-        location.reload();
-      }
-    );
+    return Promise.all(tasks).catch(function () {});
   }
   function btn(label, primary, fn) {
     var b = document.createElement('button');

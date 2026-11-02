@@ -528,7 +528,7 @@ Protections intégrées :
 Si l'application ne répond plus malgré tout :
 
 1. Vérifiez sur GitHub que tous les fichiers sont présents (ouvrez `js/read.js`, `js/boot.js`… dans votre dépôt) et que le déploiement est terminé.
-2. Ouvrez `https://votre-adresse/reparer.html` et touchez **Réparer** : cela supprime les copies d'application en cache sur l'appareil puis rouvre l'application. **Vos histoires et vos réglages ne sont pas effacés.**
+2. Ouvrez `https://votre-adresse/reparer.html` et touchez **Réparer** : cela supprime les copies d'application en cache sur l'appareil puis rouvre l'application. La page fait la même vérification que le bouton de l'application : sans réseau, elle ne vide rien et le dit. **Vos histoires et vos réglages ne sont pas effacés.**
 3. N'utilisez pas « Effacer les données du site » dans le navigateur : cela supprime aussi vos histoires stockées sur l'appareil (sauvegardez-les d'abord avec la synchronisation ou l'export).
 
 ## Politique de sécurité (CSP)
