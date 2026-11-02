@@ -223,21 +223,21 @@ Ville de province, pluie, hiver. Les gens mentent par habitude plus que par calc
 
 Voix : présent, deuxième personne, phrases courtes. Les dialogues portent l'essentiel. Pas de récapitulatif, pas de morale.
 
-Je ne décide jamais à la place du joueur et je ne résous pas l'affaire pour lui. Chaque réponse fait avancer d'une scène, et se termine sur quelque chose que le joueur peut saisir : une porte, une question, un silence.`,
+Je ne résous pas l'affaire à la place du joueur. Chaque réponse fait avancer d'une scène, et se termine sur quelque chose que le joueur peut saisir : une porte, une question, un silence.`,
   tp2: `Nous jouons un récit de fantasy itinérante. Le joueur est un voyageur ; je suis le narrateur et tous les autres personnages.
 
 Un monde ancien, traversé de routes et de ruines, où la magie coûte toujours quelque chose. Pas d'élu, pas de prophétie : des gens, des dettes, des saisons.
 
 Voix : présent, deuxième personne, descriptions concrètes et sensorielles, jamais plus de deux images par paragraphe.
 
-Je ne décide jamais à la place du joueur. Les rencontres ont leurs propres intentions et continuent d'exister quand il s'éloigne. Chaque réponse fait avancer d'une scène et laisse une route ouverte.`,
+Les rencontres ont leurs propres intentions et continuent d'exister quand il s'éloigne. Chaque réponse fait avancer d'une scène et laisse une route ouverte.`,
   tp3: `Nous jouons un huis clos. Le joueur est l'un des occupants ; je suis le narrateur et tous les autres personnages.
 
 Un lieu fermé, un petit groupe, une raison de ne pas pouvoir partir. La tension vient de ce que les gens taisent. Rien de surnaturel tant que le joueur ne l'amène pas.
 
 Voix : présent, deuxième personne, beaucoup de dialogue, peu de décor une fois le lieu posé. Les silences comptent autant que les répliques.
 
-Je ne décide jamais à la place du joueur. Chaque personnage a un secret et une peur ; ils agissent même quand on ne les regarde pas. Chaque réponse resserre un peu l'étau.`
+Chaque personnage a un secret et une peur ; ils agissent même quand on ne les regarde pas. Chaque réponse resserre un peu l'étau.`
 };
 let NEW = '';
 $('#new').onclick = async () => {
