@@ -14,7 +14,7 @@ const NARR = ['tour', 'régénérer', 'indication', 'continuer'];
 const txt = c => (typeof c == 'string' ? c : (c || []).map(b => b.text || '').join(''));
 // Blocs du préfixe, dans l'ordre où le cache les lit : modèle et effort, blocs système, puis messages.
 export const blocks = b => [
-  ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null])],
+  ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null, b.thinking || null])],
   ...(b.system || []).map((x, i) => [i ? 'de la mémoire (résumé, souvenirs, relations, note)' : 'de la partie fixe du prompt', x.text]),
   ...(b.messages || []).map((m, i) => ['du message ' + (i + 1), m.role + txt(m.content)])
 ];

@@ -48,6 +48,20 @@ beforeEach(() => {
   stub();
 });
 
+test('aucune réflexion : between_tools sur Sonnet 5.5, disabled sur Haiku 5.5, effort faible ailleurs ; sans relais', () => {
+  const ms = [{ role: 'user', content: 'Bonjour' }];
+  const s = toAnt(ms, { model: 'claude-sonnet-5-5', effort: 'none', fallback: true });
+  assert.deepEqual(s.thinking, { type: 'between_tools' });
+  assert.equal(s.output_config.effort, 'low');
+  assert.equal(s.fallbacks, undefined, 'pas de relais sans réflexion');
+  assert.deepEqual(toAnt(ms, { model: 'claude-haiku-5-5', effort: 'none' }).thinking, { type: 'disabled' });
+  const o = toAnt(ms, { model: 'claude-opus-5-5', effort: 'none', fallback: true });
+  assert.equal(o.thinking, undefined);
+  assert.equal(o.output_config.effort, 'low');
+  assert.equal(o.fallbacks, 'default');
+  assert.equal(toAnt(ms, { model: 'claude-sonnet-5-5', effort: 'low' }).thinking, undefined);
+});
+
 test('effortOk : Opus et Sonnet 4.6 et suivants, Haiku 5.5, Fable ; pas Haiku 4.5', () => {
   for (const m of ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-5-5', 'claude-fable-5-1', 'claude-sonnet-4-6', 'claude-opus-4-6', 'claude-opus-4-5'])
     assert.ok(effortOk(m), m);
