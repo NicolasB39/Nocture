@@ -37,11 +37,13 @@
   --sans: Inter, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
   --ser: Literata, 'Iowan Old Style', 'Noto Serif', Palatino, Georgia, serif;
   --rf: var(--ser);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ast: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(12 10.2) scale(0.7) translate(-12 -12)'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' stroke-width='3.2'/%3E%3C/g%3E%3Cpath d='M5 19.6h14' stroke-width='2.4'/%3E%3C/g%3E%3C/svg%3E");
 }
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overscroll-behavior-y: none;
 }
 * {
   box-sizing: border-box;
@@ -52,9 +54,12 @@ html {
 }
 body {
   margin: 0;
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
   background: var(--bg);
   color: var(--fg);
   font: 15px/1.5 var(--sans);
+  overscroll-behavior-y: none;
 }
 button,
 textarea,
@@ -74,10 +79,21 @@ button {
   cursor: pointer;
   padding: 8px 12px;
   border-radius: 12px;
+  transition: transform 0.12s var(--ease-out);
+}
+button,
+summary,
+label,
+select {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 button:active {
   transform: scale(0.97);
 }
+/* Survol réservé à la souris : au doigt, il resterait allumé après le toucher. */
 button:focus-visible,
 textarea:focus-visible,
 input:focus-visible,
@@ -132,9 +148,14 @@ header button {
   border-radius: 50%;
   color: var(--mu2);
 }
-header button:hover {
+@media (hover: hover) and (pointer: fine) {
+  header button:hover {
+    background: var(--s2);
+    color: var(--fg);
+  }
+}
+header button:active {
   background: var(--s2);
-  color: var(--fg);
 }
 #list {
   max-width: 960px;
@@ -228,6 +249,10 @@ header button:hover {
   border-radius: 20px;
   background: var(--s1);
   aspect-ratio: 3/4;
+  transition: transform 0.16s var(--ease-out);
+}
+.item:has(.ttl:active) {
+  transform: scale(0.98);
 }
 .item .cv,
 .item .art {
@@ -437,7 +462,7 @@ header button:hover {
 }
 #new {
   position: fixed;
-  right: 16px;
+  right: calc(env(safe-area-inset-right, 0px) + 16px);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
   display: flex;
   align-items: center;
@@ -515,6 +540,7 @@ header button:hover {
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 16px 16px 12px;
   display: flex;
   flex-direction: column;
@@ -705,9 +731,13 @@ hr {
   margin: 6px -8px 0 0;
   text-align: right;
 }
-.m .a:hover,
 .m .a:focus-within {
   opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .m .a:hover {
+    opacity: 1;
+  }
 }
 .m .a button {
   width: 40px;
@@ -718,9 +748,14 @@ hr {
   border-radius: 50%;
   color: var(--mu2);
 }
-.m .a button:hover {
+@media (hover: hover) and (pointer: fine) {
+  .m .a button:hover {
+    background: var(--s2);
+    color: var(--fg);
+  }
+}
+.m .a button:active {
   background: var(--s2);
-  color: var(--fg);
 }
 /* Messages plus anciens : les actions flottent en haut à droite, au survol, au focus ou au toucher. */
 .m:not(.last) .a {
@@ -742,7 +777,7 @@ hr {
   opacity: 1;
   pointer-events: auto;
 }
-@media (hover: hover) {
+@media (hover: hover) and (pointer: fine) {
   .m:not(.last):hover .a {
     opacity: 1;
     pointer-events: auto;
@@ -804,11 +839,19 @@ hr {
   border: 1px solid var(--bd);
   border-radius: 14px;
   background: var(--s1);
-  transition: border-color 0.15s;
+  transition:
+    border-color 0.15s,
+    transform 0.16s var(--ease-out);
 }
-.ch .chr:hover,
 .ch .chr:focus-within {
   border-color: var(--acb);
+}
+.ch .chr:has(.cht:active) {
+  transform: scale(0.98);
+}
+.ch .cht:active {
+  transform: none;
+  background: var(--s2);
 }
 .ch .cht {
   flex: 1;
@@ -845,14 +888,23 @@ hr {
   border-radius: 0 14px 14px 0;
   color: var(--mu);
 }
-.ch .che:hover,
-.ch .che:focus-visible,
-.ch .cht:hover .chn {
+.ch .che:focus-visible {
   color: var(--fg);
 }
-.ch .cht:hover,
 .ch .cht:focus-visible {
   background: var(--s2);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ch .chr:hover {
+    border-color: var(--acb);
+  }
+  .ch .che:hover,
+  .ch .cht:hover .chn {
+    color: var(--fg);
+  }
+  .ch .cht:hover {
+    background: var(--s2);
+  }
 }
 #live .b {
   min-height: 50px;
@@ -994,8 +1046,10 @@ hr {
   color: var(--mu);
   font-size: 12px;
 }
-#tk .tks:hover {
-  color: var(--mu2);
+@media (hover: hover) and (pointer: fine) {
+  #tk .tks:hover {
+    color: var(--mu2);
+  }
 }
 #tk .tkl {
   display: none;
@@ -1092,14 +1146,14 @@ hr {
 }
 /* Ouverture d'une histoire : la couverture de la carte devient l'en-tête. */
 ::view-transition-group(hcov) {
-  animation-duration: 0.38s;
-  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-duration: 0.3s;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
 }
 ::view-transition-old(hcov),
 ::view-transition-new(hcov) {
   height: 100%;
   object-fit: cover;
-  animation-duration: 0.38s;
+  animation-duration: 0.3s;
 }
 /* Intertitre de scène : le lieu, centré, entre deux filets. */
 .scene {
@@ -1226,6 +1280,7 @@ footer textarea:focus-visible {
   font: 600 17px/1 var(--sans);
 }
 dialog {
+  overscroll-behavior: contain;
   width: 100%;
   max-width: 560px;
   max-height: 88dvh;
@@ -1420,6 +1475,11 @@ dialog label:has(> input[type='checkbox']) {
   ::view-transition-old(*),
   ::view-transition-new(*) {
     animation: none !important;
+  }
+  .spin svg,
+  #live .b:empty::before,
+  .wts i {
+    animation: pulse 1.6s ease-in-out infinite !important;
   }
 }
 ::view-transition-old(root),
@@ -1820,6 +1880,7 @@ dialog input[type='range'] {
   gap: 6px;
   max-height: 46dvh;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 .hit {
   display: grid;
@@ -1928,8 +1989,9 @@ dialog input[type='range'] {
   font-size: 13px;
 }
 .jrr {
-  max-height: 50vh;
+  max-height: 50dvh;
   overflow: auto;
+  overscroll-behavior: contain;
   margin: 6px 0 0;
   font-size: 11px;
   white-space: pre-wrap;
@@ -1958,9 +2020,14 @@ dialog input[type='range'] {
   line-height: 1.4;
   text-align: left;
 }
-.sli:hover {
+@media (hover: hover) and (pointer: fine) {
+  .sli:hover {
+    background: var(--s2);
+    color: var(--fg);
+  }
+}
+.sli:active {
   background: var(--s2);
-  color: var(--fg);
 }
 .cvr {
   display: flex;
