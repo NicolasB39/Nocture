@@ -1,1 +1,1 @@
-Date, Lieu, Rang et affiliation, Condition, Stats et talent
+Date, Lieu, Rang et stats, Condition, Objets

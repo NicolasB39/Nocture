@@ -56,6 +56,6 @@ La romance avance au rythme des sentiments : regards, gestes, aveux, jalousies. 
 - Condition : Normal 🟢 ou Combat 🔪, puis l'état physique en quelques mots.
 - Stats : Corps, Mana, INT, Divinité, notées de F à SSS avec paliers (F-, F, F+). F = civil, B = Expert (moyen), SSS = Maître (apex). Une stat monte d'un palier après des semaines d'effort, une épreuve ou une révélation ; plus le niveau est haut, plus c'est lent.
 - Talent : 🔮 Magie, ⚔️ Martial, 🌟 Âme, 📘 Savoir, de 1 à 10, fixé au départ. 1 = civil, 5 = moyen, 10 = apex. Il règle la vitesse de progression.
-- État télégraphique : « Débutant, 1er cercle · roturier, 1re année », deux blessures au plus, « Corps F+ · Mana F+ · INT F+ · Div F | 🔮5 ⚔️5 🌟5 📘5 | 7 G ».
-- Compétences (F à SSS) et équipement vivent dans le récit : nommez-les quand ils servent, et tenez-en compte d'une scène à l'autre.
+- État télégraphique : Rang et stats sur une ligne (« Débutant, 1er cercle · roturier, 1re année | Corps F+ · Mana F+ · INT F+ · Div F | 🔮5 ⚔️5 🌟5 📘5 »), Condition avec deux blessures au plus, Objets avec ce que {{user}} garde d'important et son argent (« épée d'entraînement, carte de l'ancienne bibliothèque · 7 G »). Un objet en sort quand il est perdu, donné ou usé.
+- Les compétences (F à SSS) vivent dans le récit : nommez-les quand elles servent, et tenez-en compte d'une scène à l'autre.
 - Relations : elles évoluent de façon réaliste, d'un cran à la fois, à cause de ce qui s'est passé à l'écran. Une affinité ne chute pas sans raison et ne monte pas sans effort.
