@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
+import './stub.js';
 
-globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [] };
-globalThis.matchMedia = () => ({ matches: false });
-globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
 const { BUSY, backoff, chat, lastTurn, waitMsg } = await import('../js/ai.js');
 const { S } = await import('../js/state.js');

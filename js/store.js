@@ -232,11 +232,12 @@ export const put = (o, fromSync = false) =>
     };
     fail(t, rej, () => delete K[o.id]);
   });
+// Clés gardées sur l'appareil pour chaque histoire, suivies de son id : brouillon (send.js), position de lecture
+// (read.js), heure du cache (ai.js). Une nouvelle clé de ce genre s'ajoute ici pour partir avec l'histoire.
+const LOCAL = ['draft:', 'pos:', 'hot:'];
 export const del = (id, fromSync = false) => {
   if (!fromSync) LS.set('bkd', Date.now());
-  LS.del('draft:' + id);
-  LS.del('pos:' + id);
-  LS.del('hot:' + id);
+  for (const k of LOCAL) LS.del(k + id);
   delete K[id];
   return new Promise((res, rej) => {
     const t = db.transaction(['scenarios', 'chunks', 'covers', 'meta'], 'readwrite');

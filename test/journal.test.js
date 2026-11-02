@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import './stub.js';
 
-globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [], addEventListener() {} };
-globalThis.matchMedia = () => ({ matches: false });
-globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 globalThis.window = globalThis;
 
 const { chat, toAnt } = await import('../js/ai.js');

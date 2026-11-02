@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import './stub.js';
 
 const node = tag => ({
   tagName: String(tag).toUpperCase(),
@@ -38,8 +39,6 @@ globalThis.document = {
   querySelector: s => (reg[s] ??= node('x')),
   querySelectorAll: () => []
 };
-globalThis.matchMedia = () => ({ matches: false });
-globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
 const { view } = await import('../js/cast.js');
 const { app, ctx } = await import('../js/state.js');

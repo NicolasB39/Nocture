@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
+import './stub.js';
 
-globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [] };
-globalThis.matchMedia = () => ({ matches: false });
-globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 
 const { FB_BETA, antBetas, chat, lastTurn, toAnt } = await import('../js/ai.js');
 const { LONG, priceOf } = await import('../js/cost.js');

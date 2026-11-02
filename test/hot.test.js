@@ -1,14 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import './stub.js';
 
-globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [] };
-globalThis.matchMedia = () => ({ matches: false });
-const L = {};
-globalThis.localStorage = {
-  getItem: k => L[k] ?? null,
-  setItem: (k, v) => (L[k] = String(v)),
-  removeItem: k => delete L[k]
-};
 const { chat, cold } = await import('../js/ai.js');
 const { S } = await import('../js/state.js');
 

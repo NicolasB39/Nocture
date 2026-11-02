@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
 import test, { beforeEach } from 'node:test';
+import './stub.js';
 
-globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [] };
-globalThis.matchMedia = () => ({ matches: false });
-globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} };
 globalThis.window = globalThis;
 
 const { MEM_MODEL, chat, effortOk, keepWarm, lastTurn, lastWarmable, memModel, toAnt } = await import('../js/ai.js');
