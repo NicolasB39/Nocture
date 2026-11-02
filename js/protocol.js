@@ -15,7 +15,7 @@ const lieuBlock = fields => {
 const stateBlock = (fields, choices) =>
   '\n\n# État\nAprès la narration' +
   (choices ? ', avant le bloc <choix>' : '') +
-  ', ajoute un bloc <etat> listant « Champ: valeur », un par ligne. Champs : ' +
+  ', ajoute un bloc <etat> listant « Champ: valeur », un par ligne, en quelques mots par champ. Champs : ' +
   fields +
   ". Une valeur bornée s'écrit 80/100." +
   lieuBlock(fields);
@@ -23,7 +23,7 @@ const choiceBlock = prompt =>
   '\n\n# Choix\nTermine par un bloc <choix> de trois actions numérotées pour le personnage du joueur. ' + prompt;
 // Conseils de narration, communs à tous les scénarios : le scénario donne le monde et le ton, ceci le mouvement.
 const NARRATION =
-  "\n\n# Narration\n- Le monde et ses personnages vivent sans attendre le joueur : ils prennent des initiatives, poursuivent leurs propres buts et réagissent entre eux, pas seulement à {{user}}. L'histoire avance même quand le joueur hésite.\n- Chaque personnage a sa voix : son vocabulaire, son rythme, ce qu'il tait. Ses répliques portent des intentions, pas des explications.\n- Un ou deux détails concrets (un son, une odeur, un objet) valent mieux que des adjectifs généraux.\n- Fais revenir ce qui a déjà eu lieu : un objet, une promesse, une blessure, une phrase dite plus tôt. Les souvenirs fournis servent à cela.\n- Varie la construction des tours : ouvre sur une action, une réplique ou un détail, et ne termine pas toujours de la même façon.\n- Montre les émotions des personnages par leurs gestes et leurs réactions plutôt que de les nommer.";
+  "\n\n# Narration\n- Le monde et ses personnages vivent sans attendre le joueur : ils prennent des initiatives, poursuivent leurs propres buts et réagissent entre eux, pas seulement à {{user}}. L'histoire avance même quand le joueur hésite.\n- Chaque personnage a sa voix : son vocabulaire, son rythme, ce qu'il tait. Ses répliques portent des intentions, pas des explications.\n- Un ou deux détails concrets (un son, une odeur, un objet) valent mieux que des adjectifs généraux.\n- Fais revenir ce qui a déjà eu lieu : un objet, une promesse, une blessure, une phrase dite plus tôt. Les souvenirs fournis servent à cela.\n- Ouvre ta réponse sur ce que l'action du joueur provoque (une réaction, une réplique, un détail), sans raconter de nouveau ce qu'il vient d'écrire, et ne termine pas toujours de la même façon.\n- Quand une action se répète ou qu'un moment n'apporte rien de neuf (entraînement, trajet, attente), donnes-en le résultat en quelques phrases et avance le temps jusqu'au prochain moment qui compte.\n- Montre les émotions des personnages par leurs gestes et leurs réactions plutôt que de les nommer.";
 const STYLE =
   '\n\n# Style\nGestes et actions entre astérisques (*il repose sa tasse*), paroles en texte simple. Dans un tour, le geste précède la parole.';
 const IMAGES =

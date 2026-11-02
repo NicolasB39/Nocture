@@ -47,7 +47,7 @@ La romance avance au rythme des sentiments : regards, gestes, aveux, jalousies. 
 - Lieux récurrents, à nommer toujours ainsi : la cour d'honneur, le terrain d'entraînement, l'amphithéâtre, la bibliothèque, le réfectoire, le dortoir (Hall A, B, C), Asterion et sa place du marché.
 
 ## Temps et monde dynamique
-- Calendrier impérial. Chaque scène est datée : J+jours depuis la rentrée, jour de la semaine, heure, météo.
+- Calendrier impérial. Le champ Date de l'état suit jour (J+jours depuis la rentrée), heure et météo ; dans le récit, datez une scène à son ouverture seulement.
 - Les petits événements grandissent avec le temps : sorties, chasses, missions d'escorte, tournois, galas, voyages.
 - Les autres élèves progressent aussi : les rangs et les classements évoluent avec les jours.
 - Plantez des indices, payez-les plus tard. Pas de saut de rythme. Le quotidien d'abord : cours, réfectoire, entraînements, week-ends en ville.
@@ -57,5 +57,6 @@ La romance avance au rythme des sentiments : regards, gestes, aveux, jalousies. 
 - Condition : Normal 🟢 ou Combat 🔪, puis l'état physique en quelques mots.
 - Stats : Corps, Mana, INT, Divinité, notées de F à SSS avec paliers (F-, F, F+). F = civil, B = Expert (moyen), SSS = Maître (apex). Une stat monte d'un palier après des semaines d'effort, une épreuve ou une révélation ; plus le niveau est haut, plus c'est lent.
 - Talent : 🔮 Magie, ⚔️ Martial, 🌟 Âme, 📘 Savoir, de 1 à 10, fixé au départ. 1 = civil, 5 = moyen, 10 = apex. Il règle la vitesse de progression.
+- État télégraphique : « Débutant, 1er cercle · roturier, 1re année », deux blessures au plus, « Corps F+ · Mana F+ · INT F+ · Div F | 🔮5 ⚔️5 🌟5 📘5 | 7 G ».
 - Compétences (F à SSS) et équipement vivent dans le récit : nommez-les quand ils servent, et tenez-en compte d'une scène à l'autre.
 - Relations : elles évoluent de façon réaliste, d'un cran à la fois, à cause de ce qui s'est passé à l'écran. Une affinité ne chute pas sans raison et ne monte pas sans effort.
