@@ -46,7 +46,7 @@ Alice a trente ans, les mains tachées de sève…
 
 L'IA reçoit **en permanence** la liste de tous les personnages du monde, une ligne chacun (le `résumé:`, ou à défaut la première ligne de la fiche). Elle sait donc toujours qui existe et peut faire entrer qui elle veut.
 
-La **fiche complète** n'est envoyée que lorsque le personnage est en scène : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
+La **fiche complète** n'est envoyée que lorsque le personnage est en scène, ou qu'il revient assez souvent pour rester en cache (voir « Personnages récurrents ») : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
 
 Tant que l'ensemble des fiches tient dans un budget modeste (environ 3 000 tokens), aucune n'est filtrée : un scénario de quelques personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable. Le lorebook suit la même règle, avec le même budget.
 
@@ -199,8 +199,8 @@ Les statistiques sont enregistrées sur l'appareil, dans un enregistrement à pa
 Pour comprendre où partent les tokens, cochez « Journal des appels » (Réglages, section « Compteurs et journal ») : l'application garde alors, sur l'appareil, les **100 dernières requêtes envoyées à Claude**, texte compris, avec leur type (tour, régénérer, indication, continuer, mémoire, relance du cache), le modèle qui a répondu, les tokens envoyés, lus et écrits en cache, la sortie, le coût estimé et la raison de fin, ou l'erreur. Le bouton « Journal des appels » de la feuille Statistiques les liste, du plus récent au plus ancien ; touchez un appel pour son détail :
 
 - **Hors cache** : la part de l'entrée payée plein tarif.
-- **Cache** (requêtes de narration) : le préfixe comparé à la requête réussie précédente de la même histoire. Trois cas : le cache a expiré (plus de 5 minutes, ou une heure, sans lecture ni relance), et tout le prompt est réécrit ; le préfixe est identique et seule la suite est nouvelle ; ou le journal nomme le premier bloc qui a changé (modèle ou effort, partie fixe du prompt, mémoire, ou tel message), à partir duquel tout a été réécrit en cache.
-- **Composition** : partie fixe, mémoire, historique et fin de requête, en tokens estimés.
+- **Cache** (requêtes de narration) : le préfixe comparé à la requête réussie précédente de la même histoire. Trois cas : le cache a expiré (plus de 5 minutes, ou une heure, sans lecture ni relance), et tout le prompt est réécrit ; le préfixe est identique et seule la suite est nouvelle ; ou le journal nomme le premier bloc qui a changé (modèle ou effort, partie fixe du prompt, personnages récurrents, mémoire, ou tel message), à partir duquel tout a été réécrit en cache.
+- **Composition** : partie fixe, personnages récurrents, mémoire, historique et fin de requête, en tokens estimés.
 - **Fin de requête, hors cache** : le dernier message découpé en blocs (votre message, lorebook déclenché, fiches des personnages en scène, passages anciens, état précédent, indication) avec leur taille. C'est là qu'on voit ce qui gagnerait à passer dans la partie fixe.
 - **Requête complète**, telle qu'envoyée.
 
@@ -257,6 +257,7 @@ L'application range donc le prompt par volatilité croissante :
 ```
 système  prompt du scénario, préambule, casting, fiches et lorebook « toujours »,
          codes d'images, protocole, avatar, chapitres    ← fixe
+         fiches des personnages récurrents               ← début de séance, mémoire
          résumé, lignes récentes, souvenirs, relations, note   ← change par paliers
 historique
 queue    dernier message, lorebook déclenché, fiches en scène, passages anciens, état précédent
@@ -274,13 +275,16 @@ Le compteur est **masqué par défaut** : on lit une histoire, pas un tableau de
 
 L'application appelle l'API native de Claude (`/v1/messages`). Renseignez « Clé API Claude » dans Réglages, avec une clé de la console Anthropic ; il n'y a pas d'offre gratuite. Modèle par défaut : `claude-sonnet-5-5` (`claude-haiku-5-5` coûte moins cher).
 
-L'application pose trois marqueurs de cache :
+L'application pose quatre marqueurs de cache au plus, la limite de l'API :
 
 1. après la partie fixe de la consigne (scénario, préambule, liste des personnages, fiches et lorebook `toujours`, codes d'images, protocole, avatar, chapitres clos) : elle ne change qu'à la clôture d'un chapitre, et reste relue depuis le cache même quand la mémoire change ;
-2. après la mémoire (résumé, lignes récentes, souvenirs, relations, note) ;
-3. sur l'avant-dernier message, juste avant le dernier message qui porte le lorebook déclenché, les fiches en scène et l'état précédent.
+2. après les fiches des personnages récurrents, s'il y en a (voir plus bas) ;
+3. après la mémoire (résumé, lignes récentes, souvenirs, relations, note) ;
+4. sur l'avant-dernier message, juste avant le dernier message qui porte le lorebook déclenché, les fiches en scène et l'état précédent.
 
 Tout l'historique stable est ainsi relu depuis le cache à un dixième du prix, et seule la dernière paire message-réponse est écrite à chaque tour.
+
+**Personnages récurrents.** Quand les fiches d'un scénario sont trop nombreuses pour la partie fixe, celle d'un personnage en scène part en fin de requête, au prix plein, à chaque tour. Les personnages nommés dans au moins 3 des 30 derniers messages sont donc mis à part : leurs fiches partent en cache, entre la partie fixe et la mémoire, une par bloc, et ne repartent plus en fin de requête. Changer cette liste ferait réécrire la mémoire et tout l'historique : elle ne change qu'aux moments où ils sont réécrits de toute façon. Quand le cache a expiré (début de séance, pause), elle est recalculée entièrement. Après une mise à jour de la mémoire, elle est seulement complétée : les fiches déjà là gardent leur place, les nouvelles s'ajoutent à la fin et sont les seules écrites, le cache retrouvant l'entrée qui finissait sur l'ancienne dernière fiche. Un personnage qui ne vient plus reste ainsi jusqu'au prochain début de séance, pour le prix d'une lecture en cache. La liste est gardée avec l'histoire (`cast`), à côté de la mémoire, et décidée à l'envoi.
 
 La mémoire garde toujours au moins 40 messages mot pour mot, et choisit son moment pour avancer, parce qu'une mise à jour réécrit tout le cache de la mémoire et de l'historique :
 
@@ -502,7 +506,7 @@ Règles du projet :
 - Quand vous ajoutez un fichier JavaScript dans `js/`, il est repris automatiquement par `npm run build` (service worker et `modulepreload`). Rien à déclarer à la main.
 - Les numéros de version sont calculés à partir du contenu des fichiers par `npm run build`, lancé par le workflow à chaque déploiement. Ne les modifiez pas à la main.
 - La logique sans DOM (fusion, validation, construction du prompt) doit rester testable : ajoutez un test dans `test/` quand vous la touchez.
-- Les messages construits par `prompt.js` peuvent porter des repères internes (`cut` sur le message système : la fin de la partie fixe, que `toAnt` utilise pour placer les marqueurs de cache). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role` et `content`.
+- Les messages construits par `prompt.js` peuvent porter des repères internes (`blocks` sur le message système : la partie fixe, une fiche récurrente par bloc et la mémoire, chacun avec ou sans marqueur de cache, que `toAnt` envoie tels quels). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role` et `content`.
 
 ### Historique : autres fournisseurs
 

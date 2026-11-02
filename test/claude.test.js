@@ -199,6 +199,75 @@ test('chapitres : clos par le modèle à partir de 60 messages, jamais avant ; c
   }
 });
 
+test('personnages récurrents : choisis sur les 30 derniers messages, liste complétée sans réordonner', async () => {
+  const { castOf } = await import('../js/prompt.js');
+  const chars = ctx.chars;
+  try {
+    ctx.chars = ['Alice', 'Bob', 'Carl', 'Dora'].map(n => ({ name: n, text: n + ' ' + 'x'.repeat(4000), keys: [new RegExp(n.toLowerCase())] }));
+    const say = (...ns) => ns.map(n => ({ role: 'user', content: n + ' passe.' }));
+    const s = { messages: [...say('Alice', 'Alice', 'Alice', 'Bob', 'Bob', 'Dora', 'Dora', 'Dora', 'Dora')], mem: {} };
+    assert.deepEqual(castOf(s), ['Alice', 'Dora'], '3 apparitions au moins, dans l’ordre du scénario');
+    assert.deepEqual(castOf(s, ['Bob']), ['Bob', 'Alice', 'Dora'], 'la liste en place garde sa tête, les nouveaux à la fin');
+    assert.deepEqual(castOf(s, ['Zed', 'Dora']), ['Dora', 'Alice'], 'un personnage disparu du scénario sort');
+    s.messages.push(...Array.from({ length: 30 }, () => ({ role: 'assistant', content: '…' })));
+    assert.deepEqual(castOf(s), [], 'au-delà des 30 derniers messages, rien');
+    ctx.chars = ctx.chars.map(c => ({ ...c, text: c.name }));
+    assert.deepEqual(castOf({ messages: say('Alice', 'Alice', 'Alice'), mem: {} }), [], 'fiches modestes : déjà dans la partie fixe');
+    ctx.chars = [];
+    assert.deepEqual(castOf(s, ['Alice']), ['Alice'], 'fiches pas encore chargées : la liste en place reste');
+  } finally {
+    ctx.chars = chars;
+  }
+});
+
+test('personnages récurrents : recalculés au cache expiré, complétés quand la mémoire a avancé, sinon inchangés', async () => {
+  const { nextCast } = await import('../js/prompt.js');
+  const chars = ctx.chars;
+  try {
+    ctx.chars = ['Alice', 'Bob'].map(n => ({ name: n, text: n + ' ' + 'x'.repeat(6000), keys: [new RegExp(n.toLowerCase())] }));
+    const s = { messages: ['Alice', 'Alice', 'Alice', 'Bob', 'Bob', 'Bob'].map(n => ({ role: 'user', content: n })), mem: { upto: 10 }, cast: ['Bob'] };
+    assert.deepEqual(nextCast(s, true, 10), ['Alice', 'Bob'], 'cache expiré : tout est recalculé');
+    assert.deepEqual(nextCast(s, false, 0), ['Bob', 'Alice'], 'mémoire avancée : liste complétée, sans réordonner');
+    assert.deepEqual(nextCast(s, false, 10), ['Bob'], 'rien n’a changé : liste telle quelle');
+    assert.deepEqual(nextCast(s, false, undefined), ['Bob'], 'après un rechargement, cache encore valide : telle quelle');
+  } finally {
+    ctx.chars = chars;
+  }
+});
+
+test('personnages récurrents : une fiche par bloc entre partie fixe et mémoire, quatre marqueurs au plus, absents de la fin', () => {
+  const chars = ctx.chars;
+  try {
+    ctx.chars = ['Alice', 'Bob', 'Dora'].map(n => ({ name: n, text: 'Fiche de ' + n + ' ' + 'x'.repeat(4000), keys: [new RegExp(n.toLowerCase())] }));
+    const s = {
+      messages: [
+        { role: 'user', content: 'Alice et Dora arrivent.' },
+        { role: 'assistant', content: 'Elles saluent.' },
+        { role: 'user', content: 'Alice, Bob et Dora parlent.' }
+      ],
+      mem: { summary: 'Résumé.', memories: [], relations: {}, lines: [], upto: 0 },
+      cast: ['Alice', 'Dora']
+    };
+    const b = toAnt(buildInfo(s).msgs, { model: 'claude-sonnet-5-5' }),
+      sys = b.system;
+    assert.equal(sys.length, 4, 'partie fixe, Alice, Dora, mémoire');
+    assert.match(sys[1].text, /^\n\n<personnages>\n\n## Alice\nFiche de Alice/);
+    assert.match(sys[2].text, /## Dora/);
+    assert.match(sys[3].text, /Résumé\./);
+    assert.deepEqual(sys.map(x => !!x.cache_control), [true, false, true, true]);
+    const marks = JSON.stringify(b).match(/cache_control/g).length;
+    assert.equal(marks, 4, 'trois dans le système, un sur l’avant-dernier message');
+    assert.doesNotMatch(sys[0].text, /Fiche de/);
+    const last = JSON.stringify(b.messages.at(-1));
+    assert.match(last, /Fiche de Bob/, 'Bob, en scène mais pas récurrent : en fin de requête');
+    assert.doesNotMatch(last, /Fiche de (Alice|Dora)/);
+    s.cast = [];
+    assert.equal(toAnt(buildInfo(s).msgs, { model: 'claude-sonnet-5-5' }).system.length, 2, 'sans récurrent : comme avant');
+  } finally {
+    ctx.chars = chars;
+  }
+});
+
 test('chapitres : envoyés en tête de la mémoire, les plus anciens par leur titre seul', () => {
   const s = {
     messages: [{ role: 'user', content: 'Bonjour' }],

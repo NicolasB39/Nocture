@@ -435,7 +435,7 @@ try {
     // Relais en cas de refus, avec son en-tête bêta.
     assert.equal(b.fallbacks, 'default');
     assert.equal(h['anthropic-beta'], 'server-side-fallback-2026-07-01');
-    assert.ok(b.system.length >= 1 && b.system.every(x => x.cache_control?.type == 'ephemeral'));
+    assert.ok(b.system.length >= 1 && b.system[0].cache_control?.type == 'ephemeral' && b.system.at(-1).cache_control);
     assert.ok(
       [...b.system, ...b.messages.flatMap(m => (Array.isArray(m.content) ? m.content : []))].filter(x => x.cache_control).length <= 4
     );

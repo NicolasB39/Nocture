@@ -3,7 +3,7 @@ import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
 import { fr, keepImgs, lieuTag, liveText, paintLive, setBody, split } from './format.js';
-import { buildInfo, inScene } from './prompt.js';
+import { buildInfo, inScene, nextCast } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
@@ -28,7 +28,9 @@ export async function regenHint() {
 // SUM_KEEP messages gardés (summarize, ai.js) : la réécriture porte directement le prompt raccourci, et la mise à
 // jour ne coûte qu'un appel au modèle de mémoire. Lancé à l'ouverture de l'histoire ; l'envoi l'attend au plus
 // SUM_WAIT. HOT : dernière requête de narration ou relance du cache par histoire, pendant cette visite.
+// UPTO : point d'arrivée de la mémoire au dernier envoi, par histoire (nextCast, prompt.js).
 const HOT = new Map(),
+  UPTO = new Map(),
   SUM_WAIT = 30000;
 const cold = (s, old) => {
   const t = Math.max(HOT.get(s.id) || 0, old?.t || 0, s.messages.findLast(m => m.role == 'assistant')?.t || 0);
@@ -127,6 +129,9 @@ export async function ask(old, cont, hint) {
       ]);
       if (app.cur === s) err('');
     }
+    // Personnages récurrents : choisis quand ce qui les suit est réécrit de toute façon (nextCast, prompt.js).
+    s.cast = nextCast(s, cold(s, old), UPTO.get(s.id));
+    UPTO.set(s.id, s.mem.upto);
     HOT.set(s.id, Date.now());
     const info = buildInfo(s, cont, hint);
     const r = await chat(info.msgs, {

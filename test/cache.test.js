@@ -8,7 +8,8 @@ import { S, ctx } from '../js/state.js';
 const sc = (o = {}) => clean({ id: 's', name: 'S', system: 'SYS', remote: true, noChoices: true, messages: [], ...o });
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
 const big = 'x'.repeat(6000);
-const parts = r => [r.msgs[0].content.slice(0, r.msgs[0].cut), r.msgs[0].content.slice(r.msgs[0].cut), r.msgs.at(-1).content];
+// Partie fixe, mémoire (le dernier bloc du système) et dernier message.
+const parts = r => [r.msgs[0].blocks[0].text, r.msgs[0].blocks.at(-1).text, r.msgs.at(-1).content];
 
 beforeEach(() => {
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
@@ -63,7 +64,7 @@ test('la partie stable ne dépend ni de la mémoire ni de la scène', () => {
 test('toAnt : deux blocs système en cache, plus l’avant-dernier message', () => {
   const b = toAnt(
     [
-      { role: 'system', content: 'STABLE' + 'MEMOIRE', cut: 6 },
+      { role: 'system', content: 'STABLEMEMOIRE', blocks: [{ text: 'STABLE', cache: true }, { text: 'MEMOIRE', cache: true }] },
       { role: 'user', content: 'u1' },
       { role: 'assistant', content: 'a1' },
       { role: 'user', content: 'u2' }
@@ -85,7 +86,7 @@ test('toAnt : deux blocs système en cache, plus l’avant-dernier message', () 
 test('toAnt : sans mémoire, un seul bloc système', () => {
   const b = toAnt(
     [
-      { role: 'system', content: 'STABLE', cut: 6 },
+      { role: 'system', content: 'STABLE', blocks: [{ text: 'STABLE', cache: true }, { text: '', cache: true }] },
       { role: 'user', content: 'u1' }
     ],
     { model: 'm' }

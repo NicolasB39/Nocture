@@ -57,11 +57,10 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema })
     sys = [],
     out = [];
   for (const m of ms)
-    if (m.role == 'system') {
-      const k = m.cut ?? m.content.length;
-      for (const t of [m.content.slice(0, k), m.content.slice(k)])
-        if (t.trim()) sys.push({ type: 'text', text: t, cache_control: cc });
-    }
+    if (m.role == 'system')
+      // blocks : découpage du système (buildInfo, prompt.js), chaque bloc avec ou sans marqueur de cache.
+      for (const x of m.blocks || [{ text: m.content, cache: true }])
+        if (x.text.trim()) sys.push({ type: 'text', text: x.text, ...(x.cache ? { cache_control: cc } : {}) });
   for (const m of ms) {
     if (m.role == 'system') continue;
     const l = out.at(-1);

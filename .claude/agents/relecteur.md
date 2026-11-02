@@ -28,9 +28,9 @@ Ne signale que ce que tu as vérifié dans le code : pour chaque point, un scén
 - L'état partagé vit dans `state.js` (`S` réglages, `app` interface, `ctx` scénario GitHub).
 
 **Appels à l'IA** (`ai.js`, `prompt.js`, `protocol.js`)
-- Ordre pour le cache de Claude : partie stable du système, puis mémoire, puis messages ; tout ce qui varie d'un tour à l'autre (lorebook déclenché, personnages en scène, passages anciens, état précédent, indication) est ajouté à la fin du **dernier** message joueur, jamais dans le système ni dans un message plus ancien. Un ajout mal placé fait relire tout le prompt au prix plein.
+- Ordre pour le cache de Claude : partie stable du système, puis fiches des personnages récurrents, puis mémoire, puis messages ; tout ce qui varie d'un tour à l'autre (lorebook déclenché, personnages en scène, passages anciens, état précédent, indication) est ajouté à la fin du **dernier** message joueur, jamais dans le système ni dans un message plus ancien. Un ajout mal placé fait relire tout le prompt au prix plein.
 - Claude (API `2026-10-21`) refuse `temperature`, `top_p`, `top_k` : `toAnt` ne doit jamais les envoyer.
-- Les messages construits par `prompt.js` portent des repères internes (`cut` sur le système) : `toAnt` construit ses propres blocs et ne doit jamais les laisser partir tels quels. L'API refuse la requête au moindre champ inconnu dans un message.
+- Les messages construits par `prompt.js` portent des repères internes (`blocks` sur le système) : `toAnt` construit ses propres blocs et ne doit jamais les laisser partir tels quels. L'API refuse la requête au moindre champ inconnu dans un message.
 - Une nouvelle balise demandée à l'IA doit être retirée partout où le texte est affiché, gardé ou relu : `split`, `body`, `plain`, et pendant l'écriture (balise encore incomplète).
 
 **Données**

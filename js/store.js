@@ -65,6 +65,7 @@ export const clean = x => {
     loreMax: n(x.loreMax),
     stat: typeof x.stat == 'boolean' ? x.stat : undefined,
     statFields: s(x.statFields),
+    cast: Array.isArray(x.cast) ? x.cast.filter(v => typeof v == 'string') : [],
     messages,
     mem: {
       summary: s(mm.summary),

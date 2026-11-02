@@ -25,6 +25,7 @@ export const infoOf = () => {
       m.summary.length,
       m.memories.length,
       m.chapters?.length,
+      s.cast?.join(),
       m.lines?.length,
       Object.keys(m.relations || {}).length,
       S.pre?.length,
