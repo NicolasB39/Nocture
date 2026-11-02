@@ -84,3 +84,12 @@ test('un scénario peut ignorer le préambule commun', () => {
   });
   assert.doesNotMatch(buildInfo(s).msgs[0].content, /Quatre paragraphes/);
 });
+
+test('agentivité et anti-télépathie toujours envoyées, avec leurs exceptions', () => {
+  assert.match(protocol({ choices: true }), /seul endroit où tu le fais agir ou parler/);
+  for (const o of [{}, { choices: true, stat: true, style: false }]) {
+    const p = protocol(o);
+    assert.match(p, /Le joueur décide seul de ce que fait, dit, pense et ressent \{\{user\}\}/);
+    assert.match(p, /Sauf exception prévue par le scénario, les personnages n'ont pas accès aux pensées/);
+  }
+});
