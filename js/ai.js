@@ -381,7 +381,7 @@ const SUMJ =
   '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
   "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.\n" +
   "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.\n" +
-  "- chapitre (seulement quand il est demandé) : clos vaut true seulement si ces messages terminent un arc (lieu quitté pour de bon, quête achevée, ellipse). titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier, et le resume principal ne garde que la Situation actuelle, point de départ du chapitre suivant. Sinon clos vaut false, titre et resume vides.";
+  "- chapitre (seulement quand il est demandé) : clos vaut true si ces messages terminent un arc ou en ouvrent un nouveau (lieu quitté pour de bon, quête achevée ou nouvelle, ellipse) : un arc fini plus tôt dans le chapitre ne se représentera pas. titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier, et le resume principal ne garde que la Situation actuelle, point de départ du chapitre suivant. Sinon clos vaut false, titre et resume vides.";
 // Réponse de la mémoire, garantie conforme par l'API (sorties structurées). Le champ chapitre n'existe que si
 // le chapitre en cours est assez long pour être clos : un modèle qui le clôturerait trop tôt ne ramènerait
 // pas pour autant le résumé principal à la seule Situation actuelle.
@@ -507,7 +507,7 @@ async function sumRun(s, start) {
                 ? 'Trop court pour être clos.'
                 : k >= CH_MAX
                   ? 'Il est temps de le clore : clos = true.'
-                  : 'Clos-le seulement si ces messages terminent un arc.') +
+                  : 'Clos-le si ces messages terminent un arc ou en ouvrent un nouveau.') +
               '\n\nMessages à intégrer (' +
               parts.length +
               ') :\n' +

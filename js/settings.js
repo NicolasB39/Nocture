@@ -225,7 +225,7 @@ const chView = () =>
             el('textarea', { 'aria-label': 'Résumé du chapitre ' + (i + 1), text: c.s, oninput: e => (c.s = e.target.value) })
           )
         )
-      : [el('p', { class: 'note', text: 'Aucun chapitre clos. Un chapitre se clôt de lui-même à la fin d’un arc, après 60 messages au moins.' })])
+      : [el('p', { class: 'note', text: 'Aucun chapitre clos. Un chapitre se clôt de lui-même quand un arc s’achève ou qu’un nouveau commence, après 60 messages résumés au moins.' })])
   );
 // Mémoire telle qu'à l'ouverture de la feuille : une mise à jour faite entre-temps (summarize, ai.js) ne doit
 // pas être écrasée par la copie affichée.

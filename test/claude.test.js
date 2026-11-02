@@ -185,7 +185,7 @@ test('chapitres : clos par le modèle à partir de 60 messages, jamais avant ; c
     );
     assert.match(asked[0], /Trop court pour être clos/);
     assert.deepEqual(props.slice(0, 3), [false, false, true], 'champ chapitre demandé à partir de 60 messages seulement');
-    assert.match(asked[2], /terminent un arc/);
+    assert.match(asked[2], /terminent un arc ou en ouvrent un nouveau/);
     asked = [];
     s.messages.push(...Array.from({ length: 300 }, (_, i) => ({ role: i % 2 ? 'user' : 'assistant', content: 'suite ' + i })));
     s.mem.chapters = [];
