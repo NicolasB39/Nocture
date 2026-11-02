@@ -1,36 +1,32 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-// send.js touche au DOM au chargement : un faux document suffit, seul localStorage compte ici.
-const node = () =>
-  new Proxy(function () {}, {
-    get: (t, k) => (k === Symbol.toPrimitive ? () => '' : k == 'then' ? undefined : node()),
-    apply: () => node(),
-    set: () => true
-  });
-globalThis.document = node();
-globalThis.window = node();
-globalThis.matchMedia = () => ({ matches: false, addEventListener() {} });
+globalThis.document = { createElement: () => ({}), querySelector: () => null, querySelectorAll: () => [] };
+globalThis.matchMedia = () => ({ matches: false });
 const L = {};
 globalThis.localStorage = {
   getItem: k => L[k] ?? null,
   setItem: (k, v) => (L[k] = String(v)),
   removeItem: k => delete L[k]
 };
-const { cold, heat, hotOf } = await import('../js/send.js');
+const { chat, cold } = await import('../js/ai.js');
 const { S } = await import('../js/state.js');
 
-test('cache : heure et point mémoire gardés sur l’appareil, survivent à un rechargement', () => {
-  S.c1h = false;
-  const s = { id: 'h1', messages: [{ role: 'assistant', content: 'x', t: Date.now() - 600e3 }], mem: { upto: 4 } };
+const ok = () =>
+  new Response(JSON.stringify({ content: [{ type: 'text', text: 'Suite.' }], stop_reason: 'end_turn' }), {
+    status: 200,
+    headers: { 'content-type': 'application/json' }
+  });
+
+test('cache : chaud seulement après une réponse reçue, et gardé sur l’appareil', async () => {
+  Object.assign(S, { key: 'k', model: '', c1h: false });
+  const s = { id: 'h1', messages: [{ role: 'assistant', content: 'x', t: Date.now() - 600e3 }] };
+  const ms = [{ role: 'user', content: 'Bonjour' }];
   assert.equal(cold(s), true, 'dernière réponse il y a 10 minutes : expiré');
-  heat(s, Date.now() - 60e3, 4);
-  assert.equal(cold(s), false, 'relancé il y a une minute : encore chaud');
-  assert.deepEqual(hotOf(s).upto, 4);
-  heat(s, Date.now());
-  assert.equal(hotOf(s).upto, 4, 'une relance garde le point mémoire du dernier envoi');
-  L['hot:h1'] = String(Date.now());
-  assert.equal(cold(s), true, 'ancien format (nombre seul) : tenu pour expiré, sans erreur');
-  L['hot:h1'] = '{';
-  assert.deepEqual(hotOf(s), {}, 'valeur illisible : ignorée');
+  globalThis.fetch = async () => new Response('{"error":{"message":"refusée"}}', { status: 401 });
+  await assert.rejects(chat(ms, { primary: true, sid: s.id }));
+  assert.equal(cold(s), true, 'requête échouée : le cache reste froid');
+  globalThis.fetch = async () => ok();
+  await chat(ms, { primary: true, sid: s.id });
+  assert.equal(cold(s), false, 'réponse reçue : chaud, même après un rechargement (lu sur l’appareil)');
 });

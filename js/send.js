@@ -1,4 +1,4 @@
-import { chat, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, waitMsg, WARM_AT } from './ai.js';
+import { chat, cold, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, waitMsg, WARM_AT } from './ai.js';
 import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
@@ -27,22 +27,8 @@ export async function regenHint() {
 // vie), le premier envoi réécrira donc tout le prompt. C'est le moment de faire avancer la mémoire jusqu'à
 // SUM_KEEP messages gardés (summarize, ai.js) : la réécriture porte directement le prompt raccourci, et la mise à
 // jour ne coûte qu'un appel au modèle de mémoire. Lancé à l'ouverture de l'histoire ; l'envoi l'attend au plus
-// SUM_WAIT. hot, par histoire et gardé sur l'appareil pour survivre à un rechargement de la page : t, début de la
-// dernière requête de narration réussie ou relance du cache ; upto, point d'arrivée de la mémoire de cette
-// requête (nextCast, prompt.js).
+// SUM_WAIT.
 const SUM_WAIT = 30000;
-export const hotOf = s => {
-  try {
-    return JSON.parse(LS.get('hot:' + s.id)) || {};
-  } catch (e) {
-    return {};
-  }
-};
-export const heat = (s, t, upto = hotOf(s).upto) => LS.set('hot:' + s.id, JSON.stringify({ t, upto }));
-export const cold = (s, old) => {
-  const t = Math.max(hotOf(s).t || 0, old?.t || 0, s.messages.findLast(m => m.role == 'assistant')?.t || 0);
-  return Date.now() - t > (S.c1h ? 3600e3 : 300e3);
-};
 export const sessionSum = (s, old) =>
   s.messages.length - s.mem.upto >= SUM_START && cold(s, old)
     ? summarize(s, true)
@@ -137,10 +123,10 @@ export async function ask(old, cont, hint) {
       if (app.cur === s) err('');
     }
     // Personnages récurrents : choisis quand ce qui les suit est réécrit de toute façon (nextCast, prompt.js).
-    s.cast = nextCast(s, cold(s, old), hotOf(s).upto);
-    const t0 = Date.now(),
-      upto = s.mem.upto,
-      info = buildInfo(s, cont, hint);
+    // castUpto : point d'arrivée de la mémoire quand la liste a été décidée.
+    s.cast = nextCast(s, cold(s, old), s.castUpto);
+    s.castUpto = s.mem.upto;
+    const info = buildInfo(s, cont, hint);
     const r = await chat(info.msgs, {
       max: +s.maxTok || 0,
       ac,
@@ -161,8 +147,6 @@ export async function ask(old, cont, hint) {
         }
       }
     });
-    // Le cache n'est tenu pour écrit qu'une fois la réponse reçue : une requête échouée ne le réchauffe pas.
-    heat(s, t0, upto);
     const out = r.t;
     cut = r.cut;
     part = !!r.partial;
@@ -292,11 +276,7 @@ function warmArm(s) {
     warmT = 0;
     if (app.busy || app.cur !== s || $('#chat').hidden || document.hidden) return;
     warmN++;
-    const t = Date.now();
-    if (await keepWarm()) {
-      heat(s, t);
-      warmArm(s);
-    }
+    if (await keepWarm()) warmArm(s);
   }, Math.max(0, WARM_AT - age));
 }
 document.addEventListener('visibilitychange', () => {

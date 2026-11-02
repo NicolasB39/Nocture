@@ -66,6 +66,7 @@ export const clean = x => {
     stat: typeof x.stat == 'boolean' ? x.stat : undefined,
     statFields: s(x.statFields),
     cast: Array.isArray(x.cast) ? x.cast.filter(v => typeof v == 'string') : [],
+    castUpto: o(x.castUpto),
     messages,
     mem: {
       summary: s(mm.summary),

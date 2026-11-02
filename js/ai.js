@@ -5,7 +5,7 @@ import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, unn
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { addCall, getOne, save } from './store.js';
-import { $, err } from './util.js';
+import { $, err, LS } from './util.js';
 
 // La mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
 // le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
@@ -102,6 +102,14 @@ export const usageOf = u =>
 // le prix d'entrée au tour suivant. Même effort que la vraie requête : il fait partie du préfixe.
 let LAST = null;
 export const WARM_AT = 270000;
+// Cache tenu pour chaud : hot:<histoire>, début de la dernière requête de narration réussie ou relance, gardé sur
+// l'appareil pour survivre à un rechargement de la page. Une requête échouée ne le réchauffe pas.
+const heat = (sid, t) => sid && LS.set('hot:' + sid, t);
+// Début de séance : le cache a expiré, rien n'a lu ni écrit le prompt de l'histoire depuis sa durée de vie.
+export const cold = (s, old) => {
+  const t = Math.max(+LS.get('hot:' + s.id) || 0, old?.t || 0, s.messages.findLast(m => m.role == 'assistant')?.t || 0);
+  return Date.now() - t > (S.c1h ? 3600e3 : 300e3);
+};
 export const lastWarmable = () => LAST;
 export async function keepWarm() {
   if (!LAST || !S.key) return false;
@@ -119,6 +127,7 @@ export async function keepWarm() {
     }
     const u = usageOf((await r.json().catch(() => ({}))).usage);
     journal('relance', w, { sid, key, ...track(u, key), ms: Date.now() - t0 });
+    heat(sid, t0);
     return true;
   } catch (e) {
     journal('relance', w, { sid, key, err: e.message, ms: Date.now() - t0 });
@@ -229,6 +238,7 @@ export async function chat(
       throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
     }
     journal(kind, body, x);
+    if (primary) heat(sid, LAST.at);
     return { t: out, cut: stop == 'max_tokens', partial: part };
   };
   const retry = async (secs, why) => {
