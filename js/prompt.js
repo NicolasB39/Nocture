@@ -94,7 +94,7 @@ const permBlock = loreMax => {
     (im.length
       ? '\n\n<images_disponibles>\n' +
         im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +
-        "\nN'utilise que les images d'un personnage présent dans la scène.\n</images_disponibles>"
+        "\nN'utilise que ces codes, tels quels, et seulement pour un personnage présent dans la scène. Un personnage absent de cette liste n'a pas d'image : n'invente pas de code pour lui.\n</images_disponibles>"
       : '')
   );
 };

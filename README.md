@@ -52,7 +52,7 @@ Tant que l'ensemble des fiches tient dans un budget modeste (environ 3 000 token
 
 La partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Le lorebook garde son fonctionnement par mots-clés si « Entrées max » est réglé dans le scénario, et tout redevient déclenché au-delà du budget.
 
-Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie stable, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène. L'IA peut ainsi montrer un personnage dès son entrée, sans attendre le tour suivant.
+Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie stable, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène, et de ne pas en inventer pour un personnage absent de la liste (sans quoi le modèle imite le format, `emily_emily_neutre`, pour un personnage qui n'a pas d'image). L'IA peut ainsi montrer un personnage dès son entrée, sans attendre le tour suivant.
 
 ### Images
 
