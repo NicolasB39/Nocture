@@ -71,6 +71,10 @@ export const ago = t => {
       ? 'il y a ' + d + ' j'
       : new Date(t).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 };
+// Initiale d'un nom, emoji compris : le premier caractère entier, pas la moitié d'une paire UTF-16.
+export const initial = s => ([...(s || '').trim()][0] || '?').toUpperCase();
+// Défilement doux, sauf si l'appareil demande moins d'animations.
+export const smooth = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 export const LS = {
   get: k => {
     try {

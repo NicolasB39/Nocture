@@ -2,7 +2,7 @@ import { sameName } from './memory.js';
 import { inScene } from './prompt.js';
 import { decorNow, scene, zoomScene } from './scene.js';
 import { app, ctx } from './state.js';
-import { $, el, hue, ic } from './util.js';
+import { $, el, hue, ic, initial } from './util.js';
 
 const urlOf = code => (ctx.images || []).find(x => x.code == code)?.url || '';
 const label = (c, code) => {
@@ -19,7 +19,7 @@ export const face = c => {
   const u = c.images?.length ? urlOf(c.images[0]) : '';
   return u
     ? scene(u, dec(), { x: 0.5, fill: 1.9, top: 0.06, sa: 1, cls: 'pav av' })
-    : el('span', { class: 'pav', style: '--h:' + hue(c.name), 'aria-hidden': 'true', text: (c.name.trim()[0] || '?').toUpperCase() });
+    : el('span', { class: 'pav', style: '--h:' + hue(c.name), 'aria-hidden': 'true', text: initial(c.name) });
 };
 
 const row = (c, i, on, open) => {

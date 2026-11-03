@@ -9,7 +9,7 @@ import { zoomScene } from './scene.js';
 import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx } from './state.js';
 import { forkOf, getOne, save } from './store.js';
-import { $, dlg, err, fit, LS, plain, toast, uid, vt } from './util.js';
+import { $, dlg, err, fit, LS, plain, smooth, toast, uid, vt } from './util.js';
 import { render } from './view.js';
 
 // Conversation : ouverture d'une histoire et actions sur les messages (variantes, modification,
@@ -65,7 +65,7 @@ export async function openScenario(id) {
         label: 'Aller en bas',
         fn: () => {
           const m = $('#msgs');
-          m.scrollTo({ top: m.scrollHeight, behavior: 'smooth' });
+          m.scrollTo({ top: m.scrollHeight, behavior: smooth() });
         }
       });
     }
@@ -222,6 +222,8 @@ $('#msgs').onclick = e => {
       s.classList.toggle('open', open);
       for (const x of s.querySelectorAll('.stc, .stl')) x.setAttribute('aria-expanded', String(open));
     }
+    // Le bouton touché disparaît : le focus passe à celui qui le remplace dans le même panneau.
+    b.closest('.st')?.querySelector(open ? '.stl' : '.stc')?.focus();
     return;
   }
   const row = b.closest('.chr');

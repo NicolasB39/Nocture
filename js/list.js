@@ -3,7 +3,7 @@ import { emit, on } from './bus.js';
 import { coverOf, getTree, localTree } from './scenarios.js';
 import { S, app } from './state.js';
 import { del, getAll, getOne, put, saveSet } from './store.js';
-import { $, LS, ago, dlg, el, hue, ic, nz, plain, uid, vt } from './util.js';
+import { $, LS, ago, dlg, el, hue, ic, initial, nz, plain, uid, vt } from './util.js';
 
 export async function showList() {
   app.cur = null;
@@ -66,7 +66,7 @@ export async function draw() {
         : el(
             'div',
             { class: 'art v' + (hv % 4), style: '--h:' + hv },
-            el('span', { class: 'ini', text: (s.name.trim()[0] || '?').toUpperCase() })
+            el('span', { class: 'ini', text: initial(s.name) })
           ),
       tags.length ? el('div', { class: 'tags' }, tags) : null,
       el(

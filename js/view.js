@@ -6,7 +6,7 @@ import { refreshSpeech, ttsOk, visibleStart } from './read.js';
 import { coverOf } from './scenarios.js';
 import { decorFor, decorNow, decorsOf, lieuOf, scenesOf } from './scene.js';
 import { app, ctx, S } from './state.js';
-import { $, accentVars, el, ic, LS } from './util.js';
+import { $, accentVars, el, ic, LS, smooth } from './util.js';
 
 // Affichage de la conversation : messages, panneau d'état, scènes, compteurs, en-tête, navigation.
 let IO = null,
@@ -70,10 +70,10 @@ export function tk() {
   e.replaceChildren(
     el(
       'button',
-      { class: 'tks', 'aria-expanded': String(e.classList.contains('open')), 'aria-label': 'Détail des compteurs' },
+      { class: 'tks', 'aria-expanded': String(e.classList.contains('open')) },
       '≈ ' + k(pt || r.used) + ' tokens' + (c != null ? ' · ' + money(c, S.fx) + ' ce tour' : '')
     ),
-    el('span', { class: 'tkl', text: long })
+    el('button', { class: 'tkl', 'aria-expanded': String(e.classList.contains('open')), text: long })
   );
   e.hidden = false;
 }
@@ -127,7 +127,7 @@ const stCard = (i, m) => {
     { class: 'st' + (open ? ' open' : '') },
     el(
       'button',
-      { class: 'stc', 'aria-expanded': String(open), 'aria-label': 'Détail de l’état' },
+      { class: 'stc', 'aria-expanded': String(open) },
       rows.slice(0, ST_N).map(r => el('span', { class: 'stp' }, el('span', { text: r.k }), ' ' + r.v, dl(r.d, true))),
       more > 0 && el('span', { class: 'stp stm', text: '+' + more }),
       ic('down', 14)
@@ -272,7 +272,7 @@ export function jump(i) {
   render();
   const e = document.querySelector('#msgs .m[data-i="' + i + '"]');
   if (!e) return;
-  e.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  e.scrollIntoView({ block: 'center', behavior: smooth() });
   e.classList.add('flash');
   setTimeout(() => e.classList.remove('flash'), 1600);
 }
@@ -437,14 +437,16 @@ function castView(pr) {
 $('#tk').onclick = e => {
   const t = $('#tk');
   if (t.classList.contains('w') || !e.target.closest('.tks, .tkl')) return;
-  t.classList.toggle('open');
-  t.querySelector('.tks')?.setAttribute('aria-expanded', String(t.classList.contains('open')));
+  const open = t.classList.toggle('open');
+  for (const b of t.querySelectorAll('button')) b.setAttribute('aria-expanded', String(open));
+  // Le bouton touché disparaît : le focus passe à celui qui le remplace.
+  if (t.contains(document.activeElement)) t.querySelector(open ? '.tkl' : '.tks')?.focus();
 };
 const goTurn = d => {
   const w = $('#msgs'),
     e = document.querySelector('#msgs .m[data-i="' + (visibleStart() + d) + '"]');
-  if (e) e.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  else w.scrollTo({ top: d < 0 ? 0 : w.scrollHeight, behavior: 'smooth' });
+  if (e) e.scrollIntoView({ block: 'start' });
+  else w.scrollTo({ top: d < 0 ? 0 : w.scrollHeight });
 };
 const far = () => {
   const m = $('#msgs');
@@ -468,7 +470,7 @@ $('#msgs').onscroll = navView;
 $('#newm').onclick = () => {
   const m = $('#msgs');
   $('#newm').hidden = true;
-  m.scrollTo({ top: m.scrollHeight, behavior: 'smooth' });
+  m.scrollTo({ top: m.scrollHeight, behavior: smooth() });
 };
 $('#nvp').onclick = () => goTurn(-1);
 $('#nvn').onclick = () => goTurn(1);
