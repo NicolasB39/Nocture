@@ -274,7 +274,8 @@ export function jump(i) {
   render();
   const e = document.querySelector('#msgs .m[data-i="' + i + '"]');
   if (!e) return;
-  e.scrollIntoView({ block: 'center', behavior: smooth() });
+  // Le début du message en haut : une réponse est souvent plus haute que l'écran.
+  e.scrollIntoView({ block: 'start', behavior: smooth() });
   e.classList.add('flash');
   setTimeout(() => e.classList.remove('flash'), 1600);
 }
