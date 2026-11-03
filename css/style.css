@@ -181,15 +181,22 @@ header button:active {
   border-color: var(--ac);
   box-shadow: 0 0 0 3px var(--acs);
 }
-#q {
+/* Champ de recherche, dans la liste (#q) comme dans la feuille de l'histoire (#sri) : c'est la pastille .sb qui
+   porte le contour et le focus, pas le champ (dans une feuille, il prendrait sinon le style des formulaires). */
+#q,
+#sri {
   flex: 1;
   min-width: 0;
   border: 0;
+  border-radius: 0;
   background: none;
+  box-shadow: none;
+  color: var(--fg);
   padding: 12px 0;
   appearance: none;
 }
-#q:focus-visible {
+#q:focus-visible,
+#sri:focus-visible {
   outline: none;
 }
 #tabs {
