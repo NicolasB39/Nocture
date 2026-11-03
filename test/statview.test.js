@@ -55,7 +55,7 @@ test('la feuille se construit sans enfant invalide, vide comme remplie', () => {
 
 test('les boutons de période déclenchent chaque vue sans erreur', () => {
   record('a', [10, 5, 1, 0]);
-  for (const m of ['day', 'month', 'session']) {
+  for (const m of ['day', 'month', 'all', 'session']) {
     reg['#ust'].onclick({ target: { closest: () => ({ dataset: { m } }) } });
     assert.ok(reg['#usv'].kids.length > 0);
   }

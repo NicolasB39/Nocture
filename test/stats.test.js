@@ -3,6 +3,7 @@ import test, { beforeEach } from 'node:test';
 import {
   SESSION,
   STATS,
+  allMap,
   clear,
   dayKey,
   dayMap,
@@ -10,6 +11,7 @@ import {
   merge,
   monthDays,
   monthMap,
+  months,
   record,
   total,
   watch
@@ -93,4 +95,16 @@ test('shift fusionne les comptes de deux fenêtres sans toucher l’original', a
     '2026-10-31': { 'm': [5, 5, 1, 0] }
   });
   assert.deepEqual(saved['2026-10-30']['m'], [150, 15, 2, 0]);
+});
+
+test('Total : tout l’historique, mois du plus récent au plus ancien', () => {
+  record('a', [10, 1, 1, 0], at(2025, 12, 31));
+  record('a', [20, 2, 1, 0], at(2026, 1, 2));
+  record('a', [5, 0, 1, 0], at(2026, 1, 20));
+  record('b', [7, 0, 1, 0], at(2025, 12, 1));
+  const before = structuredClone(STATS.d);
+  assert.deepEqual(months(), ['2026-01', '2025-12']);
+  assert.deepEqual(allMap().a.slice(0, 3), [35, 3, 3]);
+  assert.equal(allMap().b[0], 7);
+  assert.deepEqual(STATS.d, before);
 });

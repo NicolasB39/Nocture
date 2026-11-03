@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="aa43aff5d7">
+<meta name="app-version" content="cabf06832a">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -241,8 +241,8 @@
 <dialog id="dus" aria-labelledby="hdus">
 <h2 id="hdus">Statistiques</h2>
 <p class="note">Tokens consommés, par modèle. Enregistrés sur cet appareil seulement : ils ne font pas partie des sauvegardes.</p>
-<div id="ust" role="radiogroup" aria-label="Période"><button role="radio" data-m="session" aria-checked="true">Session</button><button role="radio" data-m="day" aria-checked="false">Jour</button><button role="radio" data-m="month" aria-checked="false">Mois</button></div>
-<div id="usn"><button id="usp" aria-label="Période précédente"><svg class="i"><use href="#i-chevl"/></svg></button><span id="usl" aria-live="polite"></span><button id="usx" aria-label="Période suivante"><svg class="i"><use href="#i-chevr"/></svg></button></div>
+<div id="ust" role="radiogroup" aria-label="Période"><button role="radio" data-m="session" aria-checked="true">Session</button><button role="radio" data-m="day" aria-checked="false">Jour</button><button role="radio" data-m="month" aria-checked="false">Mois</button><button role="radio" data-m="all" aria-checked="false">Total</button></div>
+<div id="usn"><button id="usp" aria-label="Période précédente"><svg class="i"><use href="#i-chevl"/></svg></button><span id="usl" aria-live="polite" tabindex="-1"></span><button id="usx" aria-label="Période suivante"><svg class="i"><use href="#i-chevr"/></svg></button></div>
 <div id="usv"></div>
 <div class="row l"><button id="usf">Devise</button><button id="usk">Plafond mensuel</button><button id="usj">Journal des appels</button></div>
 <div class="row"><button id="usr">Effacer</button><button id="usc" class="primary">Fermer</button></div>

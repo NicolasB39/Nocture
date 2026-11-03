@@ -1567,8 +1567,10 @@ dialog label:has(> input[type='checkbox']) {
   background: var(--act);
   color: var(--fg);
 }
+/* Marges du haut et du bas seulement : dans une section (details), les côtés restent ceux de la section. */
 .note {
-  margin: 14px 0 0;
+  margin-top: 14px;
+  margin-bottom: 0;
   color: var(--mu2);
   font-size: 13px;
   line-height: 1.5;
@@ -1847,7 +1849,8 @@ dialog input[type='range'] {
   accent-color: var(--ac);
 }
 .lprev {
-  margin: 10px 0 0;
+  margin-top: 10px;
+  margin-bottom: 0;
   padding: 12px 14px;
   border-radius: 14px;
   background: var(--s2);
@@ -2204,7 +2207,8 @@ dialog input[type='range'] {
 }
 #ust button {
   flex: 1;
-  padding: 9px 12px;
+  min-width: 0;
+  padding: 9px 6px;
   border: 1px solid transparent;
   border-radius: 999px;
   background: var(--s2);
@@ -2231,6 +2235,7 @@ dialog input[type='range'] {
   flex: none;
   width: 40px;
   height: 40px;
+  padding: 0;
   display: grid;
   place-items: center;
   border: 1px solid var(--bd);
@@ -2248,6 +2253,29 @@ dialog input[type='range'] {
 }
 #usv {
   margin-top: 6px;
+}
+/* Vue Total : un mois par ligne, avec sa dépense ; toucher une ligne ouvre ce mois. */
+.um {
+  display: grid;
+  margin-top: 14px;
+  border-top: 1px solid var(--bd);
+}
+.um button {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--bd);
+  border-radius: 0;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.um span:last-child {
+  color: var(--mu2);
+}
+.um button:active {
+  transform: none;
+  background: var(--s2);
 }
 .ut {
   margin: 12px 0 4px;

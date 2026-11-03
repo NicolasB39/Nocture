@@ -56,6 +56,9 @@ export const merge = (...maps) => {
 export const dayMap = (k, st = STATS) => st.d[k] || {};
 export const monthMap = (ym, st = STATS) =>
   merge(...Object.keys(st.d).filter(k => k.startsWith(ym)).map(k => st.d[k]));
+// Tout l'historique, et ses mois (« 2026-11 »), du plus récent au plus ancien.
+export const allMap = (st = STATS) => merge(...Object.values(st.d));
+export const months = (st = STATS) => [...new Set(Object.keys(st.d).map(monthKey))].sort().reverse();
 export const total = map => {
   const o = [0, 0, 0, 0];
   for (const k in map) add(o, map[k]);

@@ -3,12 +3,15 @@ import { S } from './state.js';
 import { saveSet } from './store.js';
 import {
   SESSION,
+  STATS,
+  allMap,
   clear,
   dayKey,
   dayMap,
   monthDays,
   monthKey,
   monthMap,
+  months,
   total
 } from './stats.js';
 import { $, LS, dlg, el, toast } from './util.js';
@@ -127,6 +130,32 @@ export function openStats(m = 'session') {
   view();
   if (!$('#dus').open) $('#dus').showModal();
 }
+// Vue Total : la dépense (ou les tokens, sans tarif) de chaque mois ; toucher un mois l'ouvre.
+const monthRows = () =>
+  el(
+    'div',
+    { class: 'um' },
+    months().map(ym => {
+      const m = monthMap(ym),
+        c = costMap(m),
+        t = total(m),
+        d = new Date(ym + '-01T12:00');
+      return el(
+        'button',
+        {
+          onclick: () => {
+            mode = 'month';
+            cur = d;
+            view();
+            // La ligne touchée disparaît avec la vue : le focus passe au titre du mois.
+            $('#usl').focus();
+          }
+        },
+        el('span', { text: cap(d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })) }),
+        el('span', { text: c.any ? money(c.sum, S.fx) : fmt(t[0] + t[1]) + ' tokens' })
+      );
+    })
+  );
 const capRow = () => {
   if (!S.cap) return null;
   const spent = monthCost(),
@@ -143,12 +172,12 @@ const capRow = () => {
 export function view() {
   for (const b of $('#ust').querySelectorAll('button'))
     b.setAttribute('aria-checked', b.dataset.m == mode);
-  const nav = mode != 'session';
+  const nav = mode == 'day' || mode == 'month';
   $('#usn').hidden = !nav;
   $('#usx').disabled = nav && atNow();
   let map, ym;
-  if (mode == 'session') {
-    map = SESSION;
+  if (mode == 'session' || mode == 'all') {
+    map = mode == 'all' ? allMap() : SESSION;
     $('#usl').textContent = '';
   } else if (mode == 'day') {
     map = dayMap(dayKey(cur));
@@ -189,6 +218,7 @@ export function view() {
     ),
     capRow(),
     ym && t[2] ? bars(ym) : null,
+    mode == 'all' && t[2] ? monthRows() : null,
     ...(t[2]
       ? rows(map)
       : [
@@ -197,7 +227,9 @@ export function view() {
             text:
               mode == 'session'
                 ? 'Rien depuis l’ouverture de l’application.'
-                : 'Aucune utilisation sur cette période.'
+                : mode == 'all'
+                  ? 'Aucune utilisation enregistrée sur cet appareil.'
+                  : 'Aucune utilisation sur cette période.'
           })
         ]),
     t[2] && cm.unknown.length
@@ -231,6 +263,19 @@ export function view() {
       ? el('p', {
           class: 'note',
           text: 'Une session court depuis l’ouverture de l’application, jusqu’à sa fermeture complète.'
+        })
+      : null,
+    mode == 'all' && t[2]
+      ? el('p', {
+          class: 'note',
+          text:
+            'Depuis le ' +
+            new Date(Object.keys(STATS.d).sort()[0] + 'T12:00').toLocaleDateString('fr-FR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }) +
+            ', premier jour enregistré sur cet appareil.'
         })
       : null
   ].filter(Boolean);
