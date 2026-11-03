@@ -43,11 +43,6 @@ const base = m => String(m || '').replace(/-\d{8}$/, '');
 // qu'Anthropic choisit selon le motif du refus. Avec Sonnet 5.5, seuls les refus « cyber » et « frontier_llm »
 // sont relayés ; les autres (« general_harms », etc.) reviennent comme refus.
 export const FB_BETA = 'server-side-fallback-2026-07-01';
-// Réflexion « Aucune » (effort 'none') : Sonnet 5.5 la coupe avec thinking between_tools (sans outils, il ne
-// réfléchit pas), Haiku 5.5 avec disabled. Les autres modèles ne permettent pas de la couper : l'effort faible
-// part à la place. Sans réflexion, pas de relais : le modèle de secours pourrait refuser ce réglage.
-const NO_THINK = { 'claude-sonnet-5-5': 'between_tools', 'claude-haiku-5-5': 'disabled' };
-export const noThinkOk = model => !!NO_THINK[base(model)];
 export const fallbackOk = model => ['claude-fable-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5'].includes(base(model));
 // En-tête bêta d'une requête Claude (le relais en cas de refus).
 export const antBetas = b => (b.fallbacks ? FB_BETA : '');
@@ -71,8 +66,6 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema })
   // Marqueur de cache sur le dernier message avant le tour en cours.
   const b = out.at(-2);
   if (b?.content.trim()) b.content = [{ type: 'text', text: b.content, cache_control: cc }];
-  const off = effort == 'none' && NO_THINK[base(model)];
-  if (effort == 'none') effort = 'low';
   const oc = {
       ...(EFFORTS.includes(effort) && effortOk(model) ? { effort } : {}),
       ...(schema ? { format: { type: 'json_schema', schema } } : {})
@@ -83,8 +76,7 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema })
     ...(sys.length ? { system: sys } : {}),
     messages: out,
     ...(Object.keys(oc).length ? { output_config: oc } : {}),
-    ...(off ? { thinking: { type: off } } : {}),
-    ...(fallback && !off && fallbackOk(model) ? { fallbacks: 'default' } : {}),
+    ...(fallback && fallbackOk(model) ? { fallbacks: 'default' } : {}),
     ...(stream ? { stream: true } : {})
   };
 };

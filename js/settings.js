@@ -1,4 +1,4 @@
-import { effortOk, memModel, noThinkOk } from './ai.js';
+import { effortOk, memModel } from './ai.js';
 import { on } from './bus.js';
 import { jump, render, tk } from './view.js';
 import { PRICES, money, priceOf } from './cost.js';
@@ -19,16 +19,9 @@ const genNotes = () => {
   const def = S.model || API.m,
     m = $('#smo').value.trim() || def;
   $('#smo').placeholder = def;
-  $('#sefn').textContent =
-    EFF_NOTE +
-    (!effortOk(m)
-      ? ' ' + m + ' ne prend pas ce réglage en charge : rien n’est envoyé.'
-      : $('#sef').value == 'none' && !noThinkOk(m)
-        ? ' ' + m + ' ne permet pas de couper la réflexion : l’effort faible part à la place.'
-        : '');
+  $('#sefn').textContent = EFF_NOTE + (!effortOk(m) ? ' ' + m + ' ne prend pas ce réglage en charge : rien n’est envoyé.' : '');
 };
 $('#smo').oninput = genNotes;
-$('#sef').onchange = genNotes;
 // Ce que coûtent les choix et l'état, mesuré sur les dernières réponses de l'histoire.
 const extrasNote = () => {
   const x = extrasOf(app.cur.messages),

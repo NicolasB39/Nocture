@@ -17,7 +17,7 @@ const sysName = (x, i) =>
   !i ? 'de la partie fixe du prompt' : isCastBlock(x.text) ? 'des personnages récurrents' : 'de la mémoire (résumé, souvenirs, relations, note)';
 // Blocs du préfixe, dans l'ordre où le cache les lit : modèle et effort, blocs système, puis messages.
 export const blocks = b => [
-  ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null, b.thinking || null])],
+  ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null])],
   ...(b.system || []).map((x, i) => [sysName(x, i), x.text]),
   ...(b.messages || []).map((m, i) => ['du message ' + (i + 1), m.role + txt(m.content)])
 ];
