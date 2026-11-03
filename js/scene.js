@@ -1,5 +1,5 @@
 import { app, ctx } from './state.js';
-import { el, hue, nz, plain } from './util.js';
+import { el, hue, nz } from './util.js';
 
 export const lieuOf = st => (st || []).find(([k]) => /^(lieu|endroit|localisation|position)/.test(nz(k)))?.[1] || '';
 // Scènes du récit, dans l'ordre : la première réponse en ouvre une, puis chaque réponse dont le lieu de l'état
@@ -19,18 +19,8 @@ export const scenesOf = ms => {
   out.forEach((s, k) => (s.to = k + 1 < out.length ? out[k + 1].from - 1 : ms.length - 1));
   return out;
 };
-// Première phrase d'un message, en texte simple, pour l'aperçu d'une scène.
-const opening = (t, nm) => {
-  const p = plain(t, nm)
-    .replace(/[*_>#]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const m = p.match(/^.{20,160}?[.!?…»](?=\s|$)/);
-  return m ? m[0] : p.length > 150 ? p.slice(0, 150).replace(/\s+\S*$/, '') + '…' : p;
-};
 // Sommaire par scènes : null si aucune scène n'a de lieu (le Sommaire garde alors la liste des lignes).
-// lines : les lignes récentes de la mémoire ({ i, t }), rangées dans la scène du message qu'elles résument.
-export const tocOf = (ms, lines = [], nm = '') => {
+export const tocOf = ms => {
   const S = scenesOf(ms);
   if (!S.some(s => s.lieu)) return null;
   return S.map((s, k) => ({
@@ -39,8 +29,6 @@ export const tocOf = (ms, lines = [], nm = '') => {
     from: s.from,
     // Tours : les réponses du récit (une scène commence à la réponse qui change de lieu).
     turns: ms.slice(s.from, s.to + 1).filter(m => m.role == 'assistant').length,
-    preview: opening(ms[s.at].content, nm),
-    lines: lines.filter(x => x.i >= s.from && x.i <= s.to),
     cur: k == S.length - 1
   }));
 };

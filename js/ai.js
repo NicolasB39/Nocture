@@ -4,6 +4,7 @@ import { modelOf } from './protocol.js';
 import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
+import { emit } from './bus.js';
 import { addCall, getOne, save } from './store.js';
 import { $, err, LS } from './util.js';
 
@@ -404,7 +405,10 @@ const SCHEMA = ch => ({
   required: ['resume', 'souvenirs', 'relations', 'lignes', ...(ch ? ['chapitre'] : [])],
   additionalProperties: false
 });
-const SUMS = new Map();
+// RUN : histoires dont la mémoire est en train d'avancer (jauge du bouton Envoyer, annoncée par « mem »).
+const SUMS = new Map(),
+  RUN = new Set();
+export const summing = id => RUN.has(id);
 const LINES_MAX = 24;
 // Histoire ouverte : on l'enregistre telle quelle, une copie relue en base pourrait dater d'avant la
 // réponse que l'envoi est en train d'enregistrer. Pendant un tour, rien : la mémoire est sur le même objet
@@ -467,6 +471,10 @@ async function sumRun(s, start) {
     let go = false;
     while ((go = sumGate(s.messages.length - s.mem.upto, go, start ? SUM_START : SUM_PLAY))) {
       say('Mise à jour de la mémoire…');
+      if (!RUN.has(s.id)) {
+        RUN.add(s.id);
+        emit('mem');
+      }
       // Jamais en dessous de SUM_KEEP messages gardés mot pour mot.
       const n = Math.min(SUM_BATCH, s.messages.length - s.mem.upto - SUM_KEEP),
         parts = s.messages
@@ -540,9 +548,12 @@ async function sumRun(s, start) {
       addLines(s, list(j.lignes), parts.length);
       s.mem.upto += parts.length;
       await persist(s);
+      emit('mem');
     }
     if (said && mine()) err('');
   } catch (e) {
     say('Mémoire non mise à jour (' + e.message + ') : nouvel essai au prochain tour.');
+  } finally {
+    if (RUN.delete(s.id)) emit('mem');
   }
 }

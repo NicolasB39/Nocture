@@ -1276,6 +1276,51 @@ footer textarea:focus-visible {
 #stop {
   background: var(--s3);
 }
+/* Jauge de la mémoire (memRing, view.js) : un anneau autour du bouton, rempli à --mp, discret jusqu'aux cinq
+   derniers tours ; leur compte à rebours en pastille (data-left). */
+#send {
+  position: relative;
+  --mp: 0;
+}
+#send::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: conic-gradient(var(--ac) calc(var(--mp) * 1turn), var(--s3) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.2px), #000 calc(100% - 1.8px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2.2px), #000 calc(100% - 1.8px));
+  opacity: 0.75;
+  transition: opacity 0.2s var(--ease-out);
+  pointer-events: none;
+}
+#send.mnear::before {
+  opacity: 1;
+}
+#send.mrun::before {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+#send::after {
+  content: attr(data-left);
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  box-sizing: border-box;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border: 2px solid var(--s1);
+  border-radius: 10px;
+  background: var(--ac);
+  color: var(--on);
+  font: 700 11px/16px var(--sans);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+#send:not([data-left])::after,
+#send[data-left='']::after {
+  display: none;
+}
 #ast {
   flex: none;
   width: 38px;
@@ -1495,7 +1540,8 @@ dialog label:has(> input[type='checkbox']) {
   }
   .spin svg,
   #live .b:empty::before,
-  .wts i {
+  .wts i,
+  #send.mrun::before {
     animation: pulse 1.6s ease-in-out infinite !important;
   }
   .m.flash .b {
@@ -1947,18 +1993,90 @@ dialog input[type='range'] {
   background: var(--s2);
   text-align: left;
 }
-.scg.cur .sch {
-  border-color: var(--acb);
+/* Sommaire en frise : chapitre (étiquette, titre, première ligne du résumé), puis ses scènes, des points sur un
+   fil ; la scène en cours en doré. */
+#sml.tl {
+  gap: 0;
+  margin-top: 14px;
 }
-/* Titre de chapitre dans le Sommaire, au-dessus de ses scènes. */
 .chh {
   margin: 18px 2px 8px;
-  color: var(--mu2);
-  font-size: 13px;
-  font-weight: 600;
 }
 .chh:first-child {
   margin-top: 0;
+}
+.chk {
+  margin: 0;
+  color: var(--mu);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.chi {
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+.chs {
+  margin: 2px 0 0;
+  color: var(--mu2);
+  font-size: 13px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.chs.open {
+  display: block;
+}
+.chm {
+  padding: 0;
+  border-radius: 0;
+  color: var(--ac);
+  font-size: 13px;
+  font-weight: 600;
+}
+.tln {
+  position: relative;
+  margin-left: 7px;
+  padding: 8px 10px 8px 18px;
+  border-left: 2px solid var(--bd);
+  border-radius: 0;
+  text-align: left;
+  font-size: 14px;
+}
+.tln::before {
+  content: '';
+  position: absolute;
+  left: -6px;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--s3);
+}
+.tln.cur::before {
+  left: -7px;
+  top: 13px;
+  width: 12px;
+  height: 12px;
+  background: var(--ac);
+}
+.tln.cur .tll {
+  color: var(--ac);
+  font-weight: 600;
+}
+.tlm {
+  color: var(--mu);
+}
+.tlh {
+  display: block;
+  color: var(--mu);
+  font-size: 12px;
+}
+.tln:active {
+  transform: none;
+  background: var(--s2);
 }
 /* Chapitre clos dans la feuille Mémoire : titre puis résumé. */
 .chp + .chp {
@@ -1988,16 +2106,6 @@ dialog input[type='range'] {
 .scg.open .scv {
   transform: translateY(3px) rotate(-135deg);
 }
-.scgo {
-  justify-self: start;
-  padding: 6px 12px;
-  border: 1px solid var(--acb);
-  border-radius: 999px;
-  background: none;
-  color: var(--ac);
-  font-size: 13px;
-  font-weight: 600;
-}
 .scm {
   color: var(--mu);
   font-size: 12px;
@@ -2018,37 +2126,16 @@ dialog input[type='range'] {
   white-space: pre-wrap;
   word-break: break-word;
 }
-.scg.cur .scm {
-  color: var(--ac);
-}
 .scx {
   margin: 0;
   color: var(--mu2);
   font-size: 13.5px;
   line-height: 1.45;
 }
-.scl {
-  display: grid;
-  margin-left: 14px;
-  padding-left: 10px;
-  border-left: 1px solid var(--bd);
-}
-.sli {
-  padding: 6px 8px;
-  border-radius: 8px;
-  color: var(--mu2);
-  font-size: 13px;
-  line-height: 1.4;
-  text-align: left;
-}
 @media (hover: hover) and (pointer: fine) {
-  .sli:hover {
+  .tln:hover {
     background: var(--s2);
-    color: var(--fg);
   }
-}
-.sli:active {
-  background: var(--s2);
 }
 .cvr {
   display: flex;
@@ -2378,10 +2465,10 @@ dialog input[type='range'] {
 
 /* Zones de toucher : 44 px au moins dans chaque sens, sans changer l'apparence. Un pseudo-élément transparent
    déborde du bouton autant qu'il faut (rien si le bouton est déjà assez grand). */
-:is(#toast button, .stc, .stl, #tk .tks, #tk .tkl, .scgo, #err button, .more, .chip2 button, .bk button, .m .a button, #ast, #usn button) {
+:is(#toast button, .stc, .stl, #tk .tks, #tk .tkl, .chm, #err button, .more, .chip2 button, .bk button, .m .a button, #ast, #usn button) {
   position: relative;
 }
-:is(#toast button, .stc, .stl, #tk .tks, #tk .tkl, .scgo, #err button, .more, .chip2 button, .bk button, .m .a button, #ast, #usn button, .menu)::before {
+:is(#toast button, .stc, .stl, #tk .tks, #tk .tkl, .chm, #err button, .more, .chip2 button, .bk button, .m .a button, #ast, #usn button, .menu)::before {
   content: '';
   position: absolute;
   inset: min(0px, calc(50% - 22px));

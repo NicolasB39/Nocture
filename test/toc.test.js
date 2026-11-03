@@ -28,12 +28,8 @@ test('scenesOf : le lieu de la première scène peut n’arriver qu’au tour su
   assert.deepEqual(s, [{ at: 1, from: 0, lieu: 'Port', to: 3 }]);
 });
 
-test('tocOf : tours, aperçu et lignes de mémoire rangées par scène', () => {
-  const t = tocOf(ms, [
-    { i: 1, t: 'Arrivée à l’auberge.' },
-    { i: 5, t: 'Le vent sur la falaise.' },
-    { i: -1, t: 'Sans repère.' }
-  ]);
+test('tocOf : une scène par lieu, ses tours, la dernière en cours', () => {
+  const t = tocOf(ms);
   assert.equal(t.length, 2);
   assert.deepEqual(
     t.map(s => [s.lieu, s.from, s.turns, s.cur]),
@@ -42,10 +38,6 @@ test('tocOf : tours, aperçu et lignes de mémoire rangées par scène', () => {
       ['Falaise', 5, 2, true]
     ]
   );
-  assert.equal(t[0].preview, 'Elle sourit. La porte grince derrière vous.');
-  assert.equal(t[1].preview, 'Le vent souffle. La falaise est haute.', 'sans astérisques ni choix');
-  assert.deepEqual(t[0].lines.map(x => x.t), ['Arrivée à l’auberge.']);
-  assert.deepEqual(t[1].lines.map(x => x.t), ['Le vent sur la falaise.']);
 });
 
 test('tocOf : sans aucun lieu, pas de sommaire par scènes', () => {

@@ -738,28 +738,14 @@ try {
       'lettrine au changement de lieu, pas à chaque réponse'
     );
     assert.deepEqual(await p3.locator('#msgs .scene').allTextContents(), ['Auberge du Pont', 'Volcan'], 'intertitres de lieu');
-    // Sommaire par scènes : une entrée par lieu, repliée, la dernière en cours ; ouverte, une scène mène au récit.
+    // Sommaire en frise : une entrée par lieu, la dernière en cours ; toucher une scène mène au récit.
     await p3.click('#mo');
     await p3.click('#msm');
     await p3.waitForSelector('#dsm[open]');
-    assert.deepEqual(await p3.locator('#sml .sch .sct').allTextContents(), ['Auberge du Pont', 'Volcan']);
-    assert.match(await p3.textContent('#sml .scg.cur .scm'), /1 tour · en cours/);
-    assert.equal(
-      await p3.evaluate(() =>
-        [...document.querySelectorAll('#sml, #sml .scg, #sml .scb')].flatMap(e => [...e.childNodes]).filter(n => n.nodeType == 3).length
-      ),
-      0,
-      'aucun texte parasite (« 0 ») sous les scènes sans ligne de mémoire'
-    );
-    assert.equal(await p3.locator('#sml .scgo:visible').count(), 0, 'scènes repliées à l’ouverture');
-    const sc1 = p3.locator('#sml .scg').first();
-    await sc1.locator('.sch').click();
-    assert.equal(await sc1.locator('.sch').getAttribute('aria-expanded'), 'true');
-    assert.ok(await sc1.locator('.scx').isVisible(), 'scène ouverte : sa première phrase');
-    await sc1.locator('.sch').click();
-    assert.ok(!(await sc1.locator('.scx').isVisible()), 'un second toucher la referme');
-    await sc1.locator('.sch').click();
-    await sc1.locator('.scgo').click();
+    assert.deepEqual(await p3.locator('#sml .tln .tll').allTextContents(), ['Auberge du Pont', 'Volcan']);
+    assert.match(await p3.textContent('#sml .tln.cur'), /Volcan · 1 tours*Vous êtes ici/);
+    assert.equal(await p3.locator('#sml .tln.cur').count(), 1, 'une seule scène en cours');
+    await p3.locator('#sml .tln').first().click();
     await p3.waitForSelector('#dsm', { state: 'hidden' });
     assert.equal(
       await p3.evaluate(() => document.querySelector('#msgs .scene + .m')?.dataset.i),
@@ -780,7 +766,10 @@ try {
     await p3.click('#mo');
     await p3.click('#msm');
     await p3.waitForSelector('#dsm[open]');
-    assert.deepEqual(await p3.locator('#sml .chh').allTextContents(), ['Chapitre 1 · L’auberge', 'Chapitre 2 · en cours']);
+    assert.deepEqual(await p3.locator('#sml .chh .chk').allTextContents(), ['Chapitre 1', 'Chapitre 2 · en cours']);
+    assert.equal(await p3.textContent('#sml .chi'), 'L’auberge');
+    await p3.click('#sml .chm');
+    assert.equal(await p3.textContent('#sml .chm'), 'Replier', 'le résumé du chapitre s’ouvre en entier');
     await p3.click('#dsmc');
     await p3.click('#mo');
     await p3.click('#mb');

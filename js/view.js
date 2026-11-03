@@ -1,3 +1,5 @@
+import { SUM_KEEP, SUM_PLAY, summing } from './ai.js';
+import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
@@ -410,9 +412,31 @@ export function render(sc) {
           );
   }
   tk();
+  memRing();
   navView();
   refreshSpeech();
 }
+// Jauge de la mémoire autour du bouton Envoyer : vide juste après une mise à jour (SUM_KEEP messages gardés mot
+// pour mot), pleine à SUM_PLAY, qui la déclenche. Les cinq derniers tours (un tour : deux messages) affichent
+// leur compte à rebours ; elle pulse pendant la mise à jour.
+export function memRing() {
+  const s = app.cur;
+  if (!s) return;
+  const b = $('#send'),
+    n = s.messages.length - s.mem.upto,
+    run = summing(s.id),
+    left = Math.max(0, Math.ceil((SUM_PLAY - n) / 2));
+  b.style.setProperty('--mp', run ? 1 : Math.min(1, Math.max(0, (n - SUM_KEEP) / (SUM_PLAY - SUM_KEEP))));
+  b.classList.toggle('mnear', run || left <= 5);
+  b.classList.toggle('mrun', run);
+  b.dataset.left = !run && left && left <= 5 ? left : '';
+  b.setAttribute(
+    'aria-label',
+    'Envoyer · mémoire : ' +
+      (run ? 'mise à jour en cours' : left ? left + (left > 1 ? ' tours' : ' tour') + ' avant la mise à jour' : 'mise à jour au prochain tour')
+  );
+}
+on('mem', memRing);
 // En-tête : les personnages en scène (trois avatars au plus, puis « +N ») à la place de l'icône Personnages.
 // Reconstruit seulement quand la distribution change, pour ne pas recharger les images à chaque rendu.
 function castView(pr) {

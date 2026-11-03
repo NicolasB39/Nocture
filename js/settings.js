@@ -468,63 +468,59 @@ $('#sri').oninput = () => {
   srT = setTimeout(srRun, 180);
 };
 $('#dsrc').onclick = () => $('#dsr').close();
-// Sommaire : les scènes du récit (lieu, tours), repliées ; ouverte, une scène montre sa première phrase, les
-// lignes de la mémoire qui la résument et un bouton pour y aller. Sans lieu dans l'état, la liste des lignes
-// récentes, comme avant.
+// Sommaire : une frise des scènes du récit (lieu, tours) sous le titre de leur chapitre ; toucher une scène y
+// mène. Un chapitre clos montre la première ligne de son résumé, en entier avec « Lire ». Sans lieu dans l'état,
+// la liste des lignes récentes de la mémoire.
 $('#msm').onclick = () => {
   $('#dmn').close();
   const L = app.cur.mem.lines || [],
-    T = tocOf(app.cur.messages, L, app.cur.pname?.trim() || ''),
+    T = tocOf(app.cur.messages),
     // Titres des chapitres, chacun avant la première scène (ou ligne) qui suit son début ; le dernier est celui
     // en cours.
     C = app.cur.mem.chapters || [],
-    H = C.length ? [...C.map((c, k) => ({ from: k ? C[k - 1].upto : 0, t: c.t })), { from: C.at(-1).upto, t: 'en cours' }] : [];
+    H = C.length ? [...C.map((c, k) => ({ from: k ? C[k - 1].upto : 0, t: c.t, s: c.s })), { from: C.at(-1).upto }] : [];
   let hk = 0;
   const heads = i => {
       const h = [];
-      for (; hk < H.length && H[hk].from <= i; hk++) h.push(el('p', { class: 'chh', text: 'Chapitre ' + (hk + 1) + ' · ' + H[hk].t }));
+      for (; hk < H.length && H[hk].from <= i; hk++) {
+        const c = H[hk],
+          n = 'Chapitre ' + (hk + 1);
+        if (!c.t) {
+          h.push(el('div', { class: 'chh' }, el('p', { class: 'chk', text: n + ' · en cours' })));
+          continue;
+        }
+        const s = el('p', { class: 'chs', text: c.s }),
+          more = el('button', { class: 'chm', 'aria-expanded': 'false' }, 'Lire');
+        more.onclick = () => {
+          const o = s.classList.toggle('open');
+          more.setAttribute('aria-expanded', String(o));
+          more.textContent = o ? 'Replier' : 'Lire';
+        };
+        h.push(el('div', { class: 'chh' }, el('p', { class: 'chk', text: n }), el('p', { class: 'chi', text: c.t }), ...(c.s ? [s, more] : [])));
+      }
       return h;
     },
     go = i => () => {
       $('#dsm').close();
       if (i >= 0) jump(i);
     },
-    line = x => el('button', { class: 'sli', onclick: go(x.i) }, fr(x.t)),
-    // Toucher l'en-tête ouvre ou referme la scène.
-    fold = (cls, head, ...body) => {
-      const h = el('button', { class: 'sch', 'aria-expanded': 'false' }, ...head),
-        g = el('div', { class: cls }, h, el('div', { class: 'scb' }, ...body));
-      h.onclick = () => h.setAttribute('aria-expanded', String(g.classList.toggle('open')));
-      return g;
-    };
-  $('#smn').textContent = T
-    ? 'Une entrée par lieu, dans l’ordre du récit. Touchez une scène pour l’ouvrir.'
-    : 'Une ligne par message déjà résumé. Touchez pour y aller. Avec un champ « Lieu » dans le panneau d’état, le sommaire se range par scènes.';
-  if (T) {
-    const loose = L.filter(x => x.i < 0),
-      // Titre d'un chapitre devant la scène où il commence, même si elle a commencé avant lui.
-      G = T.flatMap((s, j) => [
-        ...heads(j + 1 < T.length ? T[j + 1].from - 1 : Infinity),
-        fold(
-          'scg' + (s.cur ? ' cur' : ''),
-          [
-            el('span', { class: 'sct' }, fr(s.lieu || (s.k ? 'Scène sans lieu' : 'Début')), el('span', { class: 'scv' })),
-            el('span', {
-              class: 'scm',
-              text: s.turns + (s.turns > 1 ? ' tours' : ' tour') + (s.cur ? ' · en cours' : '')
-            })
-          ],
-          s.preview && el('p', { class: 'scx', text: fr(s.preview) }),
-          s.lines.length && el('div', { class: 'scl' }, s.lines.map(line)),
-          el('button', { class: 'scgo', onclick: go(s.from) }, 'Aller à cette scène')
-        )
-      ]);
-    if (loose.length)
-      G.push(
-        fold('scg', [el('span', { class: 'sct' }, 'Autres lignes', el('span', { class: 'scv' }))], el('div', { class: 'scl' }, loose.map(line)))
+    // Scène de la frise : lieu et tours ; la dernière, en cours, est marquée.
+    node = s =>
+      el(
+        'button',
+        { class: 'tln' + (s.cur ? ' cur' : ''), onclick: go(s.from) },
+        el('span', { class: 'tll', text: fr(s.lieu || (s.k ? 'Scène sans lieu' : 'Début')) }),
+        el('span', { class: 'tlm', text: ' · ' + s.turns + (s.turns > 1 ? ' tours' : ' tour') }),
+        s.cur ? el('span', { class: 'tlh', text: 'Vous êtes ici' }) : null
       );
-    $('#sml').replaceChildren(...G);
-  } else
+  $('#sml').classList.toggle('tl', !!T);
+  $('#smn').textContent = T
+    ? 'Une ligne par lieu, dans l’ordre du récit. Touchez une scène pour y aller.'
+    : 'Une ligne par message déjà résumé. Touchez pour y aller. Avec un champ « Lieu » dans le panneau d’état, le sommaire se range par scènes.';
+  if (T)
+    // Titre d'un chapitre devant la scène où il commence, même si elle a commencé avant lui.
+    $('#sml').replaceChildren(...T.flatMap((s, j) => [...heads(j + 1 < T.length ? T[j + 1].from - 1 : Infinity), node(s)]));
+  else
     $('#sml').replaceChildren(
       ...(L.length
         ? L.flatMap((x, j) => [
@@ -534,7 +530,7 @@ $('#msm').onclick = () => {
         : [el('p', { class: 'note', text: 'Le sommaire se remplit à mesure que la mémoire résume les messages.' })])
     );
   $('#dsm').showModal();
-  $('#sml .scg.cur')?.scrollIntoView({ block: 'nearest' });
+  $('#sml .tln.cur')?.scrollIntoView({ block: 'nearest' });
 };
 $('#dsmc').onclick = () => $('#dsm').close();
 
