@@ -1377,7 +1377,9 @@ dialog input[type='checkbox'] {
   color: var(--on);
   font-weight: 700;
 }
+/* Rangées de boutons secondaires : elles passent à la ligne plutôt que de déborder sur un téléphone. */
 .row.l {
+  flex-wrap: wrap;
   justify-content: flex-start;
   margin-top: 6px;
 }
