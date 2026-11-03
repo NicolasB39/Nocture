@@ -279,7 +279,7 @@ test('fiches et lorebook modestes en entier dans la partie fixe, en cache', () =
   r = buildInfo({ ...s, loreMax: 1 });
   assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /La forge/);
   assert.match(r.msgs.at(-1).content, /La porte grince/);
-  // Trop gros (au-delà de 3 000 tokens) : seulement les actifs.
+  // Trop gros (au-delà de 5 000 tokens) : seulement les actifs.
   ctx.chars[1].text = 'B'.repeat(9000);
   r = buildInfo(s);
   assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);

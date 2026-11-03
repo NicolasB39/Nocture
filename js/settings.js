@@ -368,9 +368,15 @@ $('#imf').onchange = async e => {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
+  let d;
   try {
-    const d = JSON.parse(await f.text());
-    const a = (Array.isArray(d.scenarios) ? d.scenarios : []).map(clean).filter(Boolean);
+    d = JSON.parse(await f.text());
+  } catch (x) {
+    return dlg('Fichier invalide');
+  }
+  // Passé la lecture du fichier, une panne vient de l'enregistrement : le message le dit.
+  try {
+    const a = (Array.isArray(d?.scenarios) ? d.scenarios : []).map(clean).filter(Boolean);
     if (
       !a.length ||
       !(await dlg('Importer ' + a.length + ' scénario(s) ?', {
@@ -396,7 +402,7 @@ $('#imf').onchange = async e => {
     $('#dc').close();
     showList();
   } catch (x) {
-    dlg('Fichier invalide');
+    dlg('Import interrompu', { m: x?.message || String(x) });
   }
 };
 $('#dcc').onclick = () => $('#dc').close();
@@ -547,11 +553,19 @@ const shrink = f =>
       im.onload = () => {
         const w = Math.min(600, im.width),
           h = Math.round((im.height * w) / im.width),
-          c = document.createElement('canvas');
+          c = document.createElement('canvas'),
+          g = c.getContext('2d');
         c.width = w;
         c.height = h;
-        c.getContext('2d').drawImage(im, 0, 0, w, h);
-        res(c.toDataURL('image/webp', 0.75));
+        g.drawImage(im, 0, 0, w, h);
+        const u = c.toDataURL('image/webp', 0.75);
+        if (u.startsWith('data:image/webp')) return res(u);
+        // Safari n'encode pas le WebP et rendrait un PNG plusieurs fois plus lourd : JPEG, sans transparence,
+        // sur le fond de l'application plutôt que sur du noir.
+        g.fillStyle = '#0a0a0b';
+        g.fillRect(0, 0, w, h);
+        g.drawImage(im, 0, 0, w, h);
+        res(c.toDataURL('image/jpeg', 0.8));
       };
       im.onerror = () => res('');
       im.src = r.result;

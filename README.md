@@ -48,7 +48,7 @@ L'IA reçoit **en permanence** la liste de tous les personnages du monde, une li
 
 La **fiche complète** n'est envoyée que lorsque le personnage est en scène, ou qu'il revient assez souvent pour rester en cache (voir « Personnages récurrents ») : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
 
-Tant que l'ensemble des fiches tient dans un budget modeste (environ 3 000 tokens), aucune n'est filtrée : un scénario de quelques personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable. Le lorebook suit la même règle, avec le même budget.
+Tant que l'ensemble des fiches tient dans un budget modeste (environ 5 000 tokens), aucune n'est filtrée : un scénario de quelques personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable. Le lorebook suit la même règle, avec le même budget.
 
 La partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Le lorebook garde son fonctionnement par mots-clés si « Entrées max » est réglé dans le scénario, et tout redevient déclenché au-delà du budget.
 
@@ -131,7 +131,7 @@ Le laiton `#e8b45c` est réservé aux **actions** : bouton « Nouveau », « Rep
 
 La marque est un **croissant posé sur une ligne d'horizon**. Elle vit à trois endroits qui doivent rester d'accord : le symbole `#i-logo` dans `index.html` (en-tête de la liste et écran vide), les cinq `icon-*.png` qui en sont le rendu en laiton sur le fond, et la variable CSS `--ast`, le même tracé en masque, qui dessine le motif des vignettes sans couverture. Si l'accent ou le dessin change, les cinq PNG sont à régénérer, sans quoi l'icône d'accueil jurera avec l'application.
 
-Pour afficher une couverture sur un scénario GitHub, ajoutez une image `cover.webp` (ou `.png`, `.jpg`) dans son dossier. Pour un scénario créé dans l'application, choisissez une image dans ses réglages : elle est réduite à 600 px de large et convertie en WebP avant d'être stockée sur l'appareil. Elle sert de vignette dans la liste et d'en-tête dans la conversation. Sans couverture, un visuel est généré à partir du nom : teinte, position du croissant (quatre géométries) et initiale du titre en grand, pour que deux scénarios voisins ne se ressemblent pas.
+Pour afficher une couverture sur un scénario GitHub, ajoutez une image `cover.webp` (ou `.png`, `.jpg`) dans son dossier. Pour un scénario créé dans l'application, choisissez une image dans ses réglages : elle est réduite à 600 px de large et convertie en WebP (en JPEG sur Safari, qui n'encode pas le WebP) avant d'être stockée sur l'appareil. Elle sert de vignette dans la liste et d'en-tête dans la conversation. Sans couverture, un visuel est généré à partir du nom : teinte, position du croissant (quatre géométries) et initiale du titre en grand, pour que deux scénarios voisins ne se ressemblent pas.
 
 Les onglets de filtre affichent le nombre de scénarios qu'ils contiennent, et la navigation entre la liste et une conversation passe par un fondu (`startViewTransition`) là où le navigateur le gère.
 
@@ -319,7 +319,7 @@ Les **erreurs passagères** sont relancées de la même façon, jusqu'à trois f
 
 Le message dit la cause de l'attente : « Claude a refusé l'envoi (limite de débit) », « Claude est surchargé ou en panne » ou « connexion perdue ».
 
-Avant l'envoi, le décompte est estimé à 3,4 caractères par token ; le nombre réel, renvoyé par Claude, s'affiche après la réponse (« réel : … »).
+Avant l'envoi, le décompte est estimé à 2,2 caractères par token (mesuré sur les décomptes réels de Sonnet et Haiku 5.5, en français) ; le nombre réel, renvoyé par Claude, s'affiche après la réponse (« réel : … »).
 
 ## Mémoire
 

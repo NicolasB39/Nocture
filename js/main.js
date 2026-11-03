@@ -13,7 +13,7 @@ import './settings.js';
 import './backup.js';
 import './journal.js';
 
-const VERSION = 'beb0f04eef';
+const VERSION = '16975c1077';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(
@@ -51,8 +51,13 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     .catch(() => {});
 }
 if (!LS.get('first')) LS.set('first', Date.now());
+// Base ouverte : une panne plus loin vient d'ailleurs que du stockage, le message le dit.
+let opened = false;
 openDB()
-  .then(() => Promise.resolve(navigator.storage?.persist?.()).catch(() => {}))
+  .then(() => {
+    opened = true;
+    return Promise.resolve(navigator.storage?.persist?.()).catch(() => {});
+  })
   .then(loadSet)
   .then(() => loadStats().then(loadUsage, () => {}))
   .then(() => {
@@ -98,6 +103,6 @@ openDB()
   .then(() => sync())
   .catch(e =>
     window.__boot?.fail(
-      'Stockage local indisponible (navigation privée ?) : ' + (e?.message || e)
+      (opened ? 'Démarrage interrompu : ' : 'Stockage local indisponible (navigation privée ?) : ') + (e?.message || e)
     )
   );

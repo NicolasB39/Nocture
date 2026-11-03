@@ -4,7 +4,7 @@ import { $, LS, el, ic, plain, toast } from './util.js';
 
 const ok = typeof speechSynthesis != 'undefined' && typeof SpeechSynthesisUtterance != 'undefined';
 export const ttsOk = ok;
-const T = { q: [], pos: 0, run: 0, state: 'idle', msg: -1 };
+const T = { q: [], pos: 0, run: 0, state: 'idle', msg: -1, u: null };
 const FS = [14, 30];
 
 export const applyFs = () => {
@@ -128,6 +128,9 @@ function next() {
     T.pos++;
     next();
   };
+  // Gardé en référence : sur Chrome, un énoncé que plus rien ne retient peut être libéré en pleine lecture, et
+  // son onend ne vient jamais.
+  T.u = u;
   speechSynthesis.speak(u);
 }
 function stop() {

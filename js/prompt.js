@@ -5,8 +5,9 @@ import { RECALL_N, recall, recallTag } from './recall.js';
 import { S, ctx } from './state.js';
 import { nz } from './util.js';
 
-// Estimation, avant l'envoi : environ 3,4 caractères par token en français. Le vrai compte vient de la réponse.
-export const estTok = t => Math.ceil(t.length / 3.4) + 4;
+// Estimation, avant l'envoi : 2,2 caractères par token, mesuré sur les décomptes réels de Sonnet et Haiku 5.5
+// (récit en français, balises comprises). Le vrai compte vient de la réponse.
+export const estTok = t => Math.ceil(t.length / 2.2) + 4;
 export const statOn = s => s.stat ?? !!(s.remote && ctx.stat);
 export const statFields = s =>
   (s.statFields || '').trim() || (s.remote ? ctx.stat : '') || DEFAULT_FIELDS;
@@ -23,8 +24,8 @@ const loreTag = a => (a.length ? '\n\n<lorebook>\n' + a.map(e => e.text).join('\
 // La partie fixe du prompt est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et
 // Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des
 // fiches et un lorebook modestes coûtent donc moins en entier dans la partie fixe que par morceaux en fin de
-// requête ; au-delà de CACHED_FREE, seuls les actifs partent.
-const CACHED_FREE = 3000;
+// requête ; au-delà de CACHED_FREE tokens, seuls les actifs partent.
+const CACHED_FREE = 5000;
 export const toks = L => L.reduce((a, x) => a + estTok(x.text), 0);
 // Lorebook entier en partie fixe, sauf limite d'entrées choisie dans le scénario.
 const loreAll = max => !max && toks(ctx.lore || []) <= CACHED_FREE;
