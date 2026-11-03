@@ -16,9 +16,11 @@
       .then(
         function (t) {
           return t.indexOf("'nocturne-") >= 0
-            ? clear().then(function () {
-                then(true);
-              })
+            ? clear()
+                .then(fresh)
+                .then(function () {
+                  then(true);
+                })
             : then(false);
         },
         function () {
@@ -50,13 +52,34 @@
       );
     return Promise.all(tasks).catch(function () {});
   }
+  // Installe le service worker et attend qu'il prenne la page en main (20 s au plus). Il télécharge tous les
+  // fichiers avec le numéro de version dans l'adresse, sans cache : le rechargement qui suit les sert d'un seul
+  // tenant. Sans lui, la page relirait les fichiers un par un, et l'hébergeur garde parfois jusqu'à 10 minutes
+  // après un déploiement une ancienne copie de l'un d'eux (« ne fournit pas l'export… »).
+  function fresh() {
+    var sw = navigator.serviceWorker;
+    if (!sw || !sw.register) return Promise.resolve();
+    return Promise.race([
+      new Promise(function (res) {
+        sw.addEventListener('controllerchange', res, { once: true });
+        sw.register('sw.js').catch(res);
+      }),
+      new Promise(function (res) {
+        setTimeout(res, 20000);
+      })
+    ]);
+  }
   function btn(label, primary, fn) {
     var b = document.createElement('button');
     b.textContent = label;
     b.style.cssText =
       'flex:1;padding:12px;border:0;border-radius:14px;font:600 15px system-ui,sans-serif;cursor:pointer;' +
       (primary ? 'background:#e8b45c;color:#0a0a0b' : 'background:#3b3b47;color:#f2f2ee');
-    b.onclick = fn;
+    b.onclick = function () {
+      b.disabled = true;
+      b.textContent = 'Un instant…';
+      fn();
+    };
     return b;
   }
   function render() {
@@ -97,9 +120,13 @@
     var row = document.createElement('div');
     row.style.cssText = 'display:flex;gap:8px';
     row.appendChild(btn('Réparer', true, repair));
+    // Page sans service worker (première visite, ou démarrage tombé avant de l'enregistrer) : il est installé
+    // d'abord, pour que le rechargement ne reprenne pas les mêmes copies dépareillées.
     row.appendChild(
       btn('Recharger', false, function () {
-        location.reload();
+        (navigator.serviceWorker && navigator.serviceWorker.controller ? Promise.resolve() : fresh()).then(function () {
+          location.reload();
+        });
       })
     );
     box.appendChild(row);
