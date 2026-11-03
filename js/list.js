@@ -40,10 +40,10 @@ const coverImg = (id, src) => {
   }
   return e;
 };
+// Ordre de la liste : épinglées d'abord, puis la plus récemment modifiée.
+export const byRecent = (x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || y.updated - x.updated;
 export async function draw() {
-  const a = (await getAll()).sort(
-    (x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || y.updated - x.updated
-  );
+  const a = (await getAll()).sort(byRecent);
   const T0 = localTree();
   const q = nz($('#q').value.trim());
   let f = a.filter(s =>

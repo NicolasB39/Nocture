@@ -107,22 +107,43 @@ const sig = st => (st || []).map(x => x[0] + '=' + x[1]).join('|');
 // Panneau d'état : une rangée de pastilles (les premières valeurs, avec leur variation), dépliée d'un toucher
 // en grille détaillée avec les jauges. Le choix plié / déplié vaut pour toute l'appli.
 const ST_N = 3;
+// Valeurs de l'état du message i, avec leur variation depuis l'état précédent.
+const stRows = (i, m) => {
+  const pm = new Map(lastEtat(app.cur.messages, i) || []);
+  return m.state.map(([k, v]) => {
+    const a = numOf(v),
+      b = pm.has(k) ? numOf(pm.get(k)) : null,
+      d = a != null && b != null && a !== b ? a - b : null;
+    return { k, v, d };
+  });
+};
+const dl = (d, short) =>
+  d != null &&
+  el('em', {
+    class: 'dl ' + (d > 0 ? 'up' : 'dn'),
+    text: (d > 0 ? (short ? '▲' : '▲ +') : short ? '▼' : '▼ ') + Math.round(Math.abs(d) * 100) / 100
+  });
+// Grille détaillée : une case par valeur, avec une jauge pour les valeurs « 40/100 ».
+const stGrid = rows =>
+  el(
+    'div',
+    { class: 'stg' },
+    rows.map(({ k, v, d }) => {
+      const r = v.match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/),
+        p = r ? Math.max(0, Math.min(100, (+r[1].replace(',', '.') / +r[2].replace(',', '.')) * 100)) : null;
+      return el(
+        'div',
+        { class: 'kv' },
+        el('span', { text: k }),
+        el('b', null, v, dl(d)),
+        p != null && el('i', { class: 'bar' }, el('u', { style: 'width:' + p + '%' }))
+      );
+    })
+  );
 const stCard = (i, m) => {
   if (!m.state?.length || !statOn(app.cur)) return null;
-  const pm = new Map(lastEtat(app.cur.messages, i) || []),
-    open = LS.get('stOpen') == '1',
-    rows = m.state.map(([k, v]) => {
-      const a = numOf(v),
-        b = pm.has(k) ? numOf(pm.get(k)) : null,
-        d = a != null && b != null && a !== b ? a - b : null;
-      return { k, v, d };
-    }),
-    dl = (d, short) =>
-      d != null &&
-      el('em', {
-        class: 'dl ' + (d > 0 ? 'up' : 'dn'),
-        text: (d > 0 ? (short ? '▲' : '▲ +') : short ? '▼' : '▼ ') + Math.round(Math.abs(d) * 100) / 100
-      }),
+  const open = LS.get('stOpen') == '1',
+    rows = stRows(i, m),
     more = rows.length - ST_N;
   return el(
     'div',
@@ -138,23 +159,7 @@ const stCard = (i, m) => {
       'div',
       { class: 'stx' },
       el('button', { class: 'stl', 'aria-expanded': String(open) }, 'État', ic('down', 14)),
-      el(
-        'div',
-        { class: 'stg' },
-        rows.map(({ k, v, d }) => {
-          const r = v.match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/),
-            p = r
-              ? Math.max(0, Math.min(100, (+r[1].replace(',', '.') / +r[2].replace(',', '.')) * 100))
-              : null;
-          return el(
-            'div',
-            { class: 'kv' },
-            el('span', { text: k }),
-            el('b', null, v, dl(d)),
-            p != null && el('i', { class: 'bar' }, el('u', { style: 'width:' + p + '%' }))
-          );
-        })
-      )
+      stGrid(rows)
     )
   );
 };
@@ -355,7 +360,9 @@ export function render(sc) {
   for (const k of ['--ac', '--acs', '--act', '--acb', '--on'])
     if (av) ch.style.setProperty(k, av[k]);
     else ch.style.removeProperty(k);
-  castView(inScene(ms.slice(-6)));
+  const pr = inScene(ms.slice(-6));
+  castView(pr);
+  sideView(pr);
   const chList = list =>
     el(
       'div',
@@ -459,6 +466,42 @@ function castView(pr) {
       : [ic('users')])
   );
 }
+// Grand écran (ordinateur) : même seuil que les @media (min-width: 1200px) de style.css.
+export const WIDE = matchMedia('(min-width: 1200px)');
+// Grand écran : à droite, les personnages en scène et le dernier état, toujours visibles. Sans rien à
+// montrer, pas de colonne (classe sd absente). Reconstruit seulement quand son contenu change.
+function sideView(pr) {
+  if (!WIDE.matches) return;
+  const ms = app.cur.messages,
+    i = statOn(app.cur) ? ms.findLastIndex(m => m.role == 'assistant' && m.state?.length) : -1,
+    sd = $('#side'),
+    k = [app.cur.id, ctx.chars?.length, ctx.iv, pr.map(c => c.name).join('|'), i < 0 ? '' : i + sig(ms[i].state)].join(':');
+  if (sd.dataset.k === k) return;
+  sd.dataset.k = k;
+  const parts = [
+    ctx.chars?.length &&
+      el(
+        'section',
+        null,
+        el('h2', { class: 'sdh', text: 'En scène' }),
+        pr.length
+          ? el(
+              'button',
+              {
+                class: 'sdc',
+                'aria-label': 'Personnages en scène : ' + pr.map(c => c.name).join(', '),
+                onclick: () => $('#pe').click()
+              },
+              pr.map(c => el('span', { class: 'sdp' }, face(c), el('span', { text: c.name })))
+            )
+          : el('p', { class: 'hint', text: 'Personne en scène pour l’instant.' })
+      ),
+    i >= 0 && el('section', null, el('h2', { class: 'sdh', text: 'État' }), stGrid(stRows(i, ms[i])))
+  ].filter(Boolean);
+  sd.replaceChildren(...parts);
+  $('#chat').classList.toggle('sd', parts.length > 0);
+}
+WIDE.onchange = () => app.cur && !$('#chat').hidden && sideView(inScene(app.cur.messages.slice(-6)));
 $('#tk').onclick = e => {
   const t = $('#tk');
   if (t.classList.contains('w') || !e.target.closest('.tks, .tkl')) return;

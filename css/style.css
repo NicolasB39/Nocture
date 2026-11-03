@@ -376,6 +376,12 @@ header button:active {
   aspect-ratio: 16/10;
   max-height: 380px;
 }
+/* Sur ordinateur, la carte « Reprendre » ne prend plus tout l'écran. */
+@media (min-width: 900px) {
+  .hero {
+    max-height: 280px;
+  }
+}
 .hero .art::before {
   width: min(46%, 300px);
   right: 5%;
@@ -537,6 +543,153 @@ header button:active {
   display: block;
   font: 700 17px/1.25 var(--sans);
   letter-spacing: -0.01em;
+}
+/* Grand écran : la conversation garde sa largeur de lecture ; à droite, les personnages en scène et l'état
+   (classe sd, posée par view.js quand il y a quelque chose à y montrer). Le titre ouvre le changement
+   d'histoire. */
+#side,
+#sw {
+  display: none;
+}
+@media (min-width: 1200px) {
+  #chat.sd {
+    max-width: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
+  }
+  #chat.sd > header {
+    grid-area: 1 / 1 / 2 / -1;
+  }
+  #chat.sd > #mw {
+    grid-area: 2 / 1;
+  }
+  #chat.sd > #tk {
+    grid-area: 3 / 1;
+  }
+  #chat.sd > footer {
+    grid-area: 4 / 1;
+  }
+  #chat.sd > :is(#mw, #tk, footer) {
+    width: 100%;
+    max-width: var(--cw);
+    justify-self: center;
+  }
+  #chat.sd > #side {
+    display: flex;
+    grid-area: 2 / 2 / 5 / 3;
+  }
+  /* La pastille de lecture à voix haute reste centrée sur la conversation, pas sur l'écran. */
+  #chat.sd:not(.reading) > #tts {
+    left: calc(50% - 150px);
+  }
+  #chat.sd.reading {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #chat.sd.reading > #side {
+    display: none;
+  }
+  #sw {
+    display: grid;
+    width: 34px;
+    margin-right: auto;
+  }
+  #chat header h1 {
+    flex: 0 1 auto;
+    cursor: pointer;
+  }
+}
+#side {
+  flex-direction: column;
+  gap: 28px;
+  min-height: 0;
+  padding: 20px 22px;
+  border-left: 1px solid var(--bd);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.sdh {
+  margin: 0 0 12px;
+  color: var(--mu);
+  font: 700 11px/1.2 var(--sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.sdc {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  border-radius: 12px;
+  text-align: left;
+}
+.sdp {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+}
+#side .pav,
+#side .scn.av {
+  width: 40px;
+  height: 40px;
+  font-size: 17px;
+}
+#side .stg {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 0;
+}
+#swl {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+.swi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  border-radius: 14px;
+  text-align: left;
+}
+.swi img,
+.swi .pav {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  object-fit: cover;
+  font-size: 20px;
+}
+.swt {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.swt > * {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.swt b {
+  font-weight: 600;
+}
+.swt small {
+  color: var(--mu2);
+  font-size: 12.5px;
+}
+.swi.on {
+  background: var(--act);
+}
+.swi.on b {
+  color: var(--ac);
+}
+@media (hover: hover) and (pointer: fine) {
+  .swi:not(.on):hover,
+  .sdc:hover {
+    background: var(--s2);
+  }
 }
 #mw {
   position: relative;
@@ -1379,6 +1532,24 @@ dialog::before {
   margin: 2px auto 14px;
   border-radius: 2px;
   background: var(--s3);
+}
+/* À la souris, pas de poignée : il n'y a rien à faire glisser. Sur grand écran, la feuille Scénario s'élargit
+   pour écrire le prompt. */
+@media (hover: hover) and (pointer: fine) {
+  dialog::before {
+    content: none;
+  }
+  dialog {
+    padding-top: 22px;
+  }
+}
+@media (min-width: 1200px) {
+  #ds {
+    max-width: 760px;
+  }
+  #ssys {
+    min-height: 45dvh;
+  }
 }
 dialog h2 {
   margin: 0 0 6px;

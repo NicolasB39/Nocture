@@ -314,6 +314,15 @@ $('#mac').onclick = () => {
     .then(() => toast('Message copié'))
     .catch(() => toast('Copie impossible'));
 };
+// Flèche haut dans le champ vide (au clavier) : modifier et renvoyer le dernier tour du joueur.
+$('#inp').addEventListener('keydown', e => {
+  if (e.key != 'ArrowUp' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || $('#inp').value || app.busy) return;
+  const i = app.cur.messages.findLastIndex(m => m.role == 'user');
+  if (i < 0) return;
+  e.preventDefault();
+  app.actI = i;
+  editOpen(true);
+});
 const editOpen = re => {
   $('#dma').close();
   if (app.busy) return;

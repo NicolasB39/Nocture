@@ -179,6 +179,14 @@ export const getAll = () =>
     const cv = new Map(c.map(x => [x.id, x.d]));
     return m.map(x => ({ ...x, cover: cv.get(x.id) || '' }));
   });
+// Les histoires que pick retient sur leurs métadonnées, avec leur couverture : seules ces couvertures sont lues.
+export const getSome = pick =>
+  read(['meta'], { m: ['meta'] }).then(({ m }) => {
+    const a = pick(m);
+    return read(['covers'], Object.fromEntries(a.map((x, i) => [i, ['covers', x.id]]))).then(c =>
+      a.map((x, i) => ({ ...x, cover: c[i]?.d || '' }))
+    );
+  });
 export const getFull = () =>
   read(['scenarios', 'chunks', 'covers'], { h: ['scenarios'], k: ['chunks'], c: ['covers'] }).then(
     ({ h, k, c }) => {

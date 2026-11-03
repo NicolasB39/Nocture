@@ -137,7 +137,11 @@ Les onglets de filtre affichent le nombre de scénarios qu'ils contiennent, et l
 
 Les cartes portent les étiquettes utiles : « Nouveau » pour une histoire jamais jouée, « Brouillon » quand un tour commencé attend dans la saisie, « Épinglé » pour celles qu'on garde en tête de liste (menu « … », Épingler). L'épinglage compte comme une modification : il se synchronise entre appareils.
 
-Au clavier : `/` place le curseur dans la recherche, `Échap` quitte une conversation.
+Au clavier : `/` place le curseur dans la recherche, `Échap` quitte une conversation, `Ctrl+K` (`Cmd+K` sur Mac) ouvre le changement d'histoire dans une conversation ou la recherche dans la bibliothèque, et `↑` dans le champ vide modifie et renvoie votre dernier tour. À la souris, les boutons sans texte affichent leur nom au survol.
+
+### Sur ordinateur
+
+À partir de 1200 px de large, la conversation garde sa largeur de lecture et un panneau à droite montre en permanence les personnages en scène (toucher l'un d'eux ouvre la fenêtre Personnages) et le dernier état, avec ses jauges et ses variations. Sans fiches ni panneau d'état, la colonne n'apparaît pas ; en mode lecture, elle se replie. Le titre, suivi d'un chevron, ouvre la liste des huit dernières histoires commencées (épinglées d'abord) pour en changer sans repasser par la bibliothèque ; la flèche de retour y mène toujours. Changer d'histoire pendant une réponse l'arrête, comme un retour à la bibliothèque. À la souris, les feuilles perdent leur poignée ; sur grand écran, la feuille Scénario s'élargit et son prompt système gagne en hauteur. Sous 1200 px, et sur téléphone, rien ne change.
 
 ### Police du récit
 

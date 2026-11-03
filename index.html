@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="cabf06832a">
+<meta name="app-version" content="52f6d11a1d">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -60,7 +60,7 @@
 <symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></symbol>
 <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
 <symbol id="i-chevl" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
-<symbol id="i-chevr" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-chevr" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-chevd" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 <symbol id="i-chevsr" viewBox="0 0 24 24"><path d="m6 17 5-5-5-5M13 17l5-5-5-5"/></symbol>
 <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
@@ -97,6 +97,7 @@
 <header>
 <button id="back" aria-label="Retour"><svg class="i"><use href="#i-back"/></svg></button>
 <h1 id="ct"></h1>
+<button id="sw" aria-label="Changer d'histoire" aria-haspopup="dialog"><svg class="i"><use href="#i-chevd"/></svg></button>
 <button id="pe" aria-label="Personnages"><svg class="i"><use href="#i-users"/></svg></button>
 <button id="mo" aria-label="Options de l'histoire"><svg class="i"><use href="#i-more"/></svg></button>
 </header>
@@ -112,6 +113,7 @@
 <button id="rp" aria-label="Agrandir le texte">A+</button>
 <button id="rx" aria-label="Quitter le mode lecture"><svg class="i"><use href="#i-x"/></svg></button>
 </div>
+<aside id="side" aria-label="Scène en cours"></aside>
 </main>
 
 <dialog id="mn" aria-labelledby="mnt">
@@ -254,6 +256,12 @@
 <div id="jrl"></div>
 <div class="row l"><button id="jre">Exporter</button><button id="jrg" hidden>Envoyer sur GitHub</button><button id="jrx">Vider</button></div>
 <div class="row"><button id="jrc" class="primary">Fermer</button></div>
+</dialog>
+
+<dialog id="dsw" aria-labelledby="hdsw">
+<h2 id="hdsw">Changer d'histoire</h2>
+<div id="swl"></div>
+<div class="row"><button id="swc">Fermer</button></div>
 </dialog>
 
 <dialog id="dsm" aria-labelledby="hdsm">
