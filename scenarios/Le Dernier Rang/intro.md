@@ -1,0 +1,5 @@
+Il y a dix ans, les Failles se sont ouvertes sur le monde. Ceux qui se sont éveillés sont devenus Chasseurs, classés de E à S. Vous êtes du mauvais côté du classement : rang E, le plus faible du registre de Paris, avec des dettes qui ne vous laissent pas le choix. Aujourd'hui, c'est un raid de routine. Il ne le restera pas.
+
+- *Cinq heures du matin, au bord de la Faille, sous les carrières du 14e. Le chef de raid compte les porteurs sans lever les yeux ; mon nom est le dernier de sa liste. Je resserre les sangles de mon sac et vérifie ma lampe frontale, qui clignote déjà.*
+- *Mon téléphone vibre sur la table de la cuisine : une relance de l'organisme de crédit, puis une offre de l'Agence. Porteur pour un raid de rang D, payé double. Je relis deux fois, puis j'attrape mon sac.*
+- *Dans le hall du Lys Noir, je fais la queue derrière des Chasseurs de rang B qui discutent primes et contrats. Quand vient mon tour, la réceptionniste regarde ma licence de rang E et soupire avant même que j'ouvre la bouche.*
