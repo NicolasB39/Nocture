@@ -121,12 +121,15 @@ const chBlock = s => {
         '\n</chapitres>'
     : '';
 };
+// Le résumé et les lignes récentes s'arrêtent 40 à 120 messages avant le dernier (mise à jour par lots) : comme
+// pour les relations, l'IA est prévenue que les messages envoyés tels quels l'emportent.
+const BEFORE = "\n(Antérieur aux messages qui suivent : s'ils le contredisent, ils priment.)";
 const memBlock = s => {
   let t = '';
   if (s.mem.summary.trim())
-    t += '\n\n<previous_history>\n' + clip(s.mem.summary, SUM_MAX) + '\n</previous_history>';
+    t += '\n\n<previous_history>' + BEFORE + '\n' + clip(s.mem.summary, SUM_MAX) + '\n</previous_history>';
   if (s.mem.lines?.length)
-    t += '\n\n<recent_history>\n' + s.mem.lines.map(x => '- ' + x.t).join('\n') + '\n</recent_history>';
+    t += '\n\n<recent_history>' + BEFORE + '\n' + s.mem.lines.map(x => '- ' + x.t).join('\n') + '\n</recent_history>';
   const k = s.memN ?? MEM_N,
     mm = k > 0 ? (s.mem.memories || []).slice(-k) : [];
   if (mm.length)

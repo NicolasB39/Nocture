@@ -272,7 +272,7 @@ test('chapitres : envoyés en tête de la mémoire, les plus anciens par leur ti
     mem: { summary: 'En cours.', memories: [], relations: {}, lines: [], upto: 0, chapters: Array.from({ length: 14 }, (_, i) => ({ t: 'T' + (i + 1), s: 'Résumé ' + (i + 1), upto: 0 })) }
   };
   const sys = buildInfo(s).msgs[0].content;
-  assert.match(sys, /<chapitres>\nChapitre 1 : T1\n\nChapitre 2 : T2\n\nChapitre 3 : T3\nRésumé 3[\s\S]*Résumé 14\n<\/chapitres>[\s\S]*<previous_history>\nEn cours\./);
+  assert.match(sys, /<chapitres>\nChapitre 1 : T1\n\nChapitre 2 : T2\n\nChapitre 3 : T3\nRésumé 3[\s\S]*Résumé 14\n<\/chapitres>[\s\S]*<previous_history>\n\(Antérieur aux messages qui suivent[^)]*\)\nEn cours\./);
   assert.doesNotMatch(sys, /Résumé [12]\b/);
 });
 
