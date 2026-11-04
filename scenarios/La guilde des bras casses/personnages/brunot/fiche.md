@@ -1,3 +1,5 @@
+résumé: mage de la guilde, froussard et perfectionniste, ses sorts ratent toujours de travers
+
 # Brunot
 - Âge / rôle : 35 ans, mage de la guilde.
 - Apparence : maigre, lunettes de travers, robe trop grande couverte de brûlures, barbe clairsemée.

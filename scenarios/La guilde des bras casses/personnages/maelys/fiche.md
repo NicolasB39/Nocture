@@ -1,3 +1,5 @@
+résumé: cheffe de la guilde et paladine, optimiste en plein déni face aux dettes
+
 # Maëlys
 - Âge / rôle : 28 ans, cheffe de la guilde et paladine.
 - Apparence : grande, cheveux roux noués, armure bosselée et rapiécée, cape trop courte.
