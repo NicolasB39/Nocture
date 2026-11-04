@@ -49,6 +49,13 @@ test('ce qui réécrit le cache est nommé : mémoire, modèle, message modifié
   assert.equal(prefixDiff(p, req([u('un'), a('A1 modifiée'), u('deux')], { mem: 'M1' })), 'du message 2');
 });
 
+test('appel d’avant la v90 : la mémoire reste le dernier bloc, les fiches en cache sont nommées à part', () => {
+  const sys = mid => [{ type: 'text', text: 'Fixe' }, { type: 'text', text: mid }, { type: 'text', text: 'Mémoire' }];
+  const p = { model: 'm', system: sys('Fiche A'), messages: [{ role: 'user', content: 'un' }, { role: 'assistant', content: 'A1' }, { role: 'user', content: 'deux' }] };
+  assert.equal(prefixDiff(p, { ...p, system: sys('Fiche B') }), 'des personnages récurrents');
+  assert.equal(prefixDiff(p, { ...p, system: [...sys('Fiche A').slice(0, 2), { type: 'text', text: 'Autre' }] }), 'de la mémoire (résumé, souvenirs, relations, note)');
+});
+
 test('la fin de requête est découpée en blocs ajoutés par l’application', () => {
   const b = req([u('Je pousse la porte.', '\n\n<lorebook>\n' + 'L'.repeat(340) + '\n</lorebook>\n\n<etat_precedent>\nLieu: Quai\n</etat_precedent>')]);
   const t = Object.fromEntries(tailParts(b));

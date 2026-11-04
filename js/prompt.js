@@ -55,12 +55,13 @@ const charsFor = ms => {
 };
 const permBlock = () => {
   const C = charsPerm(),
+    all = loreAll(),
     im = (ctx.chars || []).filter(c => c.images?.length);
   return (
     (C.length
       ? '\n\n<personnages>' + C.map(x => '\n\n## ' + x.name + '\n' + x.text).join('') + '\n</personnages>'
       : '') +
-    loreTag((ctx.lore || []).filter(e => e.always || loreAll()).sort((x, y) => y.pr - x.pr)) +
+    loreTag((ctx.lore || []).filter(e => e.always || all).sort((x, y) => y.pr - x.pr)) +
     (im.length
       ? '\n\n<images_disponibles>\n' +
         im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +

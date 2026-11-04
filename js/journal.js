@@ -1,6 +1,6 @@
 import { bkOn, ghSaveFile } from './backup.js';
 import { costOf, money, priceOf } from './cost.js';
-import { estTok } from './prompt.js';
+import { estTok, toks } from './prompt.js';
 import { S } from './state.js';
 import { clearCalls, getCallBody, getCalls } from './store.js';
 import { $, dlg, el, saveFile, toast } from './util.js';
@@ -15,7 +15,11 @@ const txt = c => (typeof c == 'string' ? c : (c || []).map(b => b.text || '').jo
 // Blocs du préfixe, dans l'ordre où le cache les lit : modèle et effort, blocs système, puis messages.
 export const blocks = b => [
   ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null])],
-  ...(b.system || []).map((x, i) => [i ? 'de la mémoire (résumé, souvenirs, relations, note)' : 'de la partie fixe du prompt', x.text]),
+  // Système : partie fixe, mémoire en dernier ; entre les deux, les fiches en cache des appels d'avant la v90.
+  ...(b.system || []).map((x, i, a) => [
+    !i ? 'de la partie fixe du prompt' : i == a.length - 1 ? 'de la mémoire (résumé, souvenirs, relations, note)' : 'des personnages récurrents',
+    x.text
+  ]),
   ...(b.messages || []).map((m, i) => ['du message ' + (i + 1), m.role + txt(m.content)])
 ];
 // Le cache de la requête prev couvre tout jusqu'à son avant-dernier message (marqueur posé par toAnt). Rend null
@@ -88,7 +92,7 @@ const detail = async (c, prev, reads) => {
         'Composition',
         [
           'partie fixe ≈ ' + f(estTok(sys[0]?.text || '')),
-          sys[1] && 'mémoire ≈ ' + f(estTok(sys[1].text)),
+          sys.length > 1 && 'mémoire ≈ ' + f(toks(sys.slice(1))),
           ms.length - 1 + ' messages d’historique ≈ ' + f(ms.slice(0, -1).reduce((a, m) => a + estTok(txt(m.content)), 0)),
           'fin de requête ≈ ' + f(estTok(txt(ms.at(-1)?.content)))
         ]
