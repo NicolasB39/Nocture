@@ -174,7 +174,7 @@ async function forkFrom(i) {
   await openScenario(c.id);
   toast(
     'Bifurcation créée' +
-      (s.mem.upto > i + 1 ? ' · le résumé de la mémoire raconte aussi la suite : relisez-le (… › Mémoire)' : '')
+      (s.mem.upto > i + 1 ? ' · le résumé de la mémoire raconte aussi la suite : relisez-le (… › Mémoire et note)' : '')
   );
 }
 const useAlt = (m, k) => {
@@ -299,7 +299,7 @@ $('#des').onclick = async () => {
   await save();
   render();
   $('#de').close();
-  if (old) toast('Message modifié · le résumé de la mémoire garde la trace de l’ancienne version : relisez-le (… › Mémoire)');
+  if (old) toast('Message modifié · le résumé de la mémoire garde la trace de l’ancienne version : relisez-le (… › Mémoire et note)');
 };
 $('#dpic').onclick = () => $('#dpic').close();
 $('#dpic').addEventListener('close', () => {

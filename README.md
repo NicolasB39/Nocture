@@ -65,7 +65,7 @@ La reconnaissance du code est tolérante : majuscules, accents, espaces, tirets 
 Après avoir renommé des images :
 
 - Les anciens messages gardent les anciens codes : ils afficheront le repère « image introuvable ». Modifiez le message ou régénérez la réponse.
-- Réglages du scénario (menu « … »), section « Images détectées » : vignettes et codes exacts vus par l'application, avec le bouton « Recharger l'index » pour relire la liste des fichiers sans fermer l'application. L'index lui-même n'est régénéré qu'au déploiement GitHub (quelques dizaines de secondes après le push).
+- Réglages de l'histoire (menu « … »), section « Images détectées » : vignettes et codes exacts vus par l'application, avec le bouton « Recharger l'index » pour relire la liste des fichiers sans fermer l'application. L'index lui-même n'est régénéré qu'au déploiement GitHub (quelques dizaines de secondes après le push).
 
 ### Décors
 
@@ -102,7 +102,7 @@ Le dragon dort dans la montagne.
 - `toujours` : entrée toujours injectée, sans mot-clé. Elle va dans la partie stable du prompt, qui reste en cache.
 - `priorité: N` : les valeurs les plus hautes passent en premier (défaut 0).
 
-Dans les réglages du scénario (menu « … », section « Mémoire et lorebook ») : nombre de messages scannés (défaut 2) et nombre maximum d'entrées injectées. Les entrées `toujours` comptent dans ce maximum et passent toujours ; les entrées déclenchées se partagent la place restante, par priorité.
+Dans les réglages de l'histoire (menu « … », section « Mémoire et lorebook ») : nombre de messages scannés (défaut 2) et nombre maximum d'entrées injectées. Les entrées `toujours` comptent dans ce maximum et passent toujours ; les entrées déclenchées se partagent la place restante, par priorité.
 
 ## Protocole et préambule
 
@@ -113,7 +113,7 @@ Conséquences :
 - Faire évoluer un format se fait en un seul endroit, pour tous les scénarios à la fois.
 - Les consignes de format sont concises, les mêmes pour tous les modèles : elles décrivent les blocs <etat> et <choix>, le style et les images sans rappel en fin de requête.
 - Un court bloc « Narration » part aussi pour tous les scénarios : le joueur seul décide de ce que fait, dit, pense et ressent son personnage, les autres n'ont pas accès à ses pensées sauf exception prévue par le scénario (seules les propositions de choix le font agir ou parler), des personnages qui agissent sans attendre le joueur et réagissent entre eux, une voix par personnage, des détails concrets, le retour de ce qui a déjà eu lieu, des réponses qui s'ouvrent sur ce que provoque l'action du joueur au lieu de la raconter de nouveau, et un rythme qui résume ce qui se répète (entraînement, trajet, attente) pour avancer jusqu'au prochain moment qui compte. Les choix par défaut demandent trois registres différents (audacieux, prudent, inattendu).
-- Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Scénario : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
+- Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Réglages de l'histoire : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
 
 Le **préambule commun** (Réglages) est votre texte à vous, ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
 
@@ -135,13 +135,13 @@ Pour afficher une couverture sur un scénario GitHub, ajoutez une image `cover.w
 
 Les onglets de filtre affichent le nombre de scénarios qu'ils contiennent, et la navigation entre la liste et une conversation passe par un fondu (`startViewTransition`) là où le navigateur le gère.
 
-Les cartes portent les étiquettes utiles : « Nouveau » pour une histoire jamais jouée, « Brouillon » quand un tour commencé attend dans la saisie, « Épinglé » pour celles qu'on garde en tête de liste (menu « … », Épingler). L'épinglage compte comme une modification : il se synchronise entre appareils.
+Les cartes portent les étiquettes utiles : « Nouveau » pour une histoire jamais jouée, « Brouillon » quand un tour commencé attend dans la saisie, « Épinglé » pour celles qu'on garde en tête de liste (menu « … » de la carte, ou de la conversation : Épingler). L'épinglage compte comme une modification : il se synchronise entre appareils.
 
 Au clavier : `/` place le curseur dans la recherche, `Échap` quitte une conversation, `Ctrl+K` (`Cmd+K` sur Mac) ouvre le changement d'histoire dans une conversation ou la recherche dans la bibliothèque, et `↑` dans le champ vide modifie et renvoie votre dernier tour. À la souris, les boutons sans texte affichent leur nom au survol.
 
 ### Sur ordinateur
 
-À partir de 1200 px de large, la conversation garde sa largeur de lecture et un panneau à droite montre en permanence les personnages en scène (toucher l'un d'eux ouvre la fenêtre Personnages) et le dernier état, avec ses jauges et ses variations. Sans fiches ni panneau d'état, la colonne n'apparaît pas ; en mode lecture, elle se replie. Le titre, suivi d'un chevron, ouvre la liste des huit dernières histoires commencées (épinglées d'abord) pour en changer sans repasser par la bibliothèque ; la flèche de retour y mène toujours. Changer d'histoire pendant une réponse l'arrête, comme un retour à la bibliothèque. À la souris, les feuilles perdent leur poignée ; sur grand écran, la feuille Scénario s'élargit et son prompt système gagne en hauteur. Sous 1200 px, et sur téléphone, rien ne change.
+À partir de 1200 px de large, la conversation garde sa largeur de lecture et un panneau à droite montre en permanence les personnages en scène (toucher l'un d'eux ouvre la fenêtre Personnages) et le dernier état, avec ses jauges et ses variations. Sans fiches ni panneau d'état, la colonne n'apparaît pas ; en mode lecture, elle se replie. Le titre, suivi d'un chevron, ouvre la liste des huit dernières histoires commencées (épinglées d'abord) pour en changer sans repasser par la bibliothèque ; la flèche de retour y mène toujours. Changer d'histoire pendant une réponse l'arrête, comme un retour à la bibliothèque. À la souris, les feuilles perdent leur poignée ; sur grand écran, la feuille Réglages de l'histoire s'élargit et son prompt système gagne en hauteur. Sous 1200 px, et sur téléphone, rien ne change.
 
 ### Police du récit
 
@@ -152,6 +152,10 @@ Le récit est composé en **Literata** (SIL Open Font License, `fonts/LICENSE-Li
 « Nouveau » demande un nom, puis propose un point de départ : enquête contemporaine, fantasy de voyage, huis clos, ou page blanche. Le canevas choisi remplit le prompt système, qui s'ouvre aussitôt pour être réécrit. Les canevas ne décrivent que la fiction : aucun ne touche au protocole (voir « Protocole et préambule »).
 
 Tant qu'aucune clé API Claude n'est enregistrée, un bandeau le signale en haut de la liste et mène aux Réglages.
+
+### Options de l'histoire
+
+Le menu « … » d'une conversation range ses entrées par usage : en haut, trois tuiles pour les outils de lecture (Sommaire, Rechercher, Mode lecture) ; puis « Mémoire et note » (chapitres, résumé, souvenirs et la note pour l'IA, une consigne envoyée avec la mémoire à chaque tour) et « Réglages de l'histoire » ; enfin, sous « Histoire », Épingler (ou Détacher), Renommer et Exporter en texte, comme depuis la carte de la bibliothèque, et les Réglages de l'application.
 
 ### Actions d'un message
 
@@ -167,16 +171,16 @@ Sous le dernier message restent les actions qu'on utilise en lisant : écouter, 
 - Typographie française à l'affichage (récit et choix) : apostrophes courbes, guillemets « », tirets de dialogue (une ligne qui commence par `- ` ou `-- `), points de suspension, espaces insécables avant `; ! ? :` et dans les guillemets. Le texte enregistré, copié ou envoyé à l'IA ne change pas. Les heures (12:30) et les adresses restent intactes.
 - Le panneau d'état tient en une rangée de pastilles : les trois premières valeurs avec leur variation, et « +N » pour le reste. Le toucher le déplie en grille détaillée avec les jauges ; plié ou déplié, le choix vaut pour toutes les histoires.
 - Les scènes illustrées (décor et personnage) occupent toute la largeur, se fondent dans le fond par le bas et portent le lieu en légende, en haut à gauche. Les portraits sans décor gardent leur cadre.
-- Les personnages détourés sont cadrés aux genoux, comme dans un roman visuel : le haut de la silhouette à 3 % du haut de la scène, les trois quarts de sa hauteur visibles, et le bas de l'image fondu dès 70 %. Les pieds ne sont jamais posés sur un sol à la mauvaise perspective. La case « Montrer les personnages en pied » (feuille Scénario, section Narration) revient au cadrage en pied : 90 % de la hauteur, pieds au bas de l'image. L'agrandissement d'une image montre toujours le personnage en entier.
+- Les personnages détourés sont cadrés aux genoux, comme dans un roman visuel : le haut de la silhouette à 3 % du haut de la scène, les trois quarts de sa hauteur visibles, et le bas de l'image fondu dès 70 %. Les pieds ne sont jamais posés sur un sol à la mauvaise perspective. La case « Montrer les personnages en pied » (feuille Réglages de l'histoire, section Narration) revient au cadrage en pied : 90 % de la hauteur, pieds au bas de l'image. L'agrandissement d'une image montre toujours le personnage en entier.
 - L'en-tête montre les personnages en scène (ceux que les six derniers messages nomment) : trois avatars empilés au plus, puis « +N ». Sans personnage en scène, l'icône Personnages revient. Les toucher ouvre la fenêtre Personnages.
-- Histoire vide : sous la couverture, le titre, l'accroche et jusqu'à trois débuts proposés (toucher pour envoyer, crayon pour modifier). Source : `intro.md` pour un scénario GitHub, le champ « Introduction » de la feuille Scénario sinon. Les lignes qui commencent par `- ` ou `1. ` sont les débuts, le reste l'accroche.
+- Histoire vide : sous la couverture, le titre, l'accroche et jusqu'à trois débuts proposés (toucher pour envoyer, crayon pour modifier). Source : `intro.md` pour un scénario GitHub, le champ « Introduction » de la feuille Réglages de l'histoire sinon. Les lignes qui commencent par `- ` ou `1. ` sont les débuts, le reste l'accroche.
 - Pendant l'attente de la réponse, le premier personnage en scène « réfléchit » (avec son avatar), sur trois lignes fantômes ; sans personnage, « Réflexion… ». Le compteur de secondes apparaît après 2 secondes.
 - Ouvrir une histoire depuis la liste fait glisser sa couverture jusqu'à l'en-tête (transition de vue, environ 0,4 s ; aucune animation si l'appareil demande moins d'animations ou ne gère pas les transitions de vue).
-- Couleur d'accent par scénario (feuille Scénario, sous la couverture) : au choix, ou tirée de la couverture (la teinte la plus vive, éclaircie pour rester lisible). Elle colore le liseré des tours, les numéros des choix, la lettrine, les intertitres et le bouton d'envoi de cette histoire seulement. « Par défaut » revient à la couleur de l'appli.
+- Couleur d'accent par scénario (feuille Réglages de l'histoire, sous la couverture) : au choix, ou tirée de la couverture (la teinte la plus vive, éclaircie pour rester lisible). Elle colore le liseré des tours, les numéros des choix, la lettrine, les intertitres et le bouton d'envoi de cette histoire seulement. « Par défaut » revient à la couleur de l'appli.
 - Les compteurs (option « Afficher les compteurs ») tiennent dans une pastille : tokens du dernier envoi et coût estimé du tour, quand le modèle a un tarif. La toucher affiche le détail (tokens envoyés, cache, messages envoyés).
 - Les suggestions sont des lignes numérotées : toucher le texte l'envoie, le crayon à droite le place dans la zone de saisie.
 
-**Bifurquer d'ici** crée une nouvelle histoire qui reprend jusqu'à ce message inclus, et l'ouvre : on essaie une autre direction sans rien perdre de l'originale, qui reste intacte dans la liste. La copie garde les réglages du scénario, la note, les souvenirs et les relations ; les lignes récentes et les repères de la mémoire sont coupés au point de bifurcation. Le résumé, lui, ne peut pas être coupé : si le message choisi est déjà résumé, la notification invite à relire le résumé (… › Mémoire), qui peut raconter la suite.
+**Bifurquer d'ici** crée une nouvelle histoire qui reprend jusqu'à ce message inclus, et l'ouvre : on essaie une autre direction sans rien perdre de l'originale, qui reste intacte dans la liste. La copie garde les réglages de l'histoire, la note, les souvenirs et les relations ; les lignes récentes et les repères de la mémoire sont coupés au point de bifurcation. Le résumé, lui, ne peut pas être coupé : si le message choisi est déjà résumé, la notification invite à relire le résumé (… › Mémoire et note), qui peut raconter la suite.
 
 ### État et suggestions
 
@@ -234,7 +238,7 @@ Cette fenêtre ne coûte rien : elle n'interroge pas l'IA et ne change pas le pr
 
 ## Lecture
 
-Section « Lecture » des Réglages (roue dentée de la liste, ou menu « … » de la conversation, puis Réglages). Ces réglages s'appliquent et s'enregistrent immédiatement, sans passer par « Enregistrer », et la ligne d'aperçu permet d'en juger, puisque la feuille floute la conversation derrière elle :
+Section « Lecture » des Réglages (roue dentée de la liste, ou menu « … » de la conversation, puis Réglages de l'application). Ces réglages s'appliquent et s'enregistrent immédiatement, sans passer par « Enregistrer », et la ligne d'aperçu permet d'en juger, puisque la feuille floute la conversation derrière elle :
 
 - **Taille du texte** de 14 à 30 px, **interlignage** de 1,4 à 2,1, **police du récit** (serif ou sans serif), **largeur de colonne** et **paragraphes**, avec aperçu. Les réglages sont conservés sur l'appareil.
 - La largeur de colonne est une vraie mesure : elle vaut le nombre choisi multiplié par la taille du texte, donc agrandir le texte élargit la colonne et le nombre de caractères par ligne reste constant.
@@ -300,7 +304,7 @@ Les résumés partent par appels de 20 messages. Sur une séance mesurée de 13 
 
 **Maintien du cache pendant les pauses.** Lire une réponse puis écrire son tour dépasse souvent 5 minutes : le cache expirait, et le tour suivant réécrivait tout le prompt à 1,25 fois le prix d'entrée. Quand « Garder le cache au chaud pendant les pauses » est coché (Réglages, par défaut), l'application renvoie la dernière requête de narration avec `max_tokens: 0` environ 4 minutes 30 après son début : l'API relit le préfixe au tarif réduit (un dixième de l'entrée, un vingtième sur Opus 5.5), repousse l'échéance de 5 minutes et ne génère rien. Seul le dernier message, hors cache, est payé plein tarif. La relance part sans streaming (refusé avec `max_tokens: 0`) mais avec le même effort, qui fait partie du préfixe. Elle n'a lieu que tant que la conversation est ouverte et la page visible, au plus trois fois d'affilée (une vingtaine de minutes) sans nouvel envoi ; au-delà, mieux vaut laisser expirer. Elle est sans objet avec le cache d'une heure, qui reste préférable pour des pauses régulières de plus de 20 minutes. Les relances sont comptées dans les statistiques.
 
-**Effort.** Sonnet 5.5 et les modèles récents réfléchissent avant de répondre, et cette réflexion, invisible, est facturée comme de la sortie. Réglages du scénario, section Génération : « Effort », **Faible par défaut**, Moyen ou Élevé, envoyé dans `output_config.effort`. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. L'effort n'est envoyé qu'aux modèles qui le prennent en charge (Opus et Sonnet 4.6 et suivants, Opus 4.5, Haiku 5.5, Fable, Mythos) ; Haiku 4.5 et Sonnet 4.5 le refusent, l'application s'en abstient et la note le signale. Les résumés de mémoire partent toujours en effort faible.
+**Effort.** Sonnet 5.5 et les modèles récents réfléchissent avant de répondre, et cette réflexion, invisible, est facturée comme de la sortie. Réglages de l'histoire, section Génération : « Effort », **Faible par défaut**, Moyen ou Élevé, envoyé dans `output_config.effort`. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. L'effort n'est envoyé qu'aux modèles qui le prennent en charge (Opus et Sonnet 4.6 et suivants, Opus 4.5, Haiku 5.5, Fable, Mythos) ; Haiku 4.5 et Sonnet 4.5 le refusent, l'application s'en abstient et la note le signale. Les résumés de mémoire partent toujours en effort faible.
 
 
 **Changer l'effort en cours de partie** change l'effort en tête de requête, ce qui réécrit le cache une fois (quelques centimes sur une longue histoire).
@@ -362,13 +366,13 @@ Le résumé perd forcément des détails : la couleur d'un objet, la phrase exac
 
 La recherche se fait sur l'appareil, sans requête supplémentaire : les mots de vos deux derniers messages (et de l'état) sont comparés à ceux des messages qui ne sont plus envoyés tels quels, parce que la mémoire les a déjà résumés. Un passage n'est retenu que s'il partage au moins deux mots avec la scène, dont un distinctif, c'est-à-dire présent dans un passage sur trois au plus : les mots courants (« pluie », « regard ») et les mots outils ne suffisent jamais. Les plus pertinents passent en premier, puis sont remis dans l'ordre du récit ; l'extrait est le paragraphe qui contient le plus de mots communs.
 
-Le bloc part en queue, avec le lorebook déclenché : il n'invalide rien du cache, et ses tokens entrent dans le compteur comme le reste du dernier message. Réglages du scénario, section « Mémoire et lorebook » : « Passages anciens rappelés » (2 par défaut, 0 pour désactiver).
+Le bloc part en queue, avec le lorebook déclenché : il n'invalide rien du cache, et ses tokens entrent dans le compteur comme le reste du dernier message. Réglages de l'histoire, section « Mémoire et lorebook » : « Passages anciens rappelés » (2 par défaut, 0 pour désactiver).
 
 ## Panneau d'état
 
 L'IA peut suivre l'état du jeu (lieu, santé, argent, humeur…). À chaque réponse elle ajoute un bloc `<etat>` (masqué dans le texte) que l'application affiche dans un panneau sous le titre : deux pastilles repliées, tous les champs une fois ouvert, avec une barre pour les valeurs de la forme `72/100`. L'état précédent est renvoyé à l'IA à chaque tour pour assurer la cohérence.
 
-Activation : menu « … » de la conversation, Réglages du scénario, section Narration, « Panneau d'état », puis la liste des champs (séparés par des virgules ou des lignes). Pour un scénario GitHub, un fichier `etat.md` (par exemple `Lieu, Santé (0/100), Argent, Humeur`) active le panneau par défaut.
+Activation : menu « … » de la conversation, Réglages de l'histoire, section Narration, « Panneau d'état », puis la liste des champs (séparés par des virgules ou des lignes). Pour un scénario GitHub, un fichier `etat.md` (par exemple `Lieu, Santé (0/100), Argent, Humeur`) active le panneau par défaut.
 
 ## Repères dans la conversation
 
@@ -399,9 +403,9 @@ Activation : menu « … » de la conversation, Réglages du scénario, section 
 - Rappel automatique de passages anciens quand la scène reparle d'un détail sorti de l'historique envoyé.
 - Coût estimé par modèle et par période dans les statistiques, en dollars ou en euros.
 - Le bouton stop (et la sortie de la conversation) conserve le texte déjà reçu, que « Continuer » peut prolonger.
-- Mémoire à quatre étages : chapitres, résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note utilisateur (menu « … » de la conversation), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
+- Mémoire à quatre étages : chapitres, résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note pour l'IA (menu « … » de la conversation, « Mémoire et note »), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
 - Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut).
-- Modèle et effort par scénario (section Génération des réglages du scénario). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les statistiques.
+- Modèle et effort par scénario (section Génération des réglages de l'histoire). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les statistiques.
 - Coût des extras affiché sous les cases Choix et Panneau d'état (section Narration) : taille moyenne d'un bloc, part de la sortie et coût pour 100 réponses, mesurés sur les dernières réponses de l'histoire. Ces blocs sont réécrits par l'IA à chaque réponse et payés comme sortie : décochez ceux qui ne servent pas.
 - Protocole de sortie centralisé, conseils de narration communs et préambule commun à tous les scénarios.
 - Modèles proposés dans les champs Modèle : ceux dont le tarif est connu (`js/cost.js`) ; un autre se tape à la main.
@@ -478,7 +482,7 @@ js/
   chat.js           conversation, actions : ouverture, variantes, modification, suppression, bifurcation
   list.js           liste des scénarios : recherche, onglets, menu, création
   nav.js            navigation (bouton retour du téléphone)
-  settings.js       réglages du scénario, mémoire, note, réglages IA, import
+  settings.js       réglages de l'histoire, mémoire, note, réglages IA, import
   backup.js         export, synchronisation GitHub (syncOnce testé avec un dépôt simulé, test/sync.test.js)
   merge.js          fusion des sauvegardes (sans DOM, testé unitairement)
   memory.js         mémoire longue : fusion des souvenirs et des relations, chapitres

@@ -3,7 +3,7 @@ import { on } from './bus.js';
 import { jump, render, tk } from './view.js';
 import { PRICES, money, priceOf } from './cost.js';
 import { fr } from './format.js';
-import { draw, showList } from './list.js';
+import { draw, exportStory, pinStory, renameStory, showList } from './list.js';
 import { extrasOf, statOn } from './prompt.js';
 import { DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
 import { fillLec, setReading } from './read.js';
@@ -127,7 +127,7 @@ export function openSc() {
   imgView();
   if (!$('#ds').open) $('#ds').showModal();
 }
-// Images détectées du scénario GitHub (section de la feuille Scénario).
+// Images détectées du scénario GitHub (section de la feuille Réglages de l'histoire).
 function imgView() {
   const im = ctx.images;
   $('#simw').hidden = !app.cur.remote;
@@ -159,8 +159,23 @@ $('#simr').onclick = async () => {
   imgView();
   render();
 };
-$('#mo').onclick = () => $('#dmn').showModal();
+$('#mo').onclick = () => {
+  $('#mpin span').textContent = app.cur.pin ? 'Détacher' : 'Épingler';
+  $('#dmn').showModal();
+};
 $('#dmnc').onclick = () => $('#dmn').close();
+$('#mpin').onclick = async () => {
+  $('#dmn').close();
+  toast((await pinStory(app.cur.id)) ? 'Histoire épinglée en tête de liste' : 'Histoire détachée');
+};
+$('#mren').onclick = async () => {
+  $('#dmn').close();
+  if (await renameStory(app.cur.id)) render();
+};
+$('#mexp').onclick = () => {
+  $('#dmn').close();
+  exportStory(app.cur.id);
+};
 $('#sc').onclick = () => {
   $('#dmn').close();
   openSc();
@@ -234,9 +249,13 @@ const memOpen = () => {
   $('#mmi').value = '';
   memView();
 };
+// La note se remplit ici et non dans memOpen : relire la mémoire mise à jour ailleurs ne doit pas effacer la
+// note en cours d'écriture. MN : la note à l'ouverture, pour voir si un autre appareil l'a changée depuis.
+let MN = '';
 $('#mb').onclick = () => {
   $('#dmn').close();
   memOpen();
+  $('#nti').value = MN = app.cur.note || '';
   $('#dm').showModal();
 };
 $('#mma').onclick = () => {
@@ -248,37 +267,43 @@ $('#mma').onclick = () => {
 };
 $('#dmc').onclick = () => $('#dm').close();
 $('#dms').onclick = async () => {
-  const m = app.cur.mem;
+  const m = app.cur.mem,
+    nt = $('#nti').value,
+    // Note changée sur un autre appareil depuis l'ouverture : on ne l'écrase pas sans l'avoir montrée.
+    away = (app.cur.note || '') !== MN;
   if (MO.c !== app.cur || m.summary !== MO.summary || m.memories !== MO.memories || m.chapters !== MO.chapters || m.upto !== MO.upto) {
+    // La note ne dépend pas du résumé : elle s'enregistre quand même, sauf si elle a changé ailleurs.
+    const kept = !away && nt !== MN;
+    if (kept) {
+      app.cur.note = MN = nt;
+      await save();
+    }
     // Feuille par-dessus la feuille Mémoire : un toast resterait dessous. Le texte saisi reste en place tant
     // qu'on ne choisit pas de relire.
     if (
       await dlg('Mémoire mise à jour entre-temps', {
-        m: 'Vos modifications ne sont pas enregistrées. « Relire » affiche la nouvelle version et remplace votre texte : copiez-le d’abord si besoin.',
+        m:
+          'Vos modifications de la mémoire ne sont pas enregistrées' +
+          (kept ? ' (la note, si)' : '') +
+          '. « Relire » affiche la nouvelle version et remplace votre texte' +
+          (away ? ', note comprise, changée sur un autre appareil' : '') +
+          ' : copiez-le d’abord si besoin.',
         ok: 'Relire',
         no: 'Garder mon texte'
       })
-    )
+    ) {
       memOpen();
+      if (away) $('#nti').value = MN = app.cur.note || '';
+    }
     return;
   }
   m.summary = $('#msu').value;
   m.memories = MM;
   m.chapters = MC.map(c => ({ ...c, t: c.t.trim() || 'Sans titre' }));
+  app.cur.note = nt;
   await save();
   render();
   $('#dm').close();
-};
-$('#nt').onclick = () => {
-  $('#dmn').close();
-  $('#nti').value = app.cur.note || '';
-  $('#dn').showModal();
-};
-$('#dnc').onclick = () => $('#dn').close();
-$('#dns').onclick = async () => {
-  app.cur.note = $('#nti').value;
-  await save();
-  $('#dn').close();
 };
 $('#dsc').onclick = () => $('#ds').close();
 $('#dss').onclick = async () => {

@@ -155,19 +155,30 @@ $('#tabs').onclick = e => {
     });
   draw();
 };
-$('#mc').onclick = () => $('#mn').close();
-$('#mp').onclick = async () => {
-  const s = await getOne(app.menuId);
-  $('#mn').close();
+// Histoire visée par une action de menu : celle de la conversation ouverte (l'objet vivant, qu'une copie lue en
+// base écraserait au prochain enregistrement) ou une autre, lue en base.
+const target = id => (!$('#chat').hidden && app.cur?.id == id ? app.cur : getOne(id));
+export async function pinStory(id) {
+  const s = await target(id);
   s.pin = !s.pin;
   s.updated = Date.now();
   await put(s);
-  draw();
-};
-$('#mt').onclick = async () => {
-  const s = await getOne(app.menuId);
-  $('#mn').close();
-  const nm = s.pname?.trim() || 'Joueur';
+  return s.pin;
+}
+// Renommer : vrai si le nom a changé.
+// L'histoire est relue après la boîte : une synchronisation pendant la saisie a pu la remplacer.
+export async function renameStory(id) {
+  const n = (await dlg('Renommer', { v: (await target(id)).name }))?.trim(),
+    s = await target(id);
+  if (!n || n == s.name) return false;
+  s.name = n;
+  s.updated = Date.now();
+  await put(s);
+  return true;
+}
+export async function exportStory(id) {
+  const s = await target(id),
+    nm = s.pname?.trim() || 'Joueur';
   const t =
     '# ' +
     s.name +
@@ -181,17 +192,20 @@ $('#mt').onclick = async () => {
   a.download = (s.name.replace(/[\\/:*?"<>|]+/g, '_') || 'histoire') + '.md';
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1e4);
+}
+$('#mc').onclick = () => $('#mn').close();
+$('#mp').onclick = async () => {
+  $('#mn').close();
+  await pinStory(app.menuId);
+  draw();
+};
+$('#mt').onclick = () => {
+  $('#mn').close();
+  exportStory(app.menuId);
 };
 $('#mr').onclick = async () => {
-  const s = await getOne(app.menuId);
   $('#mn').close();
-  const n = await dlg('Renommer', { v: s.name });
-  if (n && n.trim()) {
-    s.name = n.trim();
-    s.updated = Date.now();
-    await put(s);
-    showList();
-  }
+  if (await renameStory(app.menuId)) showList();
 };
 $('#md').onclick = async () => {
   const s = await getOne(app.menuId);

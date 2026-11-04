@@ -48,7 +48,7 @@ export async function ask(old, cont, hint) {
   if (!S.key) {
     if (old) s.messages.push(old);
     render();
-    err("Ajoutez une clé API dans les réglages IA (menu « … » en haut).", 1);
+    err("Ajoutez une clé API dans les Réglages de l'application (menu « … » en haut).", 1);
     return;
   }
   setBusy(true);

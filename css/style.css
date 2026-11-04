@@ -1533,7 +1533,7 @@ dialog::before {
   border-radius: 2px;
   background: var(--s3);
 }
-/* À la souris, pas de poignée : il n'y a rien à faire glisser. Sur grand écran, la feuille Scénario s'élargit
+/* À la souris, pas de poignée : il n'y a rien à faire glisser. Sur grand écran, la feuille Réglages de l'histoire s'élargit
    pour écrire le prompt. */
 @media (hover: hover) and (pointer: fine) {
   dialog::before {
@@ -1644,6 +1644,43 @@ dialog input[type='checkbox'] {
   width: 19px;
   height: 19px;
   color: var(--mu2);
+}
+.col button small {
+  display: block;
+  margin-top: 2px;
+  color: var(--mu2);
+  font-size: 12.5px;
+  font-weight: 400;
+}
+/* Options de l'histoire : les outils de lecture en tuiles, puis les listes ; la marge du bas de .col ne reste
+   que sous la dernière. */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.tiles button {
+  display: grid;
+  justify-items: center;
+  gap: 7px;
+  padding: 14px 6px 12px;
+  border-radius: 14px;
+  background: var(--s2);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: center;
+}
+.tiles .i {
+  width: 22px;
+  height: 22px;
+  color: var(--ac);
+}
+#dmn .col:not(:last-child) {
+  padding-bottom: 0;
+}
+.mnh {
+  margin: 18px 2px 0;
 }
 dialog details {
   margin-top: 14px;
