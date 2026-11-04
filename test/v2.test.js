@@ -17,7 +17,7 @@ const ms = [
 test('toAnt : système et avant-dernier message marqués pour le cache', () => {
   const b = toAnt(ms, { model: 'm', max: 0, stream: true });
   assert.deepEqual(b.system, [{ type: 'text', text: 'SYS', cache_control: { type: 'ephemeral' } }]);
-  assert.equal(b.max_tokens, 4096);
+  assert.equal(b.max_tokens, 8192);
   assert.equal(b.stream, true);
   assert.equal(b.messages[0].role, 'user');
   assert.equal(b.messages[2].content, 'u1\n\nu1b');

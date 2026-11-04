@@ -1,4 +1,4 @@
-import { IMG, app, ctx, playerName } from './state.js';
+import { IMG, S, app, ctx, playerName } from './state.js';
 import { KNEES, decorFor, scene } from './scene.js';
 import { el, ikey } from './util.js';
 
@@ -82,11 +82,11 @@ const imgFor = c => {
   const m = ctx.images.filter(i => ikey(i.code).endsWith('_' + k));
   return m.length == 1 ? m[0].url : '';
 };
-// Cadrage des personnages détourés : aux genoux par défaut, en pied si le scénario le demande.
+// Cadrage des personnages détourés : aux genoux par défaut, en pied si les Réglages le demandent (Lecture).
 const imgNode = (c, d) => {
   const u = imgFor(c);
   return u
-    ? scene(u, d ?? decorFor(''), app.cur?.fullBody ? { cls: 'pic' } : { cls: 'pic kn', ...KNEES })
+    ? scene(u, d ?? decorFor(''), S.fullBody ? { cls: 'pic' } : { cls: 'pic kn', ...KNEES })
     : el('span', { class: 'miss', text: 'image introuvable : ' + c.trim() });
 };
 // Typographie française, à l'affichage seulement (le texte enregistré et envoyé ne change pas) : apostrophes

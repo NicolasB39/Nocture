@@ -7,7 +7,8 @@ import { S, ctx } from '../js/state.js';
 
 const sc = (o = {}) => clean({ id: 's', name: 'S', system: 'SYS', remote: true, noChoices: true, messages: [], ...o });
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
-const big = 'x'.repeat(6000);
+// Deux fiches de cette taille dépassent ensemble le budget de la partie fixe (CACHED_FREE, 8 000 tokens).
+const big = 'x'.repeat(10000);
 // Partie fixe, mémoire (le dernier bloc du système) et dernier message.
 const parts = r => [r.msgs[0].blocks[0].text, r.msgs[0].blocks.at(-1).text, r.msgs.at(-1).content];
 
@@ -30,18 +31,18 @@ test('un personnage « toujours » en scène n’apparaît qu’une fois, dans l
   assert.doesNotMatch(mem + stable, /## Bob/);
 });
 
-test('les entrées de lorebook « toujours » sont dans la partie stable, les déclenchées dans la queue, le plafond les compte', () => {
+test('lorebook au-delà du budget : les entrées « toujours » dans la partie stable, les déclenchées dans la queue', () => {
   ctx.lore = [
     { keys: [], always: true, pr: 0, text: 'Règle du monde.' },
-    { keys: [/porte/], always: false, pr: 2, text: 'La porte grince.' },
-    { keys: [/porte/], always: false, pr: 1, text: 'La porte est rouge.' }
+    { keys: [/porte/], always: false, pr: 2, text: 'La porte grince. ' + big },
+    { keys: [/fenêtre/], always: false, pr: 1, text: 'La fenêtre est rouge. ' + big }
   ];
-  const r = buildInfo(sc({ loreMax: 2, messages: [{ role: 'user', content: 'j’ouvre la porte' }] })),
+  const r = buildInfo(sc({ messages: [{ role: 'user', content: 'j’ouvre la porte' }] })),
     [stable, , last] = parts(r);
   assert.match(stable, /<lorebook>\nRègle du monde\.\n<\/lorebook>/);
   assert.doesNotMatch(last, /Règle du monde/);
   assert.match(last, /La porte grince/);
-  assert.doesNotMatch(last, /La porte est rouge/);
+  assert.doesNotMatch(last + stable, /La fenêtre est rouge/);
 });
 
 test('la partie stable ne dépend ni de la mémoire ni de la scène', () => {

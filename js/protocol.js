@@ -31,18 +31,16 @@ const IMAGES =
 
 export const DEFAULT_CHOICE =
   'Trois propositions courtes, de registres différents (par exemple une audacieuse, une prudente, une inattendue), écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage.';
-export const DEFAULT_CHOICE_PLAIN =
-  'Trois propositions courtes, de registres différents (par exemple une audacieuse, une prudente, une inattendue), écrites à la première personne.';
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
 // Formats de sortie imposés par l'application (partie fixe du prompt système).
-export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false, style = true } = {}) {
+export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false } = {}) {
   return (
     NARRATION +
-    (style ? STYLE : '') +
+    STYLE +
     (images ? IMAGES : '') +
     (stat ? stateBlock(fields || DEFAULT_FIELDS, choices) : '') +
-    (choices ? choiceBlock(prompt || (style ? DEFAULT_CHOICE : DEFAULT_CHOICE_PLAIN)) : '')
+    (choices ? choiceBlock(prompt || DEFAULT_CHOICE) : '')
   );
 }
 

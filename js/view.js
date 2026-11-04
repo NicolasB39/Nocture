@@ -27,7 +27,6 @@ export const infoOf = () => {
       m.summary.length,
       m.memories.length,
       m.chapters?.length,
-      s.cast?.join(),
       m.lines?.length,
       Object.keys(m.relations || {}).length,
       S.pre?.length,
@@ -248,7 +247,7 @@ const keyOf = (m, l, d, t, p) => ({
   d,
   t,
   p,
-  f: !!app.cur.fullBody,
+  f: !!S.fullBody,
   o: statOn(app.cur),
   g: ctx.iv,
   u: playerName(app.cur)

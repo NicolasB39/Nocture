@@ -73,7 +73,8 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema })
     };
   return {
     model,
-    max_tokens: max || 4096,
+    // Plafond de sécurité, pas de longueur : la réflexion compte dedans, et une réponse coupée se perd.
+    max_tokens: max || 8192,
     ...(sys.length ? { system: sys } : {}),
     messages: out,
     ...(Object.keys(oc).length ? { output_config: oc } : {}),
@@ -228,7 +229,7 @@ export async function chat(
     }
     if (!out) {
       journal(kind, body, { ...x, err: 'réponse vide' });
-      throw logged(new Error('réponse vide (modèle de raisonnement ? augmentez la longueur maximale)'));
+      throw logged(new Error('réponse vide (la réflexion a peut-être tout pris : baissez l’effort dans les réglages de l’histoire)'));
     }
     journal(kind, body, x);
     if (primary) heat(sid, LAST.at);
@@ -497,7 +498,7 @@ async function sumRun(s, start) {
                 .map(([k, v]) => '- ' + k + ' : ' + v)
                 .join('\n') || '(aucune)') +
               '\n\nSouvenirs déjà retenus (ne les répète pas) :\n' +
-              ((s.mem.memories || []).slice(-20).map(x => '- ' + x).join('\n') || '(aucun)') +
+              ((s.mem.memories || []).map(x => '- ' + x).join('\n') || '(aucun)') +
               '\n\nChapitres déjà clos :\n' +
               (chs.map((c, i) => i + 1 + '. ' + c.t).join('\n') || '(aucun)') +
               '\n\nChapitre en cours : ' +

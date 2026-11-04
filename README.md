@@ -46,11 +46,11 @@ Alice a trente ans, les mains tachées de sève…
 
 L'IA reçoit **en permanence** la liste de tous les personnages du monde, une ligne chacun (le `résumé:`, ou à défaut la première ligne de la fiche). Elle sait donc toujours qui existe et peut faire entrer qui elle veut.
 
-La **fiche complète** n'est envoyée que lorsque le personnage est en scène, ou qu'il revient assez souvent pour rester en cache (voir « Personnages récurrents ») : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
+Au-delà du budget de la partie fixe (voir plus bas), la **fiche complète** n'est envoyée que lorsque le personnage est en scène : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
 
-Tant que l'ensemble des fiches tient dans un budget modeste (environ 5 000 tokens), aucune n'est filtrée : un scénario de quelques personnages reçoit toutes ses fiches à chaque tour, elles aussi dans la partie stable. Le lorebook suit la même règle, avec le même budget.
+Tant que l'ensemble des fiches tient dans un budget de 8 000 tokens environ, aucune n'est filtrée : le scénario reçoit toutes ses fiches à chaque tour, dans la partie stable. C'est le cas de tous les scénarios du dépôt, Lumencia compris (19 fiches, environ 5 200 tokens) : un personnage que l'IA fait entrer d'elle-même est écrit avec sa fiche complète, pas seulement avec son résumé. Le lorebook suit la même règle, avec le même budget.
 
-La partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Le lorebook garde son fonctionnement par mots-clés si « Entrées max » est réglé dans le scénario, et tout redevient déclenché au-delà du budget.
+La partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Sur Lumencia, avant que le budget passe de 5 000 à 8 000 tokens, un journal de 77 tours montrait environ 555 tokens de fiches envoyées en fin de requête, au prix plein, à chaque tour. Au-delà du budget, tout redevient déclenché par mots-clés.
 
 Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie stable, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène, et de ne pas en inventer pour un personnage absent de la liste (sans quoi le modèle imite le format, `emily_emily_neutre`, pour un personnage qui n'a pas d'image). L'IA peut ainsi montrer un personnage dès son entrée, sans attendre le tour suivant.
 
@@ -102,7 +102,7 @@ Le dragon dort dans la montagne.
 - `toujours` : entrée toujours injectée, sans mot-clé. Elle va dans la partie stable du prompt, qui reste en cache.
 - `priorité: N` : les valeurs les plus hautes passent en premier (défaut 0).
 
-Dans les réglages de l'histoire (menu « … », section « Mémoire et lorebook ») : nombre de messages scannés (défaut 2) et nombre maximum d'entrées injectées. Les entrées `toujours` comptent dans ce maximum et passent toujours ; les entrées déclenchées se partagent la place restante, par priorité.
+Un lorebook qui tient dans le budget de la partie fixe part en entier, en cache, et les mots-clés ne servent pas. Au-delà, les entrées `toujours` restent dans la partie fixe, et les autres partent en fin de requête quand un de leurs mots-clés apparaît dans les deux derniers messages, par priorité.
 
 ## Protocole et préambule
 
@@ -115,7 +115,7 @@ Conséquences :
 - Un court bloc « Narration » part aussi pour tous les scénarios : le joueur seul décide de ce que fait, dit, pense et ressent son personnage, les autres n'ont pas accès à ses pensées sauf exception prévue par le scénario (seules les propositions de choix le font agir ou parler), des personnages qui agissent sans attendre le joueur et réagissent entre eux, une voix par personnage, des détails concrets, le retour de ce qui a déjà eu lieu, des réponses qui s'ouvrent sur ce que provoque l'action du joueur au lieu de la raconter de nouveau, et un rythme qui résume ce qui se répète (entraînement, trajet, attente) pour avancer jusqu'au prochain moment qui compte. Les choix par défaut demandent trois registres différents (audacieux, prudent, inattendu). Il proscrit aussi les didascalies vides (« Un temps. », « Silence. ») : un tic relevé dans un journal (une réponse sur cinq sur Lumencia), qu'une pause montrée par un geste remplace.
 - Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Réglages de l'histoire : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
 
-Le **préambule commun** (Réglages) est votre texte à vous, ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
+Le **préambule commun** (Réglages) est votre texte à vous (la case « Ignorer le préambule commun » des réglages de l'histoire n'apparaît que s'il en existe un), ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
 
 Ce qui reste au scénario : tout ce qui touche à la voix. Ce qui passe à l'application : tout ce qui touche à la forme des blocs.
 
@@ -171,7 +171,7 @@ Sous le dernier message restent les actions qu'on utilise en lisant : écouter, 
 - Typographie française à l'affichage (récit et choix) : apostrophes courbes, guillemets « », tirets de dialogue (une ligne qui commence par `- ` ou `-- `), points de suspension, espaces insécables avant `; ! ? :` et dans les guillemets. Le texte enregistré, copié ou envoyé à l'IA ne change pas. Les heures (12:30) et les adresses restent intactes.
 - Le panneau d'état tient en une rangée de pastilles : les trois premières valeurs avec leur variation, et « +N » pour le reste. Le toucher le déplie en grille détaillée avec les jauges ; plié ou déplié, le choix vaut pour toutes les histoires.
 - Les scènes illustrées (décor et personnage) occupent toute la largeur, se fondent dans le fond par le bas et portent le lieu en légende, en haut à gauche. Les portraits sans décor gardent leur cadre.
-- Les personnages détourés sont cadrés aux genoux, comme dans un roman visuel : le haut de la silhouette à 3 % du haut de la scène, les trois quarts de sa hauteur visibles, et le bas de l'image fondu dès 70 %. Les pieds ne sont jamais posés sur un sol à la mauvaise perspective. La case « Montrer les personnages en pied » (feuille Réglages de l'histoire, section Narration) revient au cadrage en pied : 90 % de la hauteur, pieds au bas de l'image. L'agrandissement d'une image montre toujours le personnage en entier.
+- Les personnages détourés sont cadrés aux genoux, comme dans un roman visuel : le haut de la silhouette à 3 % du haut de la scène, les trois quarts de sa hauteur visibles, et le bas de l'image fondu dès 70 %. Les pieds ne sont jamais posés sur un sol à la mauvaise perspective. La case « Montrer les personnages en pied » (Réglages de l'application, section Lecture, pour toutes les histoires) revient au cadrage en pied : 90 % de la hauteur, pieds au bas de l'image. L'agrandissement d'une image montre toujours le personnage en entier.
 - L'en-tête montre les personnages en scène (ceux que les six derniers messages nomment) : trois avatars empilés au plus, puis « +N ». Sans personnage en scène, l'icône Personnages revient. Les toucher ouvre la fenêtre Personnages.
 - Histoire vide : sous la couverture, le titre, l'accroche et jusqu'à trois débuts proposés (toucher pour envoyer, crayon pour modifier). Source : `intro.md` pour un scénario GitHub, le champ « Introduction » de la feuille Réglages de l'histoire sinon. Les lignes qui commencent par `- ` ou `1. ` sont les débuts, le reste l'accroche.
 - Pendant l'attente de la réponse, le premier personnage en scène « réfléchit » (avec son avatar), sur trois lignes fantômes ; sans personnage, « Réflexion… ». Le compteur de secondes apparaît après 2 secondes.
@@ -188,7 +188,7 @@ L'état renvoyé par le modèle s'affiche en **carte sous chaque tour du narrate
 
 Chaque suggestion de réponse se compose d'un crayon à gauche, dans son propre panneau, pour la reprendre dans la saisie, et d'une carte contenant le texte et la flèche d'envoi. Le texte de la carte est cliquable et envoie lui aussi.
 
-Le protocole demande par défaut au modèle d'écrire **les gestes entre astérisques et les paroles en texte simple**, dans la narration comme dans les choix, puisque c'est ce que l'application met en gris et en blanc. La case « Demander les gestes entre astérisques » dans les options du scénario (section Narration) retire cette consigne pour un scénario qui veut imposer son propre style, y compris dans la consigne par défaut des choix.
+Le protocole demande par défaut au modèle d'écrire **les gestes entre astérisques et les paroles en texte simple**, dans la narration comme dans les choix, puisque c'est ce que l'application met en gris et en blanc.
 
 ### Statistiques d'utilisation
 
@@ -207,8 +207,8 @@ Les statistiques sont enregistrées sur l'appareil, dans un enregistrement à pa
 Pour comprendre où partent les tokens, cochez « Journal des appels » (Réglages, section « Compteurs et journal ») : l'application garde alors, sur l'appareil, les **100 dernières requêtes envoyées à Claude**, texte compris, avec leur type (tour, régénérer, indication, continuer, mémoire, relance du cache), le modèle qui a répondu, les tokens envoyés, lus et écrits en cache, la sortie, le coût estimé et la raison de fin, ou l'erreur. Le bouton « Journal des appels » de la feuille Statistiques les liste, du plus récent au plus ancien ; touchez un appel pour son détail :
 
 - **Hors cache** : la part de l'entrée payée plein tarif.
-- **Cache** (requêtes de narration) : le préfixe comparé à la requête réussie précédente de la même histoire. Trois cas : le cache a expiré (plus de 5 minutes, ou une heure, sans lecture ni relance), et tout le prompt est réécrit ; le préfixe est identique et seule la suite est nouvelle ; ou le journal nomme le premier bloc qui a changé (modèle ou effort, partie fixe du prompt, personnages récurrents, mémoire, ou tel message), à partir duquel tout a été réécrit en cache.
-- **Composition** : partie fixe, personnages récurrents, mémoire, historique et fin de requête, en tokens estimés.
+- **Cache** (requêtes de narration) : le préfixe comparé à la requête réussie précédente de la même histoire. Trois cas : le cache a expiré (plus de 5 minutes, ou une heure, sans lecture ni relance), et tout le prompt est réécrit ; le préfixe est identique et seule la suite est nouvelle ; ou le journal nomme le premier bloc qui a changé (modèle ou effort, partie fixe du prompt, mémoire, ou tel message), à partir duquel tout a été réécrit en cache.
+- **Composition** : partie fixe, mémoire, historique et fin de requête, en tokens estimés.
 - **Fin de requête, hors cache** : le dernier message découpé en blocs (votre message, lorebook déclenché, fiches des personnages en scène, passages anciens, état précédent, indication) avec leur taille. C'est là qu'on voit ce qui gagnerait à passer dans la partie fixe.
 - **Requête complète**, telle qu'envoyée.
 
@@ -265,7 +265,6 @@ L'application range donc le prompt par volatilité croissante :
 ```
 système  prompt du scénario, préambule, casting, fiches et lorebook « toujours »,
          codes d'images, protocole, avatar, chapitres    ← fixe
-         fiches des personnages récurrents               ← début de séance, mémoire
          résumé, lignes récentes, souvenirs, relations, note   ← change par paliers
 historique
 queue    dernier message, lorebook déclenché, fiches en scène, passages anciens, état précédent
@@ -273,7 +272,7 @@ queue    dernier message, lorebook déclenché, fiches en scène, passages ancie
 
 Le choix du niveau suit un arbitrage simple. Un bloc placé avant l'historique est gratuit les tours où il ne bouge pas, mais le tour où il change, il invalide aussi tout l'historique. Pour un bloc de C tokens qui change tous les K tours avec un historique de H tokens, le remonter vaut le coup si `(C + H) / K < C`.
 
-La mémoire ne change que par paliers, surtout en début de séance (voir « API Claude ») : elle vient juste après la partie fixe, et les souvenirs partent tous (les plus récents, plafonnés par « Souvenirs injectés ») plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou tout un lorebook et des fiches modestes, voir « Fiches de personnages ») montent dans la partie fixe. L'état précédent change à chaque tour par nature.
+La mémoire ne change que par paliers, surtout en début de séance (voir « API Claude ») : elle vient juste après la partie fixe, et les souvenirs partent tous (soixante au plus) plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou tout un lorebook et des fiches modestes, voir « Fiches de personnages ») montent dans la partie fixe. L'état précédent change à chaque tour par nature.
 
 Le compteur sous la conversation indique par exemple « ≈ 6 953 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 », et une ligne « l'IA lit à partir d'ici » marque dans le fil le premier message envoyé tel quel : au-dessus, l'IA n'a plus que la mémoire.
 
@@ -281,18 +280,17 @@ Le compteur est **masqué par défaut** : on lit une histoire, pas un tableau de
 
 ### API Claude
 
-L'application appelle l'API native de Claude (`/v1/messages`). Renseignez « Clé API Claude » dans Réglages, avec une clé de la console Anthropic ; il n'y a pas d'offre gratuite. Modèle par défaut : `claude-sonnet-5-5` (`claude-haiku-5-5` coûte moins cher).
+L'application appelle l'API native de Claude (`/v1/messages`). Renseignez « Clé API Claude » dans Réglages, avec une clé de la console Anthropic ; il n'y a pas d'offre gratuite. Modèle par défaut : `claude-sonnet-5-5` (`claude-haiku-5-5` coûte moins cher). Chaque réponse est plafonnée à 8 192 tokens, réflexion comprise : une sécurité contre une réponse sans fin, pas une longueur (ce plafond coupe, il ne raccourcit pas). La longueur des réponses se demande au modèle, dans le préambule commun ou la note pour l'IA. Les anciens réglages propres à chaque histoire (longueur maximale, souvenirs injectés, passages rappelés, profondeur et plafond du lorebook, gestes entre astérisques, cadrage en pied) ont été retirés : une histoire qui en avait un reprend le fonctionnement commun, et le cadrage en pied se coche désormais une fois pour toutes dans Réglages, section Lecture.
 
-L'application pose quatre marqueurs de cache au plus, la limite de l'API :
+L'application pose trois marqueurs de cache (l'API en accepte quatre) :
 
 1. après la partie fixe de la consigne (scénario, préambule, liste des personnages, fiches et lorebook `toujours`, codes d'images, protocole, avatar, chapitres clos) : elle ne change qu'à la clôture d'un chapitre, et reste relue depuis le cache même quand la mémoire change ;
-2. après les fiches des personnages récurrents, s'il y en a (voir plus bas) ;
-3. après la mémoire (résumé, lignes récentes, souvenirs, relations, note) ;
-4. sur l'avant-dernier message, juste avant le dernier message qui porte le lorebook déclenché, les fiches en scène et l'état précédent.
+2. après la mémoire (résumé, lignes récentes, souvenirs, relations, note) ;
+3. sur l'avant-dernier message, juste avant le dernier message qui porte le lorebook déclenché, les fiches en scène et l'état précédent.
 
 Tout l'historique stable est ainsi relu depuis le cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), et seule la dernière paire message-réponse est écrite à chaque tour.
 
-**Personnages récurrents.** Quand les fiches d'un scénario sont trop nombreuses pour la partie fixe, celle d'un personnage en scène part en fin de requête, au prix plein, à chaque tour. Les personnages nommés dans au moins 3 des 30 derniers messages sont donc mis à part : leurs fiches partent en cache, entre la partie fixe et la mémoire, une par bloc, et ne repartent plus en fin de requête. Changer cette liste ferait réécrire la mémoire et tout l'historique : elle ne change qu'aux moments où ils sont réécrits de toute façon. Quand le cache a expiré (début de séance, pause), elle est recalculée entièrement. Après une mise à jour de la mémoire, elle est seulement complétée : les fiches déjà là gardent leur place, les nouvelles s'ajoutent à la fin et sont les seules écrites, le cache retrouvant l'entrée qui finissait sur l'ancienne dernière fiche. Un personnage qui ne vient plus reste ainsi jusqu'au prochain début de séance, pour le prix d'une lecture en cache. La liste est gardée avec l'histoire (`cast`), à côté de la mémoire, et décidée à l'envoi.
+Les « personnages récurrents » (fiches mises en cache à part, entre la partie fixe et la mémoire, pour les scénarios dont les fiches dépassaient le budget) ont été retirés quand le budget est passé à 8 000 tokens : plus aucun scénario du dépôt ne s'en servait.
 
 La mémoire garde toujours au moins 40 messages mot pour mot, et choisit son moment pour avancer, parce qu'une mise à jour réécrit tout le cache de la mémoire et de l'historique :
 
@@ -366,7 +364,7 @@ Le résumé perd forcément des détails : la couleur d'un objet, la phrase exac
 
 La recherche se fait sur l'appareil, sans requête supplémentaire : les mots de vos deux derniers messages (et de l'état) sont comparés à ceux des messages qui ne sont plus envoyés tels quels, parce que la mémoire les a déjà résumés. Un passage n'est retenu que s'il partage au moins deux mots avec la scène, dont un distinctif, c'est-à-dire présent dans un passage sur trois au plus : les mots courants (« pluie », « regard ») et les mots outils ne suffisent jamais. Les plus pertinents passent en premier, puis sont remis dans l'ordre du récit ; l'extrait est le paragraphe qui contient le plus de mots communs.
 
-Le bloc part en queue, avec le lorebook déclenché : il n'invalide rien du cache, et ses tokens entrent dans le compteur comme le reste du dernier message. Réglages de l'histoire, section « Mémoire et lorebook » : « Passages anciens rappelés » (2 par défaut, 0 pour désactiver).
+Le bloc part en queue, avec le lorebook déclenché : il n'invalide rien du cache, et ses tokens entrent dans le compteur comme le reste du dernier message. Deux passages au plus.
 
 ## Panneau d'état
 
@@ -403,7 +401,7 @@ Activation : menu « … » de la conversation, Réglages de l'histoire, section
 - Rappel automatique de passages anciens quand la scène reparle d'un détail sorti de l'historique envoyé.
 - Coût estimé par modèle et par période dans les statistiques, en dollars ou en euros.
 - Le bouton stop (et la sortie de la conversation) conserve le texte déjà reçu, que « Continuer » peut prolonger.
-- Mémoire à quatre étages : chapitres, résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note pour l'IA (menu « … » de la conversation, « Mémoire et note »), et relations par personnage, consultables dans la fenêtre Personnages. Nombre de souvenirs injectés réglable (0 : aucun).
+- Mémoire à quatre étages : chapitres, résumé et souvenirs éditables (ajout et retrait à l'unité), lignes récentes consultables dans le Sommaire, note pour l'IA (menu « … » de la conversation, « Mémoire et note »), et relations par personnage, consultables dans la fenêtre Personnages. Tous les souvenirs gardés (soixante au plus) partent avec la mémoire.
 - Modèle distinct pour les résumés de mémoire (Haiku 5.5 par défaut).
 - Modèle et effort par scénario (section Génération des réglages de l'histoire). Sans modèle, le scénario reprend celui des Réglages. Le modèle du scénario sert à garder un grand modèle pour les histoires qui le méritent et un petit, bien moins cher, pour les autres ; il compte pour les statistiques.
 - Coût des extras affiché sous les cases Choix et Panneau d'état (section Narration) : taille moyenne d'un bloc, part de la sortie et coût pour 100 réponses, mesurés sur les dernières réponses de l'histoire. Ces blocs sont réécrits par l'IA à chaque réponse et payés comme sortie : décochez ceux qui ne servent pas.
@@ -514,7 +512,7 @@ Règles du projet :
 - Quand vous ajoutez un fichier JavaScript dans `js/`, il est repris automatiquement par `npm run build` (service worker et `modulepreload`). Rien à déclarer à la main.
 - Les numéros de version sont calculés à partir du contenu des fichiers par `npm run build`, lancé par le workflow à chaque déploiement. Ne les modifiez pas à la main.
 - La logique sans DOM (fusion, validation, construction du prompt) doit rester testable : ajoutez un test dans `test/` quand vous la touchez.
-- Les messages construits par `prompt.js` peuvent porter des repères internes (`blocks` sur le message système : la partie fixe, une fiche récurrente par bloc et la mémoire, chacun avec ou sans marqueur de cache, que `toAnt` envoie tels quels). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role` et `content`.
+- Les messages construits par `prompt.js` peuvent porter des repères internes (`blocks` sur le message système : la partie fixe et la mémoire, chacune avec son marqueur de cache, que `toAnt` envoie tels quels). Ils ne doivent jamais partir tels quels : `toAnt` construit ses propres blocs pour Claude. Le faux serveur Claude du test de bout en bout refuse toute la requête si un message porte un autre champ que `role` et `content`.
 
 ### Historique : autres fournisseurs
 

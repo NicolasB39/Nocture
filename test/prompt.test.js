@@ -83,8 +83,8 @@ test('le prompt système ne bouge pas quand l’historique avance', () => {
 
 test('le casting liste tous les personnages, les fiches ne suivent que les actifs, les images sont en cache', () => {
   ctx.chars = [
-    { name: 'Alice', sum: 'herboriste', text: 'A'.repeat(6000), always: false, images: ['alice_x'], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] },
-    { name: 'Bob', sum: 'garde', text: 'B'.repeat(6000), always: false, images: [], keys: [/(^|[^a-z0-9])bob(?![a-z0-9])/] }
+    { name: 'Alice', sum: 'herboriste', text: 'A'.repeat(10000), always: false, images: ['alice_x'], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] },
+    { name: 'Bob', sum: 'garde', text: 'B'.repeat(10000), always: false, images: [], keys: [/(^|[^a-z0-9])bob(?![a-z0-9])/] }
   ];
   ctx.images = [{ code: 'alice_x', url: 'u' }];
   const r = buildInfo(sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'je parle à Alice' }] }));
@@ -142,25 +142,20 @@ test('la mémoire ne change pas le préfixe tant que le résumé ne bouge pas', 
   assert.equal(a.msgs[0].content, b.msgs[0].content);
 });
 
-test('tous les souvenirs récents partent, plafonnés par memN', () => {
+test('tous les souvenirs gardés partent avec la mémoire', () => {
   const memories = Array.from({ length: 30 }, (_, i) => 'fait ' + i);
-  const all = buildInfo(sc({ noChoices: true, mem: { memories }, messages: [{ role: 'user', content: 'x' }] }));
-  assert.equal((all.msgs[0].content.match(/^- fait /gm) || []).length, 20);
-  const few = buildInfo(
-    sc({ noChoices: true, memN: 3, mem: { memories }, messages: [{ role: 'user', content: 'x' }] })
-  );
-  assert.equal((few.msgs[0].content.match(/^- fait /gm) || []).length, 3);
-  assert.match(few.msgs[0].content, /fait 29/);
+  const r = buildInfo(sc({ noChoices: true, mem: { memories }, messages: [{ role: 'user', content: 'x' }] }));
+  assert.equal((r.msgs[0].content.match(/^- fait /gm) || []).length, 30);
 });
 
-test('fiches trop grosses et lorebook limité restent en queue, où ils n’invalident rien', () => {
+test('fiches et lorebook trop gros restent en queue, où ils n’invalident rien', () => {
   ctx.chars = [
-    { name: 'Alice', sum: 'a', text: 'A'.repeat(6000), always: false, images: [], keys: [/alice/] },
-    { name: 'Bob', sum: 'b', text: 'B'.repeat(6000), always: false, images: [], keys: [/bob/] }
+    { name: 'Alice', sum: 'a', text: 'A'.repeat(10000), always: false, images: [], keys: [/alice/] },
+    { name: 'Bob', sum: 'b', text: 'B'.repeat(10000), always: false, images: [], keys: [/bob/] }
   ];
-  ctx.lore = [{ keys: [/porte/], always: false, pr: 0, text: 'La porte grince.' }];
+  ctx.lore = [{ keys: [/porte/], always: false, pr: 0, text: 'La porte grince. ' + 'L'.repeat(18000) }];
   const r = buildInfo(
-    sc({ noChoices: true, remote: true, loreMax: 1, messages: [{ role: 'user', content: 'alice ouvre la porte' }] })
+    sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'alice ouvre la porte' }] })
   );
   assert.doesNotMatch(r.msgs[0].content, /## Alice/);
   assert.doesNotMatch(r.msgs[0].content, /<lorebook>/);
@@ -230,7 +225,7 @@ test('le nombre envoyé tient compte des messages déjà résumés', () => {
 
 test('les relations voyagent avec la mémoire ; celle d’un personnage en scène est aussi sous sa fiche', () => {
   ctx.chars = [
-    { name: 'Alice', sum: 'herboriste', text: 'Fiche d’Alice. ' + 'x'.repeat(12000), always: false, images: [], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] }
+    { name: 'Alice', sum: 'herboriste', text: 'Fiche d’Alice. ' + 'x'.repeat(20000), always: false, images: [], keys: [/(^|[^a-z0-9])alice(?![a-z0-9])/] }
   ];
   const r = buildInfo(
     sc({
@@ -275,12 +270,8 @@ test('fiches et lorebook modestes en entier dans la partie fixe, en cache', () =
   assert.match(stable, /La forge est froide\.[\s\S]*La porte grince\./, 'tout le lorebook, par priorité');
   assert.match(stable, /Leurs fiches détaillées suivent\./);
   assert.doesNotMatch(r.msgs.at(-1).content, /## Alice|La porte grince/, 'rien en fin de requête');
-  // Limite d'entrées choisie : le lorebook reste déclenché, en fin de requête.
-  r = buildInfo({ ...s, loreMax: 1 });
-  assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /La forge/);
-  assert.match(r.msgs.at(-1).content, /La porte grince/);
-  // Trop gros (au-delà de 5 000 tokens) : seulement les actifs.
-  ctx.chars[1].text = 'B'.repeat(9000);
+  // Trop gros (au-delà de 8 000 tokens) : seulement les actifs.
+  ctx.chars[1].text = 'B'.repeat(16000);
   r = buildInfo(s);
   assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
   assert.match(r.msgs.at(-1).content, /## Alice/);

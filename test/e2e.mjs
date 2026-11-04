@@ -709,14 +709,15 @@ try {
     assert.ok(Math.abs(g.hfrac - 1.3) < 0.03, 'hauteur du personnage : ' + g.hfrac);
     assert.ok(Math.abs(g.head - 0.03) < 0.01, 'haut de la silhouette à ' + g.head);
     assert.ok(Math.abs(g.cx - 2 / 3) < 0.02, 'centre à ' + g.cx);
-    // Option du scénario : en pied, 90 % de la hauteur, pieds au bas de l'image.
+    // Réglage de lecture (Réglages de l'application) : en pied, 90 % de la hauteur, pieds au bas de l'image,
+    // appliqué tout de suite.
     await p3.click('#mo');
-    await p3.click('#sc');
-    await p3.waitForSelector('#ds[open]');
-    await p3.click('#ds summary:has-text("Narration")');
-    await p3.check('#sfb');
-    await p3.click('#dss');
-    await p3.waitForSelector('#ds', { state: 'hidden' });
+    await p3.click('#cfg2');
+    await p3.waitForSelector('#dc[open]');
+    await p3.click('#dc summary:has-text("Lecture")');
+    await p3.check('#lfb');
+    await p3.click('#dcc');
+    await p3.waitForSelector('#dc', { state: 'hidden' });
     g = await last('cut');
     assert.ok(Math.abs(g.hfrac - 0.9) < 0.03, 'en pied, hauteur du personnage : ' + g.hfrac);
     assert.ok(Math.abs(g.feet) < 2, 'en pied, pieds à ' + g.feet + ' px du bas');

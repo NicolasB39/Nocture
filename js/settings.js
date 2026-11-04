@@ -5,13 +5,13 @@ import { PRICES, money, priceOf } from './cost.js';
 import { fr } from './format.js';
 import { draw, exportStory, pinStory, renameStory, showList } from './list.js';
 import { extrasOf, statOn } from './prompt.js';
-import { DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
+import { DEFAULT_CHOICE, DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
 import { fillLec, setReading } from './read.js';
 import { tocOf } from './scene.js';
 import { TERR, coverOf, getTree, loadCtx } from './scenarios.js';
 import { API, S, app, ctx } from './state.js';
 import { clean, put, save, saveSet } from './store.js';
-import { $, LS, dlg, el, ic, num, nz, pickAccent, toast } from './util.js';
+import { $, LS, dlg, el, ic, nz, pickAccent, toast } from './util.js';
 
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
@@ -113,15 +113,11 @@ export function openSc() {
   $('#scv').hidden = !!app.cur.remote;
   COVER = app.cur.cover || '';
   cvView();
-  $('#smx').value = app.cur.maxTok || '';
-  $('#smm').value = app.cur.memN ?? '';
-  $('#srcl').value = app.cur.recallN ?? '';
-  $('#sld').value = app.cur.loreDepth || '';
-  $('#slm').value = app.cur.loreMax || '';
   $('#sch').checked = !app.cur.noChoices;
-  $('#sfb').checked = !!app.cur.fullBody;
-  $('#sgs').checked = !app.cur.noStyle;
   $('#scp').value = app.cur.choicePrompt || '';
+  $('#scp').placeholder = DEFAULT_CHOICE;
+  // Sans préambule commun, rien à ignorer.
+  $('#spre').closest('label').hidden = !S.pre?.trim();
   $('#sst').checked = statOn(app.cur);
   $('#sstf').value = app.cur.statFields || '';
   $('#sstf').placeholder = ctx.stat || DEFAULT_FIELDS;
@@ -317,16 +313,9 @@ $('#dss').onclick = async () => {
   app.cur.pname = $('#snm').value.trim();
   app.cur.cover = COVER;
   app.cur.accent = ACC;
-  app.cur.maxTok = +$('#smx').value || 0;
   app.cur.effort = $('#sef').value;
   app.cur.model = $('#smo').value.trim();
-  app.cur.memN = num('#smm');
-  app.cur.recallN = num('#srcl');
-  app.cur.loreDepth = +$('#sld').value || 0;
-  app.cur.loreMax = +$('#slm').value || 0;
   app.cur.noChoices = !$('#sch').checked;
-  app.cur.fullBody = $('#sfb').checked;
-  app.cur.noStyle = !$('#sgs').checked;
   app.cur.noPre = $('#spre').checked;
   app.cur.choicePrompt = $('#scp').value.trim();
   app.cur.stat = $('#sst').checked;
@@ -347,6 +336,7 @@ function openCfg() {
   fillLec();
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
+  $('#lfb').checked = !!S.fullBody;
   $('#cpn').value = S.pname || '';
   $('#ctc').checked = !!S.counters;
   $('#sto').textContent = '';
@@ -368,6 +358,12 @@ function openCfg() {
     .catch(() => {});
   $('#dc').showModal();
 }
+// Cadrage des personnages (section Lecture) : appliqué et enregistré tout de suite, comme le reste de la section.
+$('#lfb').onchange = () => {
+  S.fullBody = $('#lfb').checked;
+  saveSet();
+  if (app.cur) render();
+};
 $('#cfg').onclick = openCfg;
 $('#akb').onclick = openCfg;
 $('#mlr').onclick = () => {

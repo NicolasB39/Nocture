@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="a996041785">
+<meta name="app-version" content="51dd8689eb">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -177,11 +177,9 @@
 <details>
 <summary>Narration</summary>
 <label><input id="spre" type="checkbox">Ignorer le préambule commun</label>
-<label><input id="sgs" type="checkbox">Demander les gestes entre astérisques</label>
-<label><input id="sfb" type="checkbox">Montrer les personnages en pied (sinon, cadrés aux genoux)</label>
 <label><input id="sch" type="checkbox">Proposer trois choix de réponse</label>
 <label for="scp">Consigne des choix</label>
-<textarea id="scp" style="min-height:70px" placeholder="Trois propositions courtes et variées, écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage."></textarea>
+<textarea id="scp" style="min-height:70px"></textarea>
 <label><input id="sst" type="checkbox">Panneau d'état (statistiques suivies par l'IA)</label>
 <label for="sstf">Champs à suivre</label>
 <textarea id="sstf" style="min-height:70px" placeholder="Lieu, Objectif, Humeur"></textarea>
@@ -189,28 +187,13 @@
 </details>
 
 <details>
-<summary>Mémoire et lorebook</summary>
-<label for="smm">Souvenirs injectés (les plus récents, défaut 20)</label>
-<input id="smm" type="number" min="0" inputmode="numeric">
-<label for="srcl">Passages anciens rappelés (défaut 2, 0 = aucun)</label>
-<input id="srcl" type="number" min="0" max="5" inputmode="numeric">
-<p class="note">Quand la scène reparle d'un nom, d'un lieu ou d'un objet sorti de l'historique envoyé, l'application retrouve le vieux passage et en joint un extrait à votre message.</p>
-<label for="sld">Messages scannés pour le lorebook (défaut 2)</label>
-<input id="sld" type="number" min="1" inputmode="numeric">
-<label for="slm">Entrées de lorebook maximum (vide = toutes)</label>
-<input id="slm" type="number" min="1" inputmode="numeric">
-</details>
-
-<details>
 <summary>Génération</summary>
-<label for="smo">Modèle pour ce scénario</label>
+<label for="smo">Modèle pour cette histoire</label>
 <input id="smo" list="cml" autocomplete="off" autocapitalize="off">
 <p class="note">Vide : le modèle des Réglages.</p>
 <label for="sef">Effort</label>
 <select id="sef"><option value="">Faible (recommandé)</option><option value="medium">Moyen</option><option value="high">Élevé</option></select>
 <p id="sefn" class="note">Règle la réflexion que Claude mène, et facture, avant chaque réponse. Faible suffit le plus souvent pour un récit ; montez-le si l'histoire perd en cohérence. Changer le modèle ou l'effort en cours de partie fait réécrire le cache une fois.</p>
-<label for="smx">Longueur maximale de la réponse (tokens, vide = par défaut)</label>
-<input id="smx" type="number" min="1" inputmode="numeric">
 </details>
 
 <details id="simw" hidden>
@@ -347,6 +330,7 @@
 <input id="lcw" type="range" min="34" max="52" step="1">
 <p class="lprev">Le vent se lève sur la falaise, et les vagues frappent la roche sans relâche.</p>
 <label><input id="lfo" type="checkbox">Suivre le texte pendant l'écriture de l'IA (défilement automatique)</label>
+<label><input id="lfb" type="checkbox">Montrer les personnages en pied (sinon, cadrés aux genoux)</label>
 <div id="ltt">
 <label for="lvo">Voix</label>
 <select id="lvo"></select>

@@ -36,15 +36,15 @@ test('la balise <lieu> est lue puis retirée du texte', async () => {
     assert.equal(split(b + '\n\nUn volcan gronde.\n\nIl fait chaud.').content, 'Un volcan gronde.\n\nIl fait chaud.', b);
 });
 
-test('aucun format n’est émis pour ce qui est désactivé ; les conseils de narration restent', () => {
-  const p = protocol({ stat: false, choices: false, images: false, style: false });
-  assert.doesNotMatch(p, /<etat>|<choix>|\{\{img::|astérisques/);
+test('aucun format n’est émis pour ce qui est désactivé ; les conseils de narration et le style restent', () => {
+  const p = protocol({ stat: false, choices: false, images: false });
+  assert.doesNotMatch(p, /<etat>|<choix>|\{\{img::/);
   assert.match(p, /# Narration/);
+  assert.match(p, /# Style/);
 });
 
 test('les choix par défaut demandent des registres différents', () => {
   assert.match(protocol({ choices: true }), /registres différents/);
-  assert.match(protocol({ choices: true, style: false }), /registres différents/);
 });
 
 test('la consigne d’images demande de les placer dans le récit, pas en tête', () => {
@@ -87,7 +87,7 @@ test('un scénario peut ignorer le préambule commun', () => {
 
 test('agentivité et anti-télépathie toujours envoyées, avec leurs exceptions', () => {
   assert.match(protocol({ choices: true }), /seul endroit où tu le fais agir ou parler/);
-  for (const o of [{}, { choices: true, stat: true, style: false }]) {
+  for (const o of [{}, { choices: true, stat: true }]) {
     const p = protocol(o);
     assert.match(p, /Le joueur décide seul de ce que fait, dit, pense et ressent \{\{user\}\}/);
     assert.match(p, /Sauf exception prévue par le scénario, les personnages n'ont pas accès aux pensées/);

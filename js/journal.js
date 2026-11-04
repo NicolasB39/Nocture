@@ -1,6 +1,6 @@
 import { bkOn, ghSaveFile } from './backup.js';
 import { costOf, money, priceOf } from './cost.js';
-import { estTok, isCastBlock, toks } from './prompt.js';
+import { estTok, toks } from './prompt.js';
 import { S } from './state.js';
 import { clearCalls, getCallBody, getCalls } from './store.js';
 import { $, dlg, el, saveFile, toast } from './util.js';
@@ -12,9 +12,8 @@ import { $, dlg, el, saveFile, toast } from './util.js';
 
 const NARR = ['tour', 'régénérer', 'indication', 'continuer'];
 const txt = c => (typeof c == 'string' ? c : (c || []).map(b => b.text || '').join(''));
-// Bloc du système : la partie fixe, une fiche de personnage récurrent ou la mémoire.
-const sysName = (x, i) =>
-  !i ? 'de la partie fixe du prompt' : isCastBlock(x.text) ? 'des personnages récurrents' : 'de la mémoire (résumé, souvenirs, relations, note)';
+// Bloc du système : la partie fixe ou la mémoire.
+const sysName = (x, i) => (!i ? 'de la partie fixe du prompt' : 'de la mémoire (résumé, souvenirs, relations, note)');
 // Blocs du préfixe, dans l'ordre où le cache les lit : modèle et effort, blocs système, puis messages.
 export const blocks = b => [
   ['du modèle ou de l’effort', JSON.stringify([b.model, b.output_config || null])],
@@ -91,10 +90,7 @@ const detail = async (c, prev, reads) => {
         'Composition',
         [
           'partie fixe ≈ ' + f(estTok(sys[0]?.text || '')),
-          ...[true, false].map(c => {
-            const t = toks(sys.slice(1).filter(x => isCastBlock(x.text) == c));
-            return t && (c ? 'personnages récurrents' : 'mémoire') + ' ≈ ' + f(t);
-          }),
+          toks(sys.slice(1)) && 'mémoire ≈ ' + f(toks(sys.slice(1))),
           ms.length - 1 + ' messages d’historique ≈ ' + f(ms.slice(0, -1).reduce((a, m) => a + estTok(txt(m.content)), 0)),
           'fin de requête ≈ ' + f(estTok(txt(ms.at(-1)?.content)))
         ]

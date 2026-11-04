@@ -12,7 +12,6 @@ export const statOn = s => s.stat ?? !!(s.remote && ctx.stat);
 export const statFields = s =>
   (s.statFields || '').trim() || (s.remote ? ctx.stat : '') || DEFAULT_FIELDS;
 
-const MEM_N = 20;
 
 const textOf = ms =>
   nz(
@@ -24,18 +23,18 @@ const loreTag = a => (a.length ? '\n\n<lorebook>\n' + a.map(e => e.text).join('\
 // La partie fixe du prompt est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et
 // Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des
 // fiches et un lorebook modestes coûtent donc moins en entier dans la partie fixe que par morceaux en fin de
-// requête ; au-delà de CACHED_FREE tokens, seuls les actifs partent.
-const CACHED_FREE = 5000;
+// requête ; au-delà de CACHED_FREE tokens, seuls les actifs partent. Le seuil laisse de la marge aux scénarios
+// joués (les 19 fiches de Lumencia font environ 5 200 tokens) : une fiche ajoutée ne fait pas tout basculer.
+const CACHED_FREE = 8000;
 export const toks = L => L.reduce((a, x) => a + estTok(x.text), 0);
-// Lorebook entier en partie fixe, sauf limite d'entrées choisie dans le scénario.
-const loreAll = max => !max && toks(ctx.lore || []) <= CACHED_FREE;
-const lorePerm = max => (ctx.lore || []).filter(e => e.always || loreAll(max)).sort((x, y) => y.pr - x.pr);
-const loreFor = (ms, max) => {
-  if (loreAll(max)) return '';
+// Lorebook entier en partie fixe s'il tient dans le budget ; sinon les entrées « toujours » y vont, et les
+// autres partent en fin de requête quand un de leurs mots-clés est dans les deux derniers messages.
+const loreAll = () => toks(ctx.lore || []) <= CACHED_FREE;
+const lorePerm = () => (ctx.lore || []).filter(e => e.always || loreAll()).sort((x, y) => y.pr - x.pr);
+const loreFor = ms => {
+  if (loreAll()) return '';
   const t = textOf(ms);
-  let a = (ctx.lore || []).filter(e => !e.always && e.keys.some(r => r.test(t))).sort((x, y) => y.pr - x.pr);
-  if (max) a = a.slice(0, Math.max(0, max - lorePerm(max).length));
-  return loreTag(a);
+  return loreTag((ctx.lore || []).filter(e => !e.always && e.keys.some(r => r.test(t))).sort((x, y) => y.pr - x.pr));
 };
 export const inScene = ms => {
   const t = textOf(ms);
@@ -47,51 +46,23 @@ const charsPerm = () => {
   const C = withText();
   return small(C) ? C : C.filter(c => c.always);
 };
-// Fiches qui ne tiennent pas dans la partie fixe : envoyées parmi les récurrentes, ou en fin de requête pour
-// les personnages en scène.
+// Fiches qui ne tiennent pas dans la partie fixe : envoyées en fin de requête pour les personnages en scène.
 const loose = () => {
   const C = withText();
   return small(C) ? [] : C.filter(c => !c.always);
 };
-// cast : personnages récurrents, déjà envoyés en cache (castOf).
-const charsFor = (ms, cast = []) => {
+const charsFor = ms => {
   const t = textOf(ms);
-  return loose().filter(c => !cast.includes(c.name) && c.keys.some(r => r.test(t)));
+  return loose().filter(c => c.keys.some(r => r.test(t)));
 };
-// Personnages récurrents : quand les fiches ne tiennent pas toutes dans la partie fixe, celles des personnages
-// nommés dans au moins CAST_MIN des CAST_N derniers messages partent en cache, entre la partie fixe et la
-// mémoire, au lieu de repartir au prix plein en fin de requête à chaque tour. keep : la liste en place, gardée
-// telle quelle et dans l'ordre, les nouveaux venus à la fin : ses fiches restent relues en cache, seules les
-// nouvelles sont écrites. Fiches pas encore chargées (scénario injoignable) : la liste en place reste.
-const CAST_N = 30,
-  CAST_MIN = 3;
-export const castOf = (s, keep = []) => {
-  if (!withText().length) return keep;
-  const C = loose(),
-    T = s.messages.slice(-CAST_N).map(m => textOf([m])),
-    hot = C.filter(c => T.filter(t => c.keys.some(r => r.test(t))).length >= CAST_MIN).map(c => c.name),
-    old = keep.filter(n => C.some(c => c.name == n));
-  return [...old, ...hot.filter(n => !old.includes(n))];
-};
-// La liste (s.cast) ne change qu'aux moments où ce qui la suit est réécrit de toute façon : recalculée quand le
-// cache a expiré, complétée quand la mémoire a avancé depuis le dernier envoi (upto : son point d'alors).
-export const nextCast = (s, cold, upto) =>
-  cold ? castOf(s) : upto != null && upto !== s.mem.upto ? castOf(s, s.cast) : s.cast || [];
-const castFiches = s => {
-  const C = loose();
-  return (s.cast || []).map(n => C.find(c => c.name == n)).filter(Boolean);
-};
-// Bloc système d'une fiche récurrente : le journal le reconnaît à son début.
-const CAST_TAG = '\n\n<personnages>';
-export const isCastBlock = t => t.startsWith(CAST_TAG);
-const permBlock = loreMax => {
+const permBlock = () => {
   const C = charsPerm(),
     im = (ctx.chars || []).filter(c => c.images?.length);
   return (
     (C.length
       ? '\n\n<personnages>' + C.map(x => '\n\n## ' + x.name + '\n' + x.text).join('') + '\n</personnages>'
       : '') +
-    loreTag(lorePerm(loreMax)) +
+    loreTag(lorePerm()) +
     (im.length
       ? '\n\n<images_disponibles>\n' +
         im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +
@@ -130,8 +101,8 @@ const memBlock = s => {
     t += '\n\n<previous_history>' + BEFORE + '\n' + clip(s.mem.summary, SUM_MAX) + '\n</previous_history>';
   if (s.mem.lines?.length)
     t += '\n\n<recent_history>' + BEFORE + '\n' + s.mem.lines.map(x => '- ' + x.t).join('\n') + '\n</recent_history>';
-  const k = s.memN ?? MEM_N,
-    mm = k > 0 ? (s.mem.memories || []).slice(-k) : [];
+  // Tous les souvenirs gardés (MEM_MAX au plus, memory.js) : ils sont en cache avec le reste de la mémoire.
+  const mm = s.mem.memories || [];
   if (mm.length)
     t += '\n\n<long_term_memory>\n' + mm.map(x => '- ' + x).join('\n') + '\n</long_term_memory>';
   const rl = Object.entries(s.mem.relations || {});
@@ -156,26 +127,21 @@ export function buildInfo(s, cont, hint) {
   const av = (nm ? 'Nom : ' + nm + '\n' : '') + (c.avatar || '');
   let sys = c.system || '';
   if (!s.noPre && S.pre?.trim()) sys += '\n\n' + S.pre.trim();
-  sys += castBlock() + permBlock(s.loreMax);
+  sys += castBlock() + permBlock();
   sys += protocol({
     stat: statOn(s),
     fields: statFields(s).replace(/\s*\n+\s*/g, ', '),
     choices: !s.noChoices,
     prompt: s.choicePrompt?.trim(),
-    style: !s.noStyle,
     images: (ctx.images || []).length > 0
   });
   if (av.trim()) sys += '\n\n# Avatar du joueur\n' + av;
-  // Blocs du système : partie fixe, une fiche récurrente par bloc, mémoire. Marqueurs de cache (cache) sur la
-  // partie fixe, la dernière fiche et la mémoire : avec celui de l'historique, quatre au plus. Une fiche par
-  // bloc : quand la liste s'allonge, le cache retrouve l'entrée qui finissait sur l'ancienne dernière fiche et
-  // n'écrit que les nouvelles.
-  const F = castFiches(s),
-    blocks = [
-      { text: U(sys + chBlock(s)), cache: true },
-      ...F.map((c, i) => ({ text: U(CAST_TAG + '\n\n## ' + c.name + '\n' + c.text + '\n</personnages>'), cache: i == F.length - 1 })),
-      { text: U(memBlock(s)), cache: true }
-    ];
+  // Blocs du système : partie fixe et mémoire, chacun avec son marqueur de cache (avec celui de l'historique,
+  // trois en tout) : une mise à jour de la mémoire ne réécrit pas la partie fixe.
+  const blocks = [
+    { text: U(sys + chBlock(s)), cache: true },
+    { text: U(memBlock(s)), cache: true }
+  ];
   sys = blocks.map(b => b.text).join('');
 
   const start = Math.min(s.mem.upto, s.messages.length);
@@ -187,8 +153,8 @@ export function buildInfo(s, cont, hint) {
     });
   const l = ms.at(-1);
 
-  let add = loreFor(s.messages.slice(-(s.loreDepth || 2)), s.loreMax);
-  const act = charsFor(s.messages.slice(-6), s.cast);
+  let add = loreFor(s.messages.slice(-2));
+  const act = charsFor(s.messages.slice(-6));
   if (act.length) {
     add +=
       '\n\n<personnages>' +
@@ -198,7 +164,7 @@ export function buildInfo(s, cont, hint) {
   // Passages anciens : en queue, comme le lorebook déclenché, pour ne rien invalider du cache.
   // On ne fouille que ce qui n'est plus envoyé tel quel : déjà résumé.
   add += recallTag(
-    recall(s.messages, start, textOf(s.messages.slice(-2)), s.recallN ?? RECALL_N),
+    recall(s.messages, start, textOf(s.messages.slice(-2)), RECALL_N),
     nm || 'Joueur'
   );
   if (statOn(s)) {

@@ -179,7 +179,7 @@ export async function renameStory(id) {
   return true;
 }
 // Nouvelle partie du même scénario : ses textes et les réglages de l'histoire (nom du joueur, modèle, choix,
-// état, note…), sans messages, mémoire ni distribution. L'histoire d'origine n'est pas touchée. Rend son id.
+// état, note…), sans messages ni mémoire. L'histoire d'origine n'est pas touchée. Rend son id.
 export async function newGame(id) {
   const s = await target(id),
     c = clean({
@@ -190,9 +190,7 @@ export async function newGame(id) {
       reset: 0,
       updated: Date.now(),
       messages: [],
-      mem: null,
-      cast: [],
-      castUpto: null
+      mem: null
     });
   await put(c);
   return c.id;

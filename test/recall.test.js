@@ -67,8 +67,6 @@ test('buildInfo joint le passage au dernier message, jamais au prompt système',
   const r = buildInfo(s);
   assert.doesNotMatch(r.msgs[0].content, /passages_anciens/);
   assert.match(r.msgs.at(-1).content, /<passages_anciens>[\s\S]*pendentif d’argent/);
-  s.recallN = 0;
-  assert.doesNotMatch(buildInfo(s).msgs.at(-1).content, /passages_anciens/);
 });
 
 test('sans rien de résumé ni de sorti de la fenêtre, rien n’est rappelé', () => {

@@ -3,7 +3,7 @@ import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
 import { fr, keepImgs, lieuTag, liveText, paintLive, setBody, split } from './format.js';
-import { buildInfo, inScene, nextCast } from './prompt.js';
+import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
 import { decorNow } from './scene.js';
@@ -122,13 +122,8 @@ export async function ask(old, cont, hint) {
       ]);
       if (app.cur === s) err('');
     }
-    // Personnages récurrents : choisis quand ce qui les suit est réécrit de toute façon (nextCast, prompt.js).
-    // castUpto : point d'arrivée de la mémoire quand la liste a été décidée.
-    s.cast = nextCast(s, cold(s, old), s.castUpto);
-    s.castUpto = s.mem.upto;
     const info = buildInfo(s, cont, hint);
     const r = await chat(info.msgs, {
-      max: +s.maxTok || 0,
       ac,
       od: live,
       model: modelOf(s),
@@ -194,7 +189,7 @@ export async function ask(old, cont, hint) {
         (part
           ? 'Réponse interrompue : le texte reçu est conservé. Continuez (double chevron) ou régénérez.'
           : cut
-            ? 'Réponse coupée par la longueur maximale. Augmentez-la dans les réglages du scénario, continuez ou régénérez.'
+            ? 'Réponse coupée par le plafond de longueur (réflexion comprise). Continuez ou régénérez ; si ça se répète, baissez l’effort dans les réglages de l’histoire.'
             : ''),
       !!msg,
       msg &&

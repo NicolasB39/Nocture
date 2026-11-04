@@ -11,21 +11,6 @@ beforeEach(() => {
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });
 
-test('zéro souvenir injecté n’en envoie aucun', () => {
-  const s = clean({
-    id: 'm',
-    system: 'S',
-    memN: 0,
-    noChoices: true,
-    messages: [{ role: 'user', content: 'a' }],
-    mem: { memories: ['un', 'deux'] }
-  });
-  assert.doesNotMatch(buildInfo(s).msgs[0].content, /long_term_memory/);
-  s.memN = 1;
-  assert.match(buildInfo(s).msgs[0].content, /- deux/);
-  assert.doesNotMatch(buildInfo(s).msgs[0].content, /- un/);
-});
-
 test('un personnage à fiche reste protégé sous un nom reformulé', () => {
   const inc = { 'Alice, l’herboriste': 'amie' };
   for (let i = 0; i < 12; i++) inc['Garde ' + i] = 'neutre';
@@ -47,8 +32,7 @@ test('unnum retire le numéro de message recopié en tête de ligne', () => {
     assert.equal(unnum(t), t, t);
 });
 
-test('sans consigne de style, les choix ne demandent pas d’astérisques', () => {
-  assert.doesNotMatch(protocol({ choices: true, style: false }), /\*/);
+test('les choix demandent un geste entre astérisques puis la réplique', () => {
   assert.match(protocol({ choices: true }), /\*un geste\*/);
 });
 
