@@ -1,7 +1,7 @@
 import { lastEtat } from './format.js';
 import { CH_FULL, SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, protocol } from './protocol.js';
-import { RECALL_N, recall, recallTag } from './recall.js';
+import { recall, recallTag } from './recall.js';
 import { S, ctx, playerName } from './state.js';
 import { nz } from './util.js';
 
@@ -11,7 +11,6 @@ export const estTok = t => Math.ceil(t.length / 2.2) + 4;
 export const statOn = s => s.stat ?? !!(s.remote && ctx.stat);
 export const statFields = s =>
   (s.statFields || '').trim() || (s.remote ? ctx.stat : '') || DEFAULT_FIELDS;
-
 
 const textOf = ms =>
   nz(
@@ -30,7 +29,6 @@ export const toks = L => L.reduce((a, x) => a + estTok(x.text), 0);
 // Lorebook entier en partie fixe s'il tient dans le budget ; sinon les entrées « toujours » y vont, et les
 // autres partent en fin de requête quand un de leurs mots-clés est dans les deux derniers messages.
 const loreAll = () => toks(ctx.lore || []) <= CACHED_FREE;
-const lorePerm = () => (ctx.lore || []).filter(e => e.always || loreAll()).sort((x, y) => y.pr - x.pr);
 const loreFor = ms => {
   if (loreAll()) return '';
   const t = textOf(ms);
@@ -62,7 +60,7 @@ const permBlock = () => {
     (C.length
       ? '\n\n<personnages>' + C.map(x => '\n\n## ' + x.name + '\n' + x.text).join('') + '\n</personnages>'
       : '') +
-    loreTag(lorePerm()) +
+    loreTag((ctx.lore || []).filter(e => e.always || loreAll()).sort((x, y) => y.pr - x.pr)) +
     (im.length
       ? '\n\n<images_disponibles>\n' +
         im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +
@@ -164,7 +162,7 @@ export function buildInfo(s, cont, hint) {
   // Passages anciens : en queue, comme le lorebook déclenché, pour ne rien invalider du cache.
   // On ne fouille que ce qui n'est plus envoyé tel quel : déjà résumé.
   add += recallTag(
-    recall(s.messages, start, textOf(s.messages.slice(-2)), RECALL_N),
+    recall(s.messages, start, textOf(s.messages.slice(-2))),
     nm || 'Joueur'
   );
   if (statOn(s)) {

@@ -15,8 +15,7 @@ const one = m => {
 export const clean = x => {
   if (!x || typeof x.id != 'string' || !x.id || !Array.isArray(x.messages)) return null;
   const s = v => (typeof v == 'string' ? v : ''),
-    n = v => (Number.isFinite(+v) && +v > 0 ? +v : 0),
-    o = v => (v === '' || v == null || !Number.isFinite(+v) ? null : +v);
+    n = v => (Number.isFinite(+v) && +v > 0 ? +v : 0);
   const messages = x.messages
     .filter(m => m && (m.role == 'user' || m.role == 'assistant') && typeof m.content == 'string')
     .map((m, i, all) => {

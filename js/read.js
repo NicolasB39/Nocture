@@ -1,3 +1,4 @@
+import { emit } from './bus.js';
 import { S, app, playerName } from './state.js';
 import { saveSet } from './store.js';
 import { $, LS, el, ic, plain, toast } from './util.js';
@@ -225,6 +226,7 @@ export function fillLec() {
   $('#lff').value = S.ff || 'ser';
   $('#lpm').value = S.pm || 'sp';
   $('#lfo').checked = !!S.follow;
+  $('#lfb').checked = !!S.fullBody;
   $('#ltt').hidden = !ok;
   if (ok) {
     fillVoices();
@@ -270,6 +272,12 @@ $('#rx').onclick = () => setReading(false);
 $('#lfo').onchange = () => {
   S.follow = $('#lfo').checked;
   saveSet();
+};
+// Cadrage des personnages : la conversation ouverte se redessine (view.js écoute « lecture »).
+$('#lfb').onchange = () => {
+  S.fullBody = $('#lfb').checked;
+  saveSet();
+  emit('lecture');
 };
 $('#lvo').onchange = () => {
   tts().voice = $('#lvo').value;

@@ -336,7 +336,6 @@ function openCfg() {
   fillLec();
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
-  $('#lfb').checked = !!S.fullBody;
   $('#cpn').value = S.pname || '';
   $('#ctc').checked = !!S.counters;
   $('#sto').textContent = '';
@@ -358,12 +357,6 @@ function openCfg() {
     .catch(() => {});
   $('#dc').showModal();
 }
-// Cadrage des personnages (section Lecture) : appliqué et enregistré tout de suite, comme le reste de la section.
-$('#lfb').onchange = () => {
-  S.fullBody = $('#lfb').checked;
-  saveSet();
-  if (app.cur) render();
-};
 $('#cfg').onclick = openCfg;
 $('#akb').onclick = openCfg;
 $('#mlr').onclick = () => {

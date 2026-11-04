@@ -48,6 +48,8 @@ export const fallbackOk = model => ['claude-fable-5-1', 'claude-opus-5-5', 'clau
 // En-tête bêta d'une requête Claude (le relais en cas de refus).
 export const antBetas = b => (b.fallbacks ? FB_BETA : '');
 // schema : réponse en JSON conforme à ce schéma (sorties structurées), garantie par l'API.
+// Plafond d'une réponse, réflexion comprise : une sécurité, pas une longueur (une réponse coupée se perd).
+const MAX_TOK = 8192;
 export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema }) => {
   const cc = { type: 'ephemeral', ...(ttl ? { ttl: '1h' } : {}) },
     sys = [],
@@ -73,8 +75,7 @@ export const toAnt = (ms, { model, max, stream, ttl, effort, fallback, schema })
     };
   return {
     model,
-    // Plafond de sécurité, pas de longueur : la réflexion compte dedans, et une réponse coupée se perd.
-    max_tokens: max || 8192,
+    max_tokens: max || MAX_TOK,
     ...(sys.length ? { system: sys } : {}),
     messages: out,
     ...(Object.keys(oc).length ? { output_config: oc } : {}),
@@ -517,8 +518,6 @@ async function sumRun(s, start) {
         ],
         {
           model: memModel(),
-          // Vingt messages et la réflexion du modèle : plus que les 4 096 tokens par défaut.
-          max: 8192,
           effort: 'low',
           kind: 'mémoire',
           sid: s.id,

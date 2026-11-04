@@ -199,7 +199,6 @@ export const err = (t, bad, a) => {
       })
     );
 };
-export const num = s => ($(s).value === '' ? null : +$(s).value);
 export const fit = () => {
   const i = $('#inp');
   i.style.height = 'auto';
