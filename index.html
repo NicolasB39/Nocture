@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="d03c903a84">
+<meta name="app-version" content="5ec277a4ee">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -87,7 +87,7 @@
 <header><h1><svg class="i logo" style="width:28px;height:28px"><use href="#i-logo"/></svg>Nocturne</h1><button id="rf" aria-label="Actualiser GitHub"><svg class="i"><use href="#i-refresh"/></svg></button><button id="sy" aria-label="Synchroniser la sauvegarde"><svg class="i"><use href="#i-cloud"/></svg></button><button id="usb" aria-label="Statistiques d’utilisation"><svg class="i"><use href="#i-chart"/></svg></button><button id="cfg" aria-label="Réglages"><svg class="i"><use href="#i-gear"/></svg></button></header>
 <div id="bk" class="bk" hidden><span>Pensez à sauvegarder vos histoires.</span><button id="bke">Exporter</button><button id="bkl">Plus tard</button></div>
 <div id="ak" class="bk" hidden><span>Aucune clé API : l'IA ne pourra pas répondre.</span><button id="akb">Réglages</button></div>
-<label class="sb"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Rechercher" aria-label="Rechercher un scénario"></label>
+<label class="sb"><svg class="i"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Rechercher" aria-label="Rechercher une histoire"></label>
 <div id="tabs" role="radiogroup" aria-label="Filtrer"><button class="on" data-f="all" role="radio" aria-checked="true">Tous<span class="cnt"></span></button><button data-f="play" role="radio" aria-checked="false">En cours<span class="cnt"></span></button><button data-f="lib" role="radio" aria-checked="false">Bibliothèque<span class="cnt"></span></button><button data-f="own" role="radio" aria-checked="false">Perso<span class="cnt"></span></button></div>
 <div id="items"></div>
 <button id="new" class="primary"><svg class="i"><use href="#i-plus"/></svg>Nouveau</button>
@@ -119,6 +119,7 @@
 <dialog id="mn" aria-labelledby="mnt">
 <h2 id="mnt"></h2>
 <div class="col">
+<button id="mng">Nouvelle partie</button>
 <button id="mp">Épingler</button>
 <button id="mr">Renommer</button>
 <button id="md">Dupliquer</button>
@@ -141,6 +142,7 @@
 </div>
 <p class="sdh mnh">Histoire</p>
 <div class="col">
+<button id="mnew"><svg class="i"><use href="#i-plus"/></svg>Nouvelle partie</button>
 <button id="mpin"><svg class="i"><use href="#i-pin"/></svg><span>Épingler</span></button>
 <button id="mren"><svg class="i"><use href="#i-edit"/></svg>Renommer</button>
 <button id="mexp"><svg class="i"><use href="#i-dl"/></svg>Exporter en texte (.md)</button>
@@ -357,6 +359,9 @@
 
 <details>
 <summary>Narration</summary>
+<label for="cpn">Nom du joueur par défaut</label>
+<input id="cpn" autocomplete="off" placeholder="Le nom de votre personnage">
+<p class="note">Pour toutes les histoires qui n'ont pas leur propre nom (Réglages de l'histoire). Vide : « Joueur ».</p>
 <label for="cpre">Préambule commun à tous les scénarios</label>
 <textarea id="cpre" style="min-height:90px" placeholder="Vos préférences de narration : longueur, rythme, registre…"></textarea>
 <p class="note">Les formats de l'état, des choix et des images sont produits par l'application, pas par les scénarios.</p>

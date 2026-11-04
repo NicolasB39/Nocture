@@ -1,4 +1,4 @@
-import { IMG, app, ctx } from './state.js';
+import { IMG, app, ctx, playerName } from './state.js';
 import { KNEES, decorFor, scene } from './scene.js';
 import { el, ikey } from './util.js';
 
@@ -194,7 +194,7 @@ export const body = (t, d) => {
   t.replace(CHX, '')
     .replace(ETX, '')
     .replace(LIX, '')
-    .replace(/\{\{user\}\}/gi, app.cur?.pname?.trim() || 'Joueur')
+    .replace(/\{\{user\}\}/gi, playerName(app.cur) || 'Joueur')
     .replace(/\s*\{\{[^}]*$/, '')
     .split(/\{\{img::([^}]*)\}\}/g)
     .forEach((x, i) => (i % 2 ? out.push(imgNode(x, d)) : blocks(x.replace(/^\n+|\n+$/g, ''), out)));

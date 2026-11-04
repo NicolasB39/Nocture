@@ -162,9 +162,16 @@ export async function loadCtx() {
     for (const f of files) {
       const m = f.match(/^(.+)\.(webp|png|jpe?g|gif)$/i);
       if (m) {
-        const c = (n + '_' + m[1]).toLowerCase();
+        // Code : dossier_fichier, sans répéter le nom quand le fichier commence déjà par lui (maelys/maelys_joie.png
+        // → maelys_joie). L'ancien code doublé (maelys_maelys_joie) reste reconnu, pour les messages déjà écrits.
+        // Si un autre fichier du dossier a déjà pris ce code (joie.png et maelys_joie.png), celui-ci garde le
+        // code doublé.
+        const b = m[1].toLowerCase(),
+          d = (n + '_' + m[1]).toLowerCase(),
+          c = ikey(b).startsWith(ikey(n) + '_') && !im[b] ? b : d;
         im[c] = encodeURI(pb + n + '/' + f);
         im[ikey(c)] ??= im[c];
+        if (c == b) im[ikey(n + '_' + b)] ??= im[c];
         images.push({ code: c, url: im[c] });
         own.push(c);
       }

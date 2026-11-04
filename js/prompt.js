@@ -2,7 +2,7 @@ import { lastEtat } from './format.js';
 import { CH_FULL, SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, protocol } from './protocol.js';
 import { RECALL_N, recall, recallTag } from './recall.js';
-import { S, ctx } from './state.js';
+import { S, ctx, playerName } from './state.js';
 import { nz } from './util.js';
 
 // Estimation, avant l'envoi : 2,2 caractères par token, mesuré sur les décomptes réels de Sonnet et Haiku 5.5
@@ -147,7 +147,7 @@ const relOf = (mem, name) => {
   return '';
 };
 export function buildInfo(s, cont, hint) {
-  const nm = s.pname?.trim() || '';
+  const nm = playerName(s);
   const U = t => t.replace(/\{\{user\}\}/gi, nm || 'Joueur');
   const c = s.remote ? ctx : { system: s.system, avatar: s.avatar };
   const av = (nm ? 'Nom : ' + nm + '\n' : '') + (c.avatar || '');

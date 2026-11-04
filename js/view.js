@@ -7,7 +7,7 @@ import { buildInfo, inScene, statOn } from './prompt.js';
 import { refreshSpeech, ttsOk, visibleStart } from './read.js';
 import { coverOf } from './scenarios.js';
 import { decorFor, decorNow, decorsOf, lieuOf, scenesOf } from './scene.js';
-import { app, ctx, S } from './state.js';
+import { app, ctx, playerName, S } from './state.js';
 import { $, accentVars, el, ic, LS, smooth } from './util.js';
 
 // Affichage de la conversation : messages, panneau d'état, scènes, compteurs, en-tête, navigation.
@@ -31,6 +31,7 @@ export const infoOf = () => {
       m.lines?.length,
       Object.keys(m.relations || {}).length,
       S.pre?.length,
+      S.pname,
       (ctx.chars || []).length,
       (ctx.lore || []).length
     ].join('|');
@@ -235,8 +236,9 @@ const msgNode = (i, m, last, d = '') => {
   n._k = keyOf(m, last, d, t, p);
   return n;
 };
-// Tout ce dont dépend le rendu d'un message : panneau d'état affiché ou non, et index des images (ctx.iv,
-// changé par « Recharger l'index ») pour qu'une image ajoutée remplace son repère « image introuvable ».
+// Tout ce dont dépend le rendu d'un message : panneau d'état affiché ou non, index des images (ctx.iv,
+// changé par « Recharger l'index ») pour qu'une image ajoutée remplace son repère « image introuvable », et
+// nom du joueur (qui remplace {{user}}).
 const keyOf = (m, l, d, t, p) => ({
   c: m.content,
   a: m.ai,
@@ -248,7 +250,8 @@ const keyOf = (m, l, d, t, p) => ({
   p,
   f: !!app.cur.fullBody,
   o: statOn(app.cur),
-  g: ctx.iv
+  g: ctx.iv,
+  u: playerName(app.cur)
 });
 const same = (a, b) =>
   a &&
@@ -262,7 +265,8 @@ const same = (a, b) =>
   a.p === b.p &&
   a.f === b.f &&
   a.o === b.o &&
-  a.g === b.g;
+  a.g === b.g &&
+  a.u === b.u;
 const dayOf = t => new Date(t).toDateString();
 const cut6h = (t, p) => dayOf(t) !== dayOf(p) || t - p > 216e5;
 const dayLab = (t, p) => {

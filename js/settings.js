@@ -109,6 +109,7 @@ export function openSc() {
     : '';
   $('#spre').checked = !!app.cur.noPre;
   $('#snm').value = app.cur.pname || '';
+  $('#snm').placeholder = S.pname?.trim() ? S.pname.trim() + ' (nom par défaut)' : '';
   $('#scv').hidden = !!app.cur.remote;
   COVER = app.cur.cover || '';
   cvView();
@@ -161,6 +162,7 @@ $('#simr').onclick = async () => {
 };
 $('#mo').onclick = () => {
   $('#mpin span').textContent = app.cur.pin ? 'Détacher' : 'Épingler';
+  $('#mnew').hidden = !app.cur.messages.length;
   $('#dmn').showModal();
 };
 $('#dmnc').onclick = () => $('#dmn').close();
@@ -345,6 +347,7 @@ function openCfg() {
   fillLec();
   $('#crp').value = S.repo || '';
   $('#cpre').value = S.pre || '';
+  $('#cpn').value = S.pname || '';
   $('#ctc').checked = !!S.counters;
   $('#sto').textContent = '';
   Promise.all([
@@ -397,8 +400,8 @@ $('#imf').onchange = async e => {
     const a = (Array.isArray(d?.scenarios) ? d.scenarios : []).map(clean).filter(Boolean);
     if (
       !a.length ||
-      !(await dlg('Importer ' + a.length + ' scénario(s) ?', {
-        m: 'Ceux qui ont le même identifiant seront remplacés.',
+      !(await dlg('Importer ' + a.length + (a.length > 1 ? ' histoires ?' : ' histoire ?'), {
+        m: 'Celles qui ont le même identifiant seront remplacées.',
         ok: 'Importer'
       }))
     )
@@ -434,12 +437,16 @@ $('#dcs').onclick = async () => {
   if (rp !== (S.repo || '')) LS.del('tree');
   S.repo = rp;
   S.pre = $('#cpre').value.trim();
+  S.pname = $('#cpn').value.trim();
   S.counters = $('#ctc').checked;
   S.journal = $('#cjr').checked;
   await saveSet();
   $('#dc').close();
-  if (app.cur) tk();
-  else draw();
+  // Le nom par défaut peut changer le texte affiché ({{user}}) : la conversation se redessine.
+  if (app.cur) {
+    render();
+    tk();
+  } else draw();
 };
 
 const SNIP = (t, q) => {

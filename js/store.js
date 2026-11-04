@@ -1,4 +1,4 @@
-import { S, app } from './state.js';
+import { S, app, playerName } from './state.js';
 import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutChapters, cutLines } from './memory.js';
 
@@ -100,7 +100,7 @@ export const forkOf = (s, i, name, id) => {
 const pvOf = s => {
   const m = s.messages?.at(-1);
   return m
-    ? plain(m.content, s.pname)
+    ? plain(m.content, playerName(s))
         .replace(/[*_#>]/g, '')
         .replace(/\s+/g, ' ')
         .trim()

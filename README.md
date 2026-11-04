@@ -30,7 +30,7 @@ scenarios/
       dragon.md
 ```
 
-Le nom du dossier devient le nom du scénario. Le texte peut contenir `{{user}}` (nom du joueur). N'y écrivez pas de consignes sur le format des blocs `<etat>` ou `<choix>` : voir « Protocole et préambule ».
+Le nom du dossier devient le nom du scénario. Le texte peut contenir `{{user}}` (nom du joueur : celui de l'histoire, dans ses réglages, sinon le « Nom du joueur par défaut » des Réglages de l'application, section Narration, sinon « Joueur »). N'y écrivez pas de consignes sur le format des blocs `<etat>` ou `<choix>` : voir « Protocole et préambule ».
 
 ### Fiches de personnages
 
@@ -56,7 +56,7 @@ Les codes d'images de tous les personnages sont envoyés en permanence, regroup�
 
 ### Images
 
-Les images de `personnages/<Nom>/` (formats `.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`) sont proposées à l'IA sous le code `nom_fichier` (minuscules, sans extension). L'IA les affiche avec `{{img::alice_sourire}}` seul sur une ligne.
+Les images de `personnages/<Nom>/` (formats `.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`) sont proposées à l'IA sous le code `nom_fichier` (minuscules, sans extension). Un fichier qui commence déjà par le nom du personnage n'est pas préfixé une seconde fois : `maelys/maelys_joie.png` donne `maelys_joie`, et l'ancien code doublé `maelys_maelys_joie` reste reconnu dans les messages déjà écrits. L'IA les affiche avec `{{img::alice_sourire}}` seul sur une ligne.
 
 L'application affiche l'image **là où le modèle l'écrit**, en tête, au milieu ou à la fin. C'est donc la consigne qui décide : le protocole demande de la placer à l'endroit du récit qu'elle illustre et de ne pas ouvrir systématiquement la réponse par une image, et la liste des codes envoyée à chaque tour le rappelle. Si un scénario demande lui-même « commence par l'image » dans son prompt système, cette phrase l'emporte, et c'est à elle qu'il faut toucher. Les messages déjà écrits gardent leurs images où elles sont ; seules les nouvelles réponses suivent la nouvelle consigne.
 
@@ -155,7 +155,7 @@ Tant qu'aucune clé API Claude n'est enregistrée, un bandeau le signale en haut
 
 ### Options de l'histoire
 
-Le menu « … » d'une conversation range ses entrées par usage : en haut, trois tuiles pour les outils de lecture (Sommaire, Rechercher, Mode lecture) ; puis « Mémoire et note » (chapitres, résumé, souvenirs et la note pour l'IA, une consigne envoyée avec la mémoire à chaque tour) et « Réglages de l'histoire » ; enfin, sous « Histoire », Épingler (ou Détacher), Renommer et Exporter en texte, comme depuis la carte de la bibliothèque, et les Réglages de l'application.
+Le menu « … » d'une conversation range ses entrées par usage : en haut, trois tuiles pour les outils de lecture (Sommaire, Rechercher, Mode lecture) ; puis « Mémoire et note » (chapitres, résumé, souvenirs et la note pour l'IA, une consigne envoyée avec la mémoire à chaque tour) et « Réglages de l'histoire » ; enfin, sous « Histoire », Nouvelle partie, Épingler (ou Détacher), Renommer et Exporter en texte, comme depuis la carte de la bibliothèque, et les Réglages de l'application.
 
 ### Actions d'un message
 
@@ -393,7 +393,7 @@ Activation : menu « … » de la conversation, Réglages de l'histoire, section
 
 - Réponses en streaming, trois suggestions de réponse (envoi direct ou crayon pour modifier), bouton annuler.
 - Variantes de réponse (flèches ‹ ›) en régénérant, bouton « continuer » (double chevron) pour prolonger une réponse coupée.
-- Modifier, copier ou supprimer à partir d'un message (feuille « … » sous le message). La suppression est immédiate, avec un bouton « Annuler » pendant 7 secondes tant que la conversation n'a pas changé. Les lignes récentes des messages supprimés sont retirées de la mémoire ; si la suppression touche des messages déjà résumés, la notification prévient que le résumé en garde la trace. Supprimer à partir du premier message recommence l'histoire ; pour un scénario GitHub, cette remise à zéro est synchronisée comme une modification (sans elle, une histoire GitHub vide n'est jamais synchronisée, et la version en ligne reviendrait).
+- Modifier, copier ou supprimer à partir d'un message (feuille « … » sous le message). La suppression est immédiate, avec un bouton « Annuler » pendant 7 secondes tant que la conversation n'a pas changé. Les lignes récentes des messages supprimés sont retirées de la mémoire ; si la suppression touche des messages déjà résumés, la notification prévient que le résumé en garde la trace. Pour rejouer un scénario sans perdre la partie en cours, « Nouvelle partie » (menu « … » de la carte ou de la conversation) crée une histoire vierge du même scénario, avec les mêmes réglages (nom du joueur, modèle, choix, panneau d'état, note) mais sans messages ni mémoire. Supprimer une histoire (menu « … » de la carte) efface la conversation, sa mémoire et ses réglages ; un scénario GitHub reste dans le dépôt et dans la bibliothèque, alors qu'un scénario créé dans l'application, dont le prompt vit dans ses histoires, disparaît avec la dernière. Supprimer à partir du premier message recommence l'histoire ; pour un scénario GitHub, cette remise à zéro est synchronisée comme une modification (sans elle, une histoire GitHub vide n'est jamais synchronisée, et la version en ligne reviendrait).
 - Modifier un message déjà résumé : sa ligne récente est retirée de la mémoire, et une notification prévient que le résumé garde la trace de l'ancienne version.
 - Bifurquer à partir d'un message (même feuille) : une nouvelle histoire reprend jusque-là, l'originale reste intacte.
 - Modifier et renvoyer un tour du joueur (même feuille) : la suite est remplacée par une nouvelle réponse, sans annulation possible ; la fenêtre l'annonce et conseille de bifurquer d'abord pour garder l'ancienne suite. Si le tour était déjà résumé, il repart tel quel et le résumé garde la trace de l'ancienne version.

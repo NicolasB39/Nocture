@@ -1,8 +1,8 @@
 import { bkOn, sync } from './backup.js';
 import { emit, on } from './bus.js';
 import { coverOf, getTree, localTree } from './scenarios.js';
-import { S, app } from './state.js';
-import { del, getAll, getOne, put, saveSet } from './store.js';
+import { S, app, playerName } from './state.js';
+import { clean, del, getAll, getOne, put, saveSet } from './store.js';
 import { $, LS, ago, dlg, el, hue, ic, initial, nz, plain, uid, vt } from './util.js';
 
 export async function showList() {
@@ -86,7 +86,7 @@ export async function draw() {
         'button',
         {
           class: 'menu',
-          data: { id: s.id, pin: s.pin ? '1' : '' },
+          data: { id: s.id, pin: s.pin ? '1' : '', played: s.n > 0 ? '1' : '' },
           'aria-label': 'Options de ' + s.name
         },
         ic('more', 18)
@@ -103,7 +103,7 @@ export async function draw() {
             { class: 'empty' },
             ic('logo', 44),
             el('p', {
-              text: a.length ? 'Aucun résultat.' : 'Aucun scénario. Créez-en un pour commencer.'
+              text: a.length ? 'Aucun résultat.' : 'Aucune histoire. Touchez « Nouveau » pour créer un scénario.'
             })
           )
         ])
@@ -128,6 +128,8 @@ $('#items').onclick = e => {
   if (m) {
     app.menuId = m.dataset.id;
     $('#mp').textContent = m.dataset.pin ? 'Détacher' : 'Épingler';
+    // Une histoire jamais jouée est déjà une partie vierge.
+    $('#mng').hidden = !m.dataset.played;
     $('#mnt').textContent = m.closest('.item').querySelector('.ttl').textContent;
     $('#mn').showModal();
     return;
@@ -176,9 +178,28 @@ export async function renameStory(id) {
   await put(s);
   return true;
 }
+// Nouvelle partie du même scénario : ses textes et les réglages de l'histoire (nom du joueur, modèle, choix,
+// état, note…), sans messages, mémoire ni distribution. L'histoire d'origine n'est pas touchée. Rend son id.
+export async function newGame(id) {
+  const s = await target(id),
+    c = clean({
+      ...s,
+      id: uid(),
+      name: s.name.endsWith(' (nouvelle partie)') ? s.name : s.name + ' (nouvelle partie)',
+      pin: false,
+      reset: 0,
+      updated: Date.now(),
+      messages: [],
+      mem: null,
+      cast: [],
+      castUpto: null
+    });
+  await put(c);
+  return c.id;
+}
 export async function exportStory(id) {
   const s = await target(id),
-    nm = s.pname?.trim() || 'Joueur';
+    nm = playerName(s) || 'Joueur';
   const t =
     '# ' +
     s.name +
@@ -194,6 +215,10 @@ export async function exportStory(id) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1e4);
 }
 $('#mc').onclick = () => $('#mn').close();
+$('#mng').onclick = async () => {
+  $('#mn').close();
+  emit('open', await newGame(app.menuId));
+};
 $('#mp').onclick = async () => {
   $('#mn').close();
   await pinStory(app.menuId);
@@ -217,10 +242,21 @@ $('#md').onclick = async () => {
   $('#mn').close();
   showList();
 };
+// Supprimer une histoire : la conversation, sa mémoire et ses réglages. Un scénario GitHub reste dans le dépôt ;
+// celui créé dans l'application n'existe que dans ses histoires, le message le dit.
 $('#mx').onclick = async () => {
   $('#mn').close();
+  const s = await getOne(app.menuId);
+  if (!s) return;
   if (
-    await dlg('Supprimer ce scénario ?', { m: 'Tout son historique sera effacé.', ok: 'Supprimer' })
+    await dlg('Supprimer cette histoire ?', {
+      m:
+        'La conversation, sa mémoire et ses réglages sont effacés. ' +
+        (s.remote
+          ? 'Le scénario « ' + s.folder + ' » n’est pas touché : tant qu’il est dans le dépôt, il reste dans la bibliothèque, prêt pour une nouvelle partie.'
+          : 'Ce scénario a été créé dans l’application : son prompt disparaît avec elle s’il n’a pas d’autre histoire. Pour le garder, lancez d’abord une « Nouvelle partie ».'),
+      ok: 'Supprimer'
+    })
   ) {
     await del(app.menuId);
     (S.tomb ??= {})[app.menuId] = Date.now();

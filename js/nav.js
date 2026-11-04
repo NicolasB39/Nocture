@@ -2,11 +2,11 @@ import { readPos, stopSpeech } from './read.js';
 import { sync } from './backup.js';
 import { on } from './bus.js';
 import { openScenario } from './chat.js';
-import { byRecent, showList } from './list.js';
+import { byRecent, newGame, showList } from './list.js';
 import { coverOf, localTree } from './scenarios.js';
 import { app } from './state.js';
 import { getSome } from './store.js';
-import { $, el, hue, initial, LS } from './util.js';
+import { $, el, hue, initial, LS, toast } from './util.js';
 import { WIDE } from './view.js';
 
 export const go = async id => {
@@ -72,6 +72,12 @@ async function openSwitch() {
   );
   $('#dsw').showModal();
 }
+// Nouvelle partie depuis la conversation : elle s'ouvre à sa place, l'ancienne reste dans la bibliothèque.
+$('#mnew').onclick = async () => {
+  $('#dmn').close();
+  await leave(await newGame(app.cur.id));
+  toast('Nouvelle partie · l’ancienne reste dans la bibliothèque');
+};
 $('#sw').onclick = openSwitch;
 $('#ct').onclick = () => WIDE.matches && openSwitch();
 $('#swc').onclick = () => $('#dsw').close();

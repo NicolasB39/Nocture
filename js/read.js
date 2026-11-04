@@ -1,4 +1,4 @@
-import { S, app } from './state.js';
+import { S, app, playerName } from './state.js';
 import { saveSet } from './store.js';
 import { $, LS, el, ic, plain, toast } from './util.js';
 
@@ -35,7 +35,7 @@ export const readPos = id => {
 };
 
 const speakable = t =>
-  plain(t, app.cur?.pname)
+  plain(t, playerName(app.cur))
     .replace(/<[^>]*>/g, '')
     .replace(/^-{3,}$/gm, '')
     .replace(/^>\s?/gm, '')

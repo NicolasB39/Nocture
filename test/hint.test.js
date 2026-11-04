@@ -17,6 +17,19 @@ const sc = () =>
     ]
   });
 
+test('sans nom propre, une histoire prend le nom du joueur par défaut des Réglages', () => {
+  const s = sc();
+  s.pname = '';
+  S.pname = 'Kael';
+  try {
+    assert.match(buildInfo(s).msgs[0].content, /Nom : Kael/);
+    s.pname = 'Léa';
+    assert.match(buildInfo(s).msgs[0].content, /Nom : Léa/);
+  } finally {
+    delete S.pname;
+  }
+});
+
 beforeEach(() => {
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
 });

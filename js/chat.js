@@ -7,7 +7,7 @@ import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js'
 import { loadCtx, TERR } from './scenarios.js';
 import { zoomScene } from './scene.js';
 import { ask, regen, regenHint, sessionSum } from './send.js';
-import { app, ctx } from './state.js';
+import { app, ctx, playerName } from './state.js';
 import { forkOf, getOne, save } from './store.js';
 import { $, dlg, err, fit, LS, plain, smooth, toast, uid, vt } from './util.js';
 import { render } from './view.js';
@@ -310,7 +310,7 @@ $('#damc').onclick = () => $('#dma').close();
 $('#mac').onclick = () => {
   $('#dma').close();
   navigator.clipboard
-    ?.writeText(plain(app.cur.messages[app.actI].content, app.cur.pname))
+    ?.writeText(plain(app.cur.messages[app.actI].content, playerName(app.cur)))
     .then(() => toast('Message copié'))
     .catch(() => toast('Copie impossible'));
 };
