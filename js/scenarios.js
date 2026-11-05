@@ -137,7 +137,7 @@ export async function loadCtx() {
   const g = ++gen,
     im = {};
   for (const k in IMG) delete IMG[k];
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', decors: [], decorDef: '', intro: '', iv: imgVer({}) });
+  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', rules: [], decors: [], decorDef: '', intro: '', iv: imgVer({}) });
   if (!app.cur.remote) return;
   const base = 'scenarios/' + app.cur.folder + '/',
     pb = base + 'personnages/';
@@ -147,7 +147,22 @@ export async function loadCtx() {
     txt(base + 'avatar.md')
   ]);
   const stat = T.includes(base + 'etat.md') ? (await txt(base + 'etat.md')).trim() : '',
-    intro = T.includes(base + 'intro.md') ? (await txt(base + 'intro.md')).trim() : '';
+    intro = T.includes(base + 'intro.md') ? (await txt(base + 'intro.md')).trim() : '',
+    // Mode jeu de rôle : les caractéristiques, séparées par des virgules (huit au plus). Les lignes de
+    // commentaire (#) sont retirées avant le découpage : leurs virgules ne créent pas de caractéristiques.
+    rules = T.includes(base + 'regles.md')
+      ? [
+          ...new Set(
+            (await txt(base + 'regles.md'))
+              .split('\n')
+              .filter(l => !l.trim().startsWith('#'))
+              .join(',')
+              .split(',')
+              .map(x => x.trim())
+              .filter(Boolean)
+          )
+        ].slice(0, 8)
+      : [];
   const ch = {};
   for (const p of T) {
     if (!p.startsWith(pb)) continue;
@@ -255,5 +270,5 @@ export async function loadCtx() {
     decorDef = def?.url || '';
   if (g !== gen) return;
   Object.assign(IMG, im);
-  Object.assign(ctx, { system, avatar, chars, lore, images, stat, decors, decorDef, intro, iv: imgVer(im) });
+  Object.assign(ctx, { system, avatar, chars, lore, images, stat, rules, decors, decorDef, intro, iv: imgVer(im) });
 }

@@ -1,3 +1,4 @@
+import { rulesOf } from './dice.js';
 import { lastEtat } from './format.js';
 import { CH_FULL, SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, protocol } from './protocol.js';
@@ -132,7 +133,8 @@ export function buildInfo(s, cont, hint) {
     fields: statFields(s).replace(/\s*\n+\s*/g, ', '),
     choices: !s.noChoices,
     prompt: s.choicePrompt?.trim(),
-    images: (ctx.images || []).length > 0
+    images: (ctx.images || []).length > 0,
+    rules: rulesOf(s)
   });
   if (av.trim()) sys += '\n\n# Avatar du joueur\n' + av;
   // Blocs du système : partie fixe et mémoire, chacun avec son marqueur de cache (avec celui de l'historique,

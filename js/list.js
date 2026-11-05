@@ -190,7 +190,9 @@ export async function newGame(id) {
       reset: 0,
       updated: Date.now(),
       messages: [],
-      mem: null
+      mem: null,
+      // Nouveau personnage : la fiche du mode jeu de rôle repart vide.
+      sheet: {}
     });
   await put(c);
   return c.id;

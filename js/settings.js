@@ -2,6 +2,7 @@ import { effortOk, memModel } from './ai.js';
 import { on } from './bus.js';
 import { jump, render, tk } from './view.js';
 import { PRICES, money, priceOf } from './cost.js';
+import { rulesOf } from './dice.js';
 import { fr } from './format.js';
 import { draw, exportStory, pinStory, renameStory, showList } from './list.js';
 import { extrasOf, statOn } from './prompt.js';
@@ -9,9 +10,9 @@ import { DEFAULT_CHOICE, DEFAULT_FIELDS, conflicts, modelOf } from './protocol.j
 import { fillLec, setReading } from './read.js';
 import { tocOf } from './scene.js';
 import { TERR, coverOf, getTree, loadCtx } from './scenarios.js';
-import { API, S, app, ctx } from './state.js';
+import { API, S, app, ctx, playerName } from './state.js';
 import { clean, put, save, saveSet } from './store.js';
-import { $, LS, dlg, el, ic, nz, pickAccent, toast } from './util.js';
+import { $, LS, dlg, el, ic, nz, pickAccent, plain, toast } from './util.js';
 
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
@@ -159,6 +160,7 @@ $('#simr').onclick = async () => {
 $('#mo').onclick = () => {
   $('#mpin span').textContent = app.cur.pin ? 'Détacher' : 'Épingler';
   $('#mnew').hidden = !app.cur.messages.length;
+  $('#msh').hidden = !rulesOf(app.cur).length;
   $('#dmn').showModal();
 };
 $('#dmnc').onclick = () => $('#dmn').close();
@@ -460,7 +462,8 @@ function srRun() {
   }
   const r = app.cur.messages
     .map((m, i) => ({ m, i }))
-    .filter(x => nz(x.m.content).includes(q))
+    .map(x => ({ ...x, t: plain(x.m.content, playerName(app.cur)) }))
+    .filter(x => nz(x.t).includes(q))
     .slice(-60)
     .reverse();
   $('#srn').textContent = r.length
@@ -468,7 +471,7 @@ function srRun() {
     : 'Aucun résultat.';
   $('#srl').replaceChildren(
     ...r.map(x =>
-      hit(x.m.role, SNIP(x.m.content, q), () => {
+      hit(x.m.role, SNIP(x.t, q), () => {
         $('#dsr').close();
         jump(x.i);
       })

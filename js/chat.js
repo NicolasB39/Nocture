@@ -6,6 +6,8 @@ import { conflicts } from './protocol.js';
 import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js';
 import { loadCtx, TERR } from './scenarios.js';
 import { zoomScene } from './scene.js';
+import { openSheet } from './sheet.js';
+import { roll, rulesOf, sheetOf, withRoll } from './dice.js';
 import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx, playerName } from './state.js';
 import { forkOf, getOne, save } from './store.js';
@@ -142,7 +144,7 @@ async function resendFrom(i, t) {
     delete pv.alts;
     delete pv.ai;
   }
-  Object.assign(c.messages[i], { content: t, t: Date.now() });
+  Object.assign(c.messages[i], { content: withRoll(t, rulesOf(c), sheetOf(c, rulesOf(c))), t: Date.now() });
   // Verrou jusqu'à ask() : un second Renvoyer pendant l'enregistrement relancerait un tour en double.
   app.busy = true;
   try {
@@ -224,6 +226,19 @@ $('#msgs').onclick = e => {
     }
     // Le bouton touché disparaît : le focus passe à celui qui le remplace dans le même panneau.
     b.closest('.st')?.querySelector(open ? '.stl' : '.stc')?.focus();
+    return;
+  }
+  if (b.classList.contains('shb')) {
+    openSheet();
+    return;
+  }
+  if (b.classList.contains('rla')) {
+    if (!app.busy) {
+      // Le jet est lancé ici, avec la demande telle que lue (une caractéristique hors fiche a un bonus nul) ;
+      // un brouillon en cours part avec lui.
+      $('#inp').value = ($('#inp').value.trim() + '\n\n' + roll(b.dataset, sheetOf(app.cur, rulesOf(app.cur)))).trim();
+      $('#send').click();
+    }
     return;
   }
   const row = b.closest('.chr');

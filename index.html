@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="e89203c556">
+<meta name="app-version" content="ee17a9f788">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -24,6 +24,7 @@
 <link rel="modulepreload" href="js/cast.js">
 <link rel="modulepreload" href="js/chat.js">
 <link rel="modulepreload" href="js/cost.js">
+<link rel="modulepreload" href="js/dice.js">
 <link rel="modulepreload" href="js/format.js">
 <link rel="modulepreload" href="js/journal.js">
 <link rel="modulepreload" href="js/list.js">
@@ -39,6 +40,7 @@
 <link rel="modulepreload" href="js/scene.js">
 <link rel="modulepreload" href="js/send.js">
 <link rel="modulepreload" href="js/settings.js">
+<link rel="modulepreload" href="js/sheet.js">
 <link rel="modulepreload" href="js/state.js">
 <link rel="modulepreload" href="js/stats.js">
 <link rel="modulepreload" href="js/statview.js">
@@ -60,7 +62,7 @@
 <symbol id="i-edit" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></symbol>
 <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
 <symbol id="i-chevl" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
-<symbol id="i-chevr" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-chevd" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol><symbol id="i-dl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+<symbol id="i-chevr" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol><symbol id="i-chevd" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol><symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></symbol><symbol id="i-dice" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="3"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></symbol><symbol id="i-dl" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
 <symbol id="i-chevsr" viewBox="0 0 24 24"><path d="m6 17 5-5-5-5M13 17l5-5-5-5"/></symbol>
 <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></symbol>
 <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14M12 5v14"/></symbol>
@@ -138,6 +140,7 @@
 </div>
 <div class="col">
 <button id="mb"><svg class="i"><use href="#i-mem"/></svg><span>Mémoire et note<small> Ce que l'IA retient, votre consigne</small></span></button>
+<button id="msh" hidden><svg class="i"><use href="#i-dice"/></svg><span>Fiche du personnage<small> Caractéristiques et derniers jets</small></span></button>
 <button id="sc"><svg class="i"><use href="#i-sliders"/></svg><span>Réglages de l'histoire<small> Nom, choix, état, modèle</small></span></button>
 </div>
 <p class="sdh mnh">Histoire</p>
@@ -149,6 +152,15 @@
 <button id="cfg2"><svg class="i"><use href="#i-gear"/></svg>Réglages de l'application</button>
 <button id="dmnc">Fermer</button>
 </div>
+</dialog>
+
+<dialog id="dsh" aria-labelledby="hdsh">
+<h2 id="hdsh">Fiche du personnage</h2>
+<p id="shp" class="note"></p>
+<div id="shl"></div>
+<p class="sdh">Derniers jets</p>
+<div id="shr"></div>
+<div class="col"><button id="dshc">Fermer</button></div>
 </dialog>
 
 <dialog id="ds" aria-labelledby="hds">

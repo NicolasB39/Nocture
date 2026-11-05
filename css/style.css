@@ -2746,3 +2746,126 @@ dialog h2,
   flex: none;
   white-space: nowrap;
 }
+
+/* Mode jeu de rôle (dice.js) : étiquette de jet sur un choix, carte du dé, bouton « Lancer », fiche. */
+.jt {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: var(--acs);
+  color: var(--ac);
+  font: 500 12px/1.6 var(--sans);
+  white-space: nowrap;
+  vertical-align: 1px;
+}
+.jt.ko,
+.roll.ko .rd {
+  background: rgba(255, 107, 107, 0.13);
+  color: var(--dg);
+}
+.roll {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 2px;
+  padding: 9px 10px;
+  border: 1px solid var(--acb);
+  border-radius: 12px;
+  font: 14px/1.4 var(--sans);
+  color: var(--fg);
+}
+.roll.ko {
+  border-color: rgba(255, 107, 107, 0.5);
+}
+.roll .rd {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--act);
+  color: var(--ac);
+  font: 600 17px/1 var(--sans);
+}
+.roll.crit:not(.ko) .rd {
+  background: var(--ac);
+  color: var(--on);
+}
+.roll small {
+  display: block;
+  color: var(--mu);
+  font-size: 12px;
+}
+.roll b {
+  font-weight: 600;
+}
+.rla {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--acb);
+  border-radius: 14px;
+  background: var(--acs);
+  color: var(--fg);
+  font: 500 15px/1.3 var(--sans);
+  text-align: left;
+}
+.rla .i {
+  color: var(--ac);
+}
+.rla small {
+  display: block;
+  margin-top: 2px;
+  color: var(--mu);
+  font-weight: 400;
+  font-size: 12px;
+}
+#mfoot > .rla:first-child {
+  margin-top: -14px;
+}
+.intro .shb {
+  margin: 0 0 12px;
+}
+#shl .shr {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--s2);
+}
+#shl .shv {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#shl .shv b {
+  min-width: 26px;
+  text-align: center;
+  font: 600 15px/1 var(--sans);
+}
+#shl .shv button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--bd);
+  border-radius: 50%;
+  background: var(--s1);
+  font: 18px/1 var(--sans);
+}
+#shl .shv button:disabled {
+  opacity: 0.35;
+}
+#shr {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+#shr .jt {
+  margin: 0;
+}

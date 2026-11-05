@@ -178,10 +178,12 @@ export const pickAccent = px => {
   );
 };
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-// Texte enregistré (choix et état déjà à part, split) en texte simple : sans images, avec le nom du joueur.
+// Jets de dés (dice.js) en clair : le résultat entre parenthèses, la demande du narrateur retirée.
+export const jetPlain = t => t.replace(/<jet>([^<]*)<\/jet>/gi, (m, x) => (x.includes(':') ? '(Jet : ' + x.trim() + ')' : ''));
+// Texte enregistré (choix et état déjà à part, split) en texte simple : sans images, avec le nom du joueur et
+// les jets en clair.
 export const plain = (t, nm) =>
-  t
-    .replace(/\{\{img::[^}]*\}\}/g, '')
+  jetPlain(t.replace(/\{\{img::[^}]*\}\}/g, ''))
     .replace(/\{\{user\}\}/gi, nm?.trim() || 'Joueur')
     .trim();
 export const err = (t, bad, a) => {

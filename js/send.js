@@ -2,6 +2,7 @@ import { chat, cold, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, wai
 import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
+import { noRolls, rulesOf, sheetOf, withRoll } from './dice.js';
 import { fr, keepImgs, lieuTag, liveText, paintLive, setBody, split } from './format.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
@@ -146,12 +147,17 @@ export async function ask(old, cont, hint) {
     cut = r.cut;
     part = !!r.partial;
     const p2 = split(out);
+    p2.content = noRolls(p2.content);
     // Rien à raconter (réponse arrêtée juste après l'annonce du lieu, ou réduite à l'état) : un message vide
     // ferait refuser les tours suivants. Échec, avec Réessayer, et l'ancienne réponse remise en place.
     if (!cont && !p2.content) throw new Error('réponse vide : aucun texte de récit reçu');
     if (cont) {
       const m = s.messages.at(-1);
-      setBody(m, { ...p2, content: m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) ? '' : ' ') + p2.content });
+      // Pas d'espace ajoutée au milieu d'une demande de jet coupée (« <jet>Adresse, diff » + « icile</jet> »).
+      setBody(m, {
+        ...p2,
+        content: m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) || /<jet>[^<]*$/i.test(m.content) ? '' : ' ') + p2.content
+      });
       if (m.alts) m.alts[m.ai] = { content: m.content, choices: m.choices, state: m.state };
     } else {
       const base = old?.role == 'assistant' ? old.alts || [{ content: old.content, choices: old.choices, state: old.state }] : null,
@@ -299,7 +305,7 @@ $('#send').onclick = async () => {
       delete pv.alts;
       delete pv.ai;
     }
-    app.cur.messages.push({ role: 'user', content: t, t: Date.now() });
+    app.cur.messages.push({ role: 'user', content: withRoll(t, rulesOf(app.cur), sheetOf(app.cur, rulesOf(app.cur))), t: Date.now() });
     await save();
   } finally {
     app.busy = false;

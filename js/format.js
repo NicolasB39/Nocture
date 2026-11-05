@@ -1,4 +1,5 @@
 import { IMG, S, app, ctx, playerName } from './state.js';
+import { rollParts } from './dice.js';
 import { KNEES, decorFor, scene } from './scene.js';
 import { el, ikey } from './util.js';
 
@@ -163,7 +164,7 @@ export const settled = (v, from = 0) => {
   const j = v.lastIndexOf('\n\n');
   if (j <= from) return from;
   const p = v.slice(from, j);
-  return /<(choix|etat)/i.test(p) || p.split('{{').length !== p.split('}}').length ? from : j;
+  return /<(choix|etat|jet)/i.test(p) || p.split('{{').length !== p.split('}}').length ? from : j;
 };
 export const keepImgs = (from, to) => {
   const pool = {};
@@ -189,14 +190,37 @@ export const paintLive = (b, v, z, ph, d) => {
   keepImgs(old, box);
   b.append(...box.childNodes);
 };
-export const body = (t, d) => {
+// Carte d'un jet (dice.js) dans le message du joueur. Une demande de jet du narrateur n'affiche rien ici : le
+// bouton « Lancer » est sous la conversation.
+const rollCard = x => {
+  const p = rollParts(x);
+  if (!p) return null;
+  return el(
+    'div',
+    { class: 'roll' + (p.r.startsWith('échec') ? ' ko' : '') + (p.r.includes('critique') ? ' crit' : '') },
+    el('span', { class: 'rd', 'aria-hidden': 'true', text: String(p.n) }),
+    el('span', { class: 'rt' }, el('small', { text: p.label }), el('span', null, el('b', { text: p.sum }), ' · ' + p.r))
+  );
+};
+// user : message du joueur, le seul où un résultat de jet devient une carte (un résultat écrit par le
+// narrateur est ignoré). Pendant l'écriture, une balise <jet> pas encore fermée (« <jet>Adresse</je ») ou
+// son début (« <je ») disparaît jusqu'au morceau suivant.
+export const body = (t, d, user) => {
   const out = [];
   t.replace(CHX, '')
     .replace(ETX, '')
     .replace(LIX, '')
-    .replace(/\{\{user\}\}/gi, playerName(app.cur) || 'Joueur')
-    .replace(/\s*\{\{[^}]*$/, '')
-    .split(/\{\{img::([^}]*)\}\}/g)
-    .forEach((x, i) => (i % 2 ? out.push(imgNode(x, d)) : blocks(x.replace(/^\n+|\n+$/g, ''), out)));
-  return out;
+    .replace(/<jet>[^<]*(?:<\/?j?e?t?)?$/i, '')
+    .replace(/<j?e?t?$/i, '')
+    .split(/<jet>([^<]*)<\/jet>/i)
+    .forEach((s, j) =>
+      j % 2
+        ? user && out.push(rollCard(s))
+        : s
+            .replace(/\{\{user\}\}/gi, playerName(app.cur) || 'Joueur')
+            .replace(/\s*\{\{[^}]*$/, '')
+            .split(/\{\{img::([^}]*)\}\}/g)
+            .forEach((x, i) => (i % 2 ? out.push(imgNode(x, d)) : blocks(x.replace(/^\n+|\n+$/g, ''), out)))
+    );
+  return out.filter(Boolean);
 };

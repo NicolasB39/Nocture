@@ -6,7 +6,7 @@ import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { emit } from './bus.js';
 import { addCall, getOne, save } from './store.js';
-import { $, err, LS } from './util.js';
+import { $, err, jetPlain, LS } from './util.js';
 
 // La mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
 // le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
@@ -481,7 +481,7 @@ async function sumRun(s, start) {
       const n = Math.min(SUM_BATCH, s.messages.length - s.mem.upto - SUM_KEEP),
         parts = s.messages
           .slice(s.mem.upto, s.mem.upto + n)
-          .map(m => (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + m.content.replace(/\{\{img::[^}]*\}\}/g, '').trim());
+          .map(m => (m.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + jetPlain(m.content.replace(/\{\{img::[^}]*\}\}/g, '')).trim());
       const stale = batchGuard(s, parts.length),
         // Messages du chapitre en cours une fois ce lot résumé : dit au modèle s'il peut, ou doit, le clore.
         k = s.mem.upto + parts.length - chStart(s.mem),

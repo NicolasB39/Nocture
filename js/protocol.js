@@ -29,18 +29,31 @@ const STYLE =
 const IMAGES =
   '\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la au fil du récit, là où elle illustre le texte, pas par défaut en tête de réponse.';
 
+// Mode jeu de rôle (regles.md) : l'IA désigne les jets, l'application les lance (dice.js).
+const jetBlock = (rules, choices) =>
+  '\n\n# Jets de dés\nLes dés sont lancés par l’application, jamais par toi. Caractéristiques de {{user}} : ' +
+  rules.join(', ') +
+  '. Difficultés : facile, moyen, difficile, très difficile.' +
+  (choices
+    ? '\n- Dans le bloc <choix>, termine une action risquée par la caractéristique qui convient et sa difficulté, entre parenthèses, en fin de ligne : « … (Caractéristique, difficile) ». Une action sans risque n’en a pas.'
+    : '') +
+  '\n- Quand le message du joueur contient un bloc <jet>, raconte l’issue de son action selon ce résultat, sans le contredire : une réussite critique va au-delà de l’espéré, un échec critique ajoute une complication.' +
+  '\n- Quand le joueur tente de lui-même une action risquée, sans <jet>, n’en raconte pas l’issue : montre l’instant d’avant, puis termine ta réponse par <jet>Caractéristique, difficulté</jet>' +
+  (choices ? ' à la place du bloc <choix>.' : '.');
+
 export const DEFAULT_CHOICE =
   'Trois propositions courtes, de registres différents (par exemple une audacieuse, une prudente, une inattendue), écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage.';
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
 // Formats de sortie imposés par l'application (partie fixe du prompt système).
-export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false } = {}) {
+export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false, rules = [] } = {}) {
   return (
     NARRATION +
     STYLE +
     (images ? IMAGES : '') +
     (stat ? stateBlock(fields || DEFAULT_FIELDS, choices) : '') +
-    (choices ? choiceBlock(prompt || DEFAULT_CHOICE) : '')
+    (choices ? choiceBlock(prompt || DEFAULT_CHOICE) : '') +
+    (rules.length ? jetBlock(rules, choices) : '')
   );
 }
 

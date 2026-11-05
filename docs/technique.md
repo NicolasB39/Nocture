@@ -142,7 +142,9 @@ js/
   recall.js         rappel de passages anciens par mots distinctifs (sans DOM, testé unitairement)
   protocol.js       formats de sortie imposés par l'application (état, choix, images)
   ai.js             appel à l'API Claude (streaming) et résumé de mémoire
-  format.js         mise en forme du texte (Markdown léger, images, choix, état)
+  format.js         mise en forme du texte (Markdown léger, images, choix, état, carte des jets)
+  dice.js           mode jeu de rôle : marques de jet, lancer du d20, résultat, fiche (sans DOM, testé unitairement)
+  sheet.js          fiche du personnage : répartition des points, derniers jets
   scene.js          scènes : choix du décor, détection de la transparence, placement du personnage
   read.js           lecture : taille du texte, mode lecture, lecture à voix haute
   cast.js           fenêtre Personnages

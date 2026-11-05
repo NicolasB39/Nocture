@@ -2,6 +2,7 @@ import { SUM_KEEP, SUM_PLAY, summing } from './ai.js';
 import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
+import { askOf, checkOf, rulesOf } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { refreshSpeech, ttsOk, visibleStart } from './read.js';
@@ -218,10 +219,15 @@ const liveApply = fade => {
   headDecor(d || coverOf(app.cur));
   return d;
 };
+// Texte d'un choix : sa marque de jet « (Adresse, difficile) » devient une étiquette.
+const chText = (c, R) => {
+  const k = checkOf(c, R);
+  return k ? [line(k.text), el('span', { class: 'jt' }, ic('dice', 13), k.k + ' · ' + k.d)] : line(c);
+};
 const msgNode = (i, m, last, d = '') => {
   const t = LT.has(i),
     p = m.role == 'assistant' ? LIEU[i] || '' : '',
-    b = el('div', { class: 'b' }, body(m.content, d));
+    b = el('div', { class: 'b' }, body(m.content, d, m.role == 'user'));
   // Légende des scènes : le lieu, en bas à gauche de l'image (masquée pour un portrait sans décor).
   if (p) for (const s of b.querySelectorAll('.scn')) s.append(el('span', { class: 'scap', text: fr(p) }));
   const n = el(
@@ -363,6 +369,8 @@ export function render(sc) {
   for (const k of ['--ac', '--acs', '--act', '--acb', '--on'])
     if (av) ch.style.setProperty(k, av[k]);
     else ch.style.removeProperty(k);
+  const R = rulesOf(app.cur),
+    rq = lm?.role == 'assistant' && askOf(lm.content, R);
   const pr = inScene(ms.slice(-6));
   castView(pr);
   sideView(pr);
@@ -378,7 +386,7 @@ export function render(sc) {
             'button',
             { class: 'cht', data: { t: c }, 'aria-label': 'Envoyer : ' + c.replace(/\*/g, '') },
             el('span', { class: 'chn', 'aria-hidden': 'true', text: k + 1 }),
-            el('span', { class: 'chx' }, line(c))
+            el('span', { class: 'chx' }, chText(c, R))
           ),
           el(
             'button',
@@ -393,12 +401,27 @@ export function render(sc) {
   foot.replaceChildren(
     ...[
       cs.length && chList(cs),
+      rq &&
+        el(
+          'button',
+          { class: 'rla', data: { k: rq.k, d: rq.d } },
+          ic('dice', 18),
+          el('span', null, 'Lancer le dé', el('small', { text: ' ' + rq.k + ' · ' + rq.d }))
+        ),
       it &&
         el(
           'div',
           { class: 'intro' },
           el('h2', { class: 'ith', text: app.cur.name }),
           it.pitch && el('div', { class: 'itp b' }, body(it.pitch)),
+          // Mode jeu de rôle : la fiche, à remplir avant le premier tour.
+          R.length &&
+            el(
+              'button',
+              { class: 'rla shb' },
+              ic('dice', 18),
+              el('span', null, 'Fiche du personnage', el('small', { text: ' Répartissez vos points avant de commencer' }))
+            ),
           it.starts.length && chList(it.starts),
           el('p', {
             class: 'hint',

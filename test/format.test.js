@@ -68,3 +68,15 @@ test('les séparateurs restent des hr', () => {
 test('les blocs du protocole sont retirés avant le découpage', () => {
   assert.deepEqual(shape('Un.\n\n<etat>\nLieu: ici\n</etat>\n\n<choix>\n1. a\n</choix>'), ['P']);
 });
+
+test('jets : carte dans un message du joueur seulement, demande masquée, balise incomplète cachée pendant l’écriture', () => {
+  const r = 'Je saute\n\n<jet>Vigueur, moyen (12) : 9 + 1 = 10, échec</jet>';
+  assert.deepEqual(
+    body(r, '', true).map(x => x.tagName + (x.className ? '.' + x.className : '')),
+    ['P', 'DIV.roll ko']
+  );
+  assert.deepEqual(shape(r), ['P']);
+  assert.deepEqual(texts('Il hésite.\n\n<jet>Adresse, difficile</jet>'), ['Il hésite.']);
+  for (const t of ['Il hésite.\n\n<jet>Adresse, diff', 'Il hésite.\n\n<jet>Adresse, difficile</je', 'Il hésite.\n\n<je'])
+    assert.deepEqual(texts(t), ['Il hésite.'], t);
+});

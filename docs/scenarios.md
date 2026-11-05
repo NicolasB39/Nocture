@@ -10,6 +10,7 @@ scenarios/
     systeme.md              prompt système (obligatoire)
     cover.webp              couverture (optionnelle)
     etat.md                 champs du panneau d'état (optionnel)
+    regles.md               caractéristiques du mode jeu de rôle (optionnel, voir plus bas)
     intro.md                accroche et débuts proposés, affichés avant le premier tour (optionnel)
     avatar.md               description du personnage du joueur
     personnages/
@@ -93,6 +94,26 @@ Le dragon dort dans la montagne.
 - `priorité: N` : les valeurs les plus hautes passent en premier (défaut 0).
 
 Un lorebook qui tient dans le budget de la partie fixe part en entier, en cache, et les mots-clés ne servent pas. Au-delà, les entrées `toujours` restent dans la partie fixe, et les autres partent en fin de requête quand un de leurs mots-clés apparaît dans les deux derniers messages, par priorité.
+
+## Mode jeu de rôle (regles.md)
+
+Un scénario qui a un fichier `regles.md` se joue avec des jets de dés. Le fichier liste les caractéristiques du personnage, sur une ligne, séparées par des virgules (huit au plus) :
+
+```
+Vigueur, Adresse, Esprit, Présence, Volonté
+```
+
+L'IA ne lance jamais les dés : un modèle ne sait pas tirer au hasard et choisit presque toujours le résultat qui arrange l'histoire. Elle désigne seulement le jet, et l'application le lance (`js/dice.js`) :
+
+- dans ses choix, une action risquée se termine par sa caractéristique et sa difficulté : « Je force le cadenas (Adresse, difficile) ». L'application l'affiche en étiquette ; toucher le choix lance un d20, ajoute le bonus de la fiche et envoie le résultat avec le message ;
+- quand le joueur écrit lui-même une action risquée, l'IA montre l'instant d'avant et finit par `<jet>Adresse, difficile</jet>` : un bouton « Lancer le dé » apparaît, et le tour suivant part avec le résultat (et avec le brouillon en cours, s'il y en a un) ;
+- le résultat s'écrit dans le message du joueur, `<jet>Adresse, difficile (15) : 14 + 2 = 16, réussite</jet>`, affiché en carte. L'IA raconte l'issue sans la contredire. Un 20 naturel est une réussite critique, un 1 naturel un échec critique.
+
+Seule l'application lance les dés : un résultat que le narrateur écrirait lui-même est retiré de sa réponse. Une demande de jet mal formée garde son bouton (caractéristique inconnue : bonus nul ; difficulté inconnue : moyen). Une marque placée au milieu d'un choix, avant une réplique ou une ponctuation, est reconnue aussi.
+
+Difficultés : facile (8), moyen (12), difficile (15), très difficile (18). La fiche du personnage (menu « … » de la conversation, ou bouton de l'introduction avant le premier tour) répartit trois points : chaque caractéristique va de −1 à +2, et en baisser une rend un point. Une nouvelle partie repart avec une fiche vide. Elle n'est pas envoyée à l'IA : seuls les résultats le sont, une dizaine de tokens par jet, dans la même requête que le tour. Les consignes des jets partent dans la partie fixe du prompt, en cache.
+
+Le mode est réservé aux scénarios GitHub. Pas besoin de décrire les jets dans `systeme.md` : l'application s'en charge, comme pour les choix et l'état.
 
 ## Protocole et préambule
 

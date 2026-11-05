@@ -3,6 +3,14 @@ import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutChapters, cutLines } from './memory.js';
 
 let db;
+// Fiche du personnage (mode jeu de rôle) : un bonus entier par caractéristique, dans des bornes larges ; la fiche
+// elle-même (dice.js) applique les bornes du jeu.
+const sheet = v => {
+  const o = {};
+  if (v && typeof v == 'object')
+    for (const k of Object.keys(v).slice(0, 8)) if (Number.isInteger(v[k]) && Math.abs(v[k]) <= 5) o[k] = v[k];
+  return o;
+};
 // Un message ou une variante : texte, et choix et état déjà mis à part à l'enregistrement (split, format.js).
 const one = m => {
   const r = { role: m.role, content: m.content },
@@ -57,6 +65,7 @@ export const clean = x => {
     model: s(x.model).trim(),
     stat: typeof x.stat == 'boolean' ? x.stat : undefined,
     statFields: s(x.statFields),
+    sheet: sheet(x.sheet),
     messages,
     mem: {
       summary: s(mm.summary),
