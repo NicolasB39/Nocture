@@ -10,7 +10,7 @@ Le relecteur demande « ce changement est-il correct ? ». Toi, tu demandes « f
 
 ## Ce qu'on te demande
 
-On te donne un sujet précis : une fonction, une décision, un réglage, un parcours, parfois avec des chiffres tirés d'un journal d'appels. Lis le code concerné et la section du `README.md` qui le décrit (il explique le pourquoi de la plupart des choix ; commence par « Structure du code » si tu ne connais pas un fichier). Puis cherche ce qui pourrait être fait autrement, et mieux.
+On te donne un sujet précis : une fonction, une décision, un réglage, un parcours, parfois avec des chiffres tirés d'un journal d'appels. Lis le code concerné et la section de la documentation qui le décrit : `docs/technique.md` (prompt, cache, mémoire, code), `docs/utilisation.md` (interface, réglages) ou `docs/scenarios.md` (scénarios). Elle explique le pourquoi de la plupart des choix ; commence par « Structure du code » (`docs/technique.md`) si tu ne connais pas un fichier. Puis cherche ce qui pourrait être fait autrement, et mieux.
 
 Les priorités du projet, dans cet ordre :
 1. **La qualité du récit** pour le joueur (cohérence, voix, liberté du joueur).

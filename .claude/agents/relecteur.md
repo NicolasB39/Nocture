@@ -8,7 +8,7 @@ Tu relis le code de Nocturne, une application web installable (PWA) de fiction i
 
 ## Ce qu'on te demande
 
-On te donne une modification (fichiers ou fonctions touchés, ou une description). Lis le code concerné **et ce qui l'appelle**, puis cherche ce qui casserait chez l'utilisateur. Commence par `README.md` (sections « Structure du code » et « Règles du projet ») si tu ne connais pas un fichier.
+On te donne une modification (fichiers ou fonctions touchés, ou une description). Lis le code concerné **et ce qui l'appelle**, puis cherche ce qui casserait chez l'utilisateur. Commence par `docs/technique.md` (section « Structure du code », avec ses « Règles du projet ») si tu ne connais pas un fichier.
 
 Ne signale que ce que tu as vérifié dans le code : pour chaque point, un scénario concret (ce que fait l'utilisateur → ce qui se passe de travers). Pas de remarque de style, pas de « on pourrait aussi ». Si tout va bien, dis-le en une ligne.
 
