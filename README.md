@@ -548,3 +548,11 @@ Le texte s'affiche au fur et à mesure que Claude le diffuse. Les modèles réfl
 ## Sécurité
 
 La clé API est stockée en clair dans le navigateur de l'appareil et envoyée uniquement à l'API de Claude. Ne l'utilisez pas sur un appareil partagé. Elle n'est jamais incluse dans les sauvegardes.
+
+## Licence
+
+Le code de l'application (tout le dépôt sauf les exceptions ci-dessous) est sous licence MIT : voir `LICENSE`.
+
+Ne sont pas couverts par cette licence :
+- le dossier `scenarios/` (textes, fiches, lorebooks et images des scénarios) : tous droits réservés à leurs auteurs respectifs, pour un usage personnel ;
+- la police Literata (`fonts/`), qui garde sa propre licence (SIL Open Font License, `fonts/LICENSE-Literata.txt`).
