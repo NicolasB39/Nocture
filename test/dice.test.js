@@ -39,10 +39,10 @@ test('jet : un d20 plus le bonus de la fiche, 20 et 1 naturels toujours critique
 });
 
 test('message envoyé : la marque devient le résultat, un message sans marque ne change pas', () => {
-  const t = withRoll('Je saute (Vigueur, moyen)', R, { Vigueur: 1 });
+  const t = withRoll('Je saute (Vigueur, moyen)', { remote: true, sheet: { Vigueur: 1 } });
   assert.match(t, /^Je saute\n\n<jet>Vigueur, moyen \(12\) : \d+ \+ 1 = \d+, (réussite|échec)( critique)?<\/jet>$/);
-  assert.match(withRoll('(Vigueur, moyen)', R, {}), /^<jet>Vigueur/);
-  assert.equal(withRoll('Je saute', R, {}), 'Je saute');
+  assert.match(withRoll('(Vigueur, moyen)', { remote: true }), /^<jet>Vigueur/);
+  assert.equal(withRoll('Je saute', { remote: true }), 'Je saute');
 });
 
 test('carte du dé : le résultat se relit, la demande de jet du narrateur se retrouve', () => {
@@ -50,8 +50,11 @@ test('carte du dé : le résultat se relit, la demande de jet du narrateur se re
     label: 'Adresse · difficile (15)',
     n: 14,
     sum: '14 + 2 = 16',
-    r: 'réussite'
+    r: 'réussite',
+    ko: false,
+    crit: false
   });
+  assert.equal(rollParts('Esprit, facile (8) : 1 + 0 = 1, échec critique').ko && rollParts('Esprit, facile (8) : 1 + 0 = 1, échec critique').crit, true);
   assert.equal(rollParts('Adresse, difficile'), null);
   assert.deepEqual(askOf('*Il hésite.*\n\n<jet>Adresse, difficile</jet>', R), { k: 'Adresse', d: 'difficile' });
   assert.equal(askOf('<jet>Adresse, difficile (15) : 14 + 2 = 16, réussite</jet>', R), null);
@@ -66,7 +69,7 @@ test('carte du dé : le résultat se relit, la demande de jet du narrateur se re
 });
 
 test('fiche : bornes du jeu et points dépensés ; le stockage garde des entiers raisonnables', () => {
-  const sh = sheetOf({ sheet: { Adresse: 9, Esprit: -4, Vigueur: 1.7, Inconnu: 2 } }, R);
+  const sh = sheetOf({ remote: true, sheet: { Adresse: 9, Esprit: -4, Vigueur: 1.7, Inconnu: 2 } });
   assert.deepEqual(sh, { Vigueur: 1, Adresse: 2, Esprit: -1, Présence: 0, Volonté: 0 });
   assert.equal(spent(sh), 2);
   const s = clean({ id: 'a', messages: [], sheet: { Adresse: 2, Esprit: 'x', Vigueur: 99 } });

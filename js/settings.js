@@ -460,9 +460,9 @@ function srRun() {
     $('#srl').replaceChildren();
     return;
   }
+  const nm = playerName(app.cur);
   const r = app.cur.messages
-    .map((m, i) => ({ m, i }))
-    .map(x => ({ ...x, t: plain(x.m.content, playerName(app.cur)) }))
+    .map((m, i) => ({ m, i, t: plain(m.content, nm) }))
     .filter(x => nz(x.t).includes(q))
     .slice(-60)
     .reverse();

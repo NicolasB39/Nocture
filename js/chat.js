@@ -7,7 +7,7 @@ import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js'
 import { loadCtx, TERR } from './scenarios.js';
 import { zoomScene } from './scene.js';
 import { openSheet } from './sheet.js';
-import { roll, rulesOf, sheetOf, withRoll } from './dice.js';
+import { noRolls, roll, sheetOf, withRoll } from './dice.js';
 import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx, playerName } from './state.js';
 import { forkOf, getOne, save } from './store.js';
@@ -144,7 +144,7 @@ async function resendFrom(i, t) {
     delete pv.alts;
     delete pv.ai;
   }
-  Object.assign(c.messages[i], { content: withRoll(t, rulesOf(c), sheetOf(c, rulesOf(c))), t: Date.now() });
+  Object.assign(c.messages[i], { content: withRoll(t, c), t: Date.now() });
   // Verrou jusqu'à ask() : un second Renvoyer pendant l'enregistrement relancerait un tour en double.
   app.busy = true;
   try {
@@ -236,7 +236,7 @@ $('#msgs').onclick = e => {
     if (!app.busy) {
       // Le jet est lancé ici, avec la demande telle que lue (une caractéristique hors fiche a un bonus nul) ;
       // un brouillon en cours part avec lui.
-      $('#inp').value = ($('#inp').value.trim() + '\n\n' + roll(b.dataset, sheetOf(app.cur, rulesOf(app.cur)))).trim();
+      $('#inp').value = ($('#inp').value.trim() + '\n\n' + roll(b.dataset, sheetOf(app.cur))).trim();
       $('#send').click();
     }
     return;
@@ -305,7 +305,8 @@ $('#des').onclick = async () => {
   const c = app.cur,
     i = app.editI,
     m = c.messages[i],
-    p = split($('#et').value),
+    // Seule l'application lance les dés : un résultat ajouté à une réponse du narrateur est retiré, comme à la réception.
+    p = split(m.role == 'assistant' ? noRolls($('#et').value) : $('#et').value),
     old = m.content !== p.content && i < c.mem.upto;
   setBody(m, p);
   if (m.alts) m.alts[m.ai] = p;

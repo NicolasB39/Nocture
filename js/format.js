@@ -1,7 +1,7 @@
 import { IMG, S, app, ctx, playerName } from './state.js';
 import { rollParts } from './dice.js';
 import { KNEES, decorFor, scene } from './scene.js';
-import { el, ikey } from './util.js';
+import { el, ikey, JET } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
 export const ETX = /<etat>[\s\S]*?(?:<\/etat>|$)/gi;
@@ -197,7 +197,7 @@ const rollCard = x => {
   if (!p) return null;
   return el(
     'div',
-    { class: 'roll' + (p.r.startsWith('échec') ? ' ko' : '') + (p.r.includes('critique') ? ' crit' : '') },
+    { class: 'roll' + (p.ko ? ' ko' : '') + (p.crit ? ' crit' : '') },
     el('span', { class: 'rd', 'aria-hidden': 'true', text: String(p.n) }),
     el('span', { class: 'rt' }, el('small', { text: p.label }), el('span', null, el('b', { text: p.sum }), ' · ' + p.r))
   );
@@ -212,7 +212,7 @@ export const body = (t, d, user) => {
     .replace(LIX, '')
     .replace(/<jet>[^<]*(?:<\/?j?e?t?)?$/i, '')
     .replace(/<j?e?t?$/i, '')
-    .split(/<jet>([^<]*)<\/jet>/i)
+    .split(JET)
     .forEach((s, j) =>
       j % 2
         ? user && out.push(rollCard(s))

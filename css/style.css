@@ -2795,7 +2795,8 @@ dialog h2,
   background: var(--ac);
   color: var(--on);
 }
-.roll small {
+.roll small,
+.rla small {
   display: block;
   color: var(--mu);
   font-size: 12px;
@@ -2820,11 +2821,8 @@ dialog h2,
   color: var(--ac);
 }
 .rla small {
-  display: block;
   margin-top: 2px;
-  color: var(--mu);
   font-weight: 400;
-  font-size: 12px;
 }
 #mfoot > .rla:first-child {
   margin-top: -14px;
@@ -2860,11 +2858,6 @@ dialog h2,
 }
 #shl .shv button:disabled {
   opacity: 0.35;
-}
-#shr {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 #shr .jt {
   margin: 0;

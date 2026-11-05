@@ -178,12 +178,17 @@ export const pickAccent = px => {
   );
 };
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-// Jets de dés (dice.js) en clair : le résultat entre parenthèses, la demande du narrateur retirée.
-export const jetPlain = t => t.replace(/<jet>([^<]*)<\/jet>/gi, (m, x) => (x.includes(':') ? '(Jet : ' + x.trim() + ')' : ''));
-// Texte enregistré (choix et état déjà à part, split) en texte simple : sans images, avec le nom du joueur et
-// les jets en clair.
+// Balise des jets de dés (dice.js) : une demande du narrateur (« Adresse, difficile ») ou un résultat lancé par
+// l'application (« … : 14 + 2 = 16, réussite », reconnu à ses deux-points).
+export const JET = /<jet>([^<]*)<\/jet>/gi;
+export const isRoll = x => x.includes(':');
+// Texte enregistré sans images, jets en clair (le résultat entre parenthèses, la demande retirée) : ce que lit le
+// modèle de mémoire, qui garde {{user}}.
+export const bare = t =>
+  t.replace(/\{\{img::[^}]*\}\}/g, '').replace(JET, (m, x) => (isRoll(x) ? '(Jet : ' + x.trim() + ')' : ''));
+// Texte enregistré (choix et état déjà à part, split) en texte simple, avec le nom du joueur.
 export const plain = (t, nm) =>
-  jetPlain(t.replace(/\{\{img::[^}]*\}\}/g, ''))
+  bare(t)
     .replace(/\{\{user\}\}/gi, nm?.trim() || 'Joueur')
     .trim();
 export const err = (t, bad, a) => {

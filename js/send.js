@@ -2,7 +2,7 @@ import { chat, cold, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, wai
 import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
-import { noRolls, rulesOf, sheetOf, withRoll } from './dice.js';
+import { noRolls, withRoll } from './dice.js';
 import { fr, keepImgs, lieuTag, liveText, paintLive, setBody, split } from './format.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
@@ -305,7 +305,7 @@ $('#send').onclick = async () => {
       delete pv.alts;
       delete pv.ai;
     }
-    app.cur.messages.push({ role: 'user', content: withRoll(t, rulesOf(app.cur), sheetOf(app.cur, rulesOf(app.cur))), t: Date.now() });
+    app.cur.messages.push({ role: 'user', content: withRoll(t, app.cur), t: Date.now() });
     await save();
   } finally {
     app.busy = false;

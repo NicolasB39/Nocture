@@ -146,23 +146,21 @@ export async function loadCtx() {
     txt(base + 'systeme.md'),
     txt(base + 'avatar.md')
   ]);
-  const stat = T.includes(base + 'etat.md') ? (await txt(base + 'etat.md')).trim() : '',
-    intro = T.includes(base + 'intro.md') ? (await txt(base + 'intro.md')).trim() : '',
-    // Mode jeu de rôle : les caractéristiques, séparées par des virgules (huit au plus). Les lignes de
-    // commentaire (#) sont retirées avant le découpage : leurs virgules ne créent pas de caractéristiques.
-    rules = T.includes(base + 'regles.md')
-      ? [
-          ...new Set(
-            (await txt(base + 'regles.md'))
-              .split('\n')
-              .filter(l => !l.trim().startsWith('#'))
-              .join(',')
-              .split(',')
-              .map(x => x.trim())
-              .filter(Boolean)
-          )
-        ].slice(0, 8)
-      : [];
+  // Fichiers facultatifs, lus ensemble (chacun est un aller-retour réseau) : vides s'ils manquent.
+  const opt = f => (T.includes(base + f) ? txt(base + f).then(t => t.trim()) : '');
+  const [stat, intro, rl] = await Promise.all([opt('etat.md'), opt('intro.md'), opt('regles.md')]);
+  // Mode jeu de rôle : les caractéristiques, séparées par des virgules (huit au plus). Les lignes de
+  // commentaire (#) sont retirées avant le découpage : leurs virgules ne créent pas de caractéristiques.
+  const rules = [
+    ...new Set(
+      rl
+        .split('\n')
+        .filter(l => !l.trim().startsWith('#'))
+        .flatMap(l => l.split(','))
+        .map(x => x.trim())
+        .filter(Boolean)
+    )
+  ].slice(0, 8);
   const ch = {};
   for (const p of T) {
     if (!p.startsWith(pb)) continue;
