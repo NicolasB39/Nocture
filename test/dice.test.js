@@ -17,6 +17,7 @@ beforeEach(() => {
 test('marque de jet d’un choix : reconnue sans accents ni casse, seulement pour une caractéristique connue', () => {
   assert.deepEqual(checkOf('*Je force le cadenas* (Adresse, difficile)', R), { text: '*Je force le cadenas*', k: 'Adresse', d: 'difficile' });
   assert.deepEqual(checkOf('Je parle (presence, tres difficile)', R), { text: 'Je parle', k: 'Présence', d: 'très difficile' });
+  assert.deepEqual(checkOf('Je réfléchis (Esprit, moyenne)', R), { text: 'Je réfléchis', k: 'Esprit', d: 'moyen' });
   assert.equal(checkOf('Je force (Chance, difficile)', R), null);
   assert.equal(checkOf('Je force (Adresse, impossible)', R), null);
   assert.equal(checkOf('Je dis bonjour (poliment)', R), null);
@@ -28,8 +29,8 @@ test('marque de jet d’un choix : reconnue sans accents ni casse, seulement pou
 });
 
 test('jet : un d20 plus le bonus de la fiche, 20 et 1 naturels toujours critiques', () => {
-  assert.equal(roll({ k: 'Adresse', d: 'difficile' }, { Adresse: 2 }, 13), '<jet>Adresse, difficile (15) : 13 + 2 = 15, réussite</jet>');
-  assert.equal(roll({ k: 'Adresse', d: 'difficile' }, { Adresse: -1 }, 15), '<jet>Adresse, difficile (15) : 15 − 1 = 14, échec</jet>');
+  assert.equal(roll({ k: 'Adresse', d: 'difficile' }, { Adresse: 2 }, 11), '<jet>Adresse, difficile (13) : 11 + 2 = 13, réussite</jet>');
+  assert.equal(roll({ k: 'Adresse', d: 'difficile' }, { Adresse: -1 }, 13), '<jet>Adresse, difficile (13) : 13 − 1 = 12, échec</jet>');
   assert.match(roll({ k: 'Esprit', d: 'facile' }, {}, 1), /échec critique/);
   assert.match(roll({ k: 'Esprit', d: 'très difficile' }, {}, 20), /réussite critique/);
   for (let i = 0; i < 200; i++) {
@@ -40,7 +41,7 @@ test('jet : un d20 plus le bonus de la fiche, 20 et 1 naturels toujours critique
 
 test('message envoyé : la marque devient le résultat, un message sans marque ne change pas', () => {
   const t = withRoll('Je saute (Vigueur, moyen)', { remote: true, sheet: { Vigueur: 1 } });
-  assert.match(t, /^Je saute\n\n<jet>Vigueur, moyen \(12\) : \d+ \+ 1 = \d+, (réussite|échec)( critique)?<\/jet>$/);
+  assert.match(t, /^Je saute\n\n<jet>Vigueur, moyen \(10\) : \d+ \+ 1 = \d+, (réussite|échec)( critique)?<\/jet>$/);
   assert.match(withRoll('(Vigueur, moyen)', { remote: true }), /^<jet>Vigueur/);
   assert.equal(withRoll('Je saute', { remote: true }), 'Je saute');
 });

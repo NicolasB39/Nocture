@@ -6,7 +6,8 @@
 import { ctx } from './state.js';
 import { ikey, isRoll, JET } from './util.js';
 
-const DIFF = { facile: 8, moyen: 12, difficile: 15, 'très difficile': 18 };
+// Seuils du d20 : à bonus nul, 75, 55, 40 et 25 % de réussite (un 20 réussit toujours, un 1 échoue toujours).
+const DIFF = { facile: 6, moyen: 10, difficile: 13, 'très difficile': 16 };
 export const BONUS = { min: -1, max: 2, pts: 3 };
 // Difficultés, la plus longue d'abord : « très difficile » est reconnue avant « difficile ».
 const DS = Object.keys(DIFF).sort((x, y) => y.length - x.length);
@@ -24,14 +25,15 @@ export const signed = v => (v > 0 ? '+' + v : v < 0 ? '−' + -v : '0');
 
 // Action marquée « … (Adresse, difficile) », de préférence en fin de ligne mais acceptée n'importe où (la
 // dernière marque valide) : son texte sans la marque, la caractéristique et la difficulté. Une parenthèse
-// ordinaire n'est pas une marque : il faut une caractéristique de regles.md et une difficulté connue.
+// ordinaire n'est pas une marque : il faut une caractéristique de regles.md et une difficulté reconnue, même
+// accordée (« moyenne ») comme dans askOf.
 export const checkOf = (t, rules) => {
   t = String(t);
   let hit = null;
   if (rules.length)
     for (const m of t.matchAll(/[ \t]*\(([^(),]+),\s*([^(),]+)\)/g)) {
       const k = rules.find(r => ikey(r) == ikey(m[1])),
-        d = DS.find(x => ikey(x) == ikey(m[2]));
+        d = DS.find(x => ikey(m[2]).includes(ikey(x)));
       if (k && d) hit = { m, k, d };
     }
   if (!hit) return null;

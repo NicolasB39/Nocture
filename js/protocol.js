@@ -38,7 +38,7 @@ const jetBlock = (rules, choices) =>
     ? '\n- Dans le bloc <choix>, termine une action risquée par la caractéristique qui convient et sa difficulté, entre parenthèses, en fin de ligne : « … (Caractéristique, difficile) ». Une action sans risque n’en a pas.'
     : '') +
   '\n- Quand le message du joueur contient un bloc <jet>, raconte l’issue de son action selon ce résultat, sans le contredire : une réussite critique va au-delà de l’espéré, un échec critique ajoute une complication.' +
-  '\n- Quand le joueur tente de lui-même une action risquée, sans <jet>, n’en raconte pas l’issue : montre l’instant d’avant, puis termine ta réponse par <jet>Caractéristique, difficulté</jet>' +
+  '\n- Quand le joueur tente de lui-même une action risquée, sans <jet>, n’en raconte pas l’issue : montre l’instant d’avant en deux ou trois phrases, puis termine ta réponse par <jet>Caractéristique, difficulté</jet>' +
   (choices ? ' à la place du bloc <choix>.' : '.');
 
 export const DEFAULT_CHOICE =
