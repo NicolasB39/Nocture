@@ -1,8 +1,8 @@
 import { sameName } from './memory.js';
 import { inScene } from './prompt.js';
 import { decorNow, scene, zoomScene } from './scene.js';
-import { app, ctx } from './state.js';
-import { $, el, hue, ic, initial } from './util.js';
+import { app, ctx, playerName } from './state.js';
+import { $, el, hue, ic, initial, plain } from './util.js';
 
 const urlOf = code => (ctx.images || []).find(x => x.code == code)?.url || '';
 const label = (c, code) => {
@@ -62,7 +62,8 @@ const row = (c, i, on, open) => {
       'span',
       { class: 'pct' },
       el('span', { class: 'pcn' }, el('b', { text: c.name }), on ? el('span', { class: 'tag', text: 'En scène' }) : null),
-      c.sum ? el('small', { text: c.sum }) : null
+      // Le résumé peut nommer le joueur ({{user}}), comme le reste du texte affiché.
+      c.sum ? el('small', { text: plain(c.sum, playerName(app.cur)) }) : null
     ),
     ic('chevr', 18)
   );
