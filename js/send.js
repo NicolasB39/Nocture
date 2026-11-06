@@ -151,10 +151,15 @@ export async function ask(old, cont, hint) {
     // Rien à raconter (réponse arrêtée juste après l'annonce du lieu, ou réduite à l'état) : un message vide
     // ferait refuser les tours suivants. Échec, avec Réessayer, et l'ancienne réponse remise en place.
     if (!cont && !p2.content) throw new Error('réponse vide : aucun texte de récit reçu');
+    let st0 = '';
     if (cont) {
       const m = s.messages.at(-1);
+      st0 = JSON.stringify(m.state);
       // Pas d'espace ajoutée au milieu d'une demande de jet coupée (« <jet>Adresse, diff » + « icile</jet> »).
+      // Une suite sans état ni choix garde ceux du message.
       setBody(m, {
+        choices: m.choices,
+        state: m.state,
         ...p2,
         content: m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) || /<jet>[^<]*$/i.test(m.content) ? '' : ' ') + p2.content
       });
@@ -169,6 +174,9 @@ export async function ask(old, cont, hint) {
       );
     }
     old = null;
+    // Nouvel état : ses changements s'animent une fois à l'affichage (render, view.js). Après « Continuer »,
+    // seulement si l'état a changé.
+    if (p2.state && JSON.stringify(p2.state) !== st0) app.fresh = { id: s.id, i: s.messages.length - 1, at: Date.now() };
     await save(s);
   } catch (e) {
     msg = e.message;

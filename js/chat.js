@@ -185,6 +185,8 @@ async function forkFrom(i) {
 const useAlt = (m, k) => {
   m.ai = k;
   setBody(m, m.alts[k]);
+  // Une autre variante n'est pas une réponse qui arrive : pas d'animation de son état.
+  app.fresh = null;
 };
 async function swipe(d) {
   stopSpeech();

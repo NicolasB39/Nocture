@@ -108,16 +108,26 @@ const sig = st => (st || []).map(x => x[0] + '=' + x[1]).join('|');
 // Panneau d'état : une rangée de pastilles (les premières valeurs, avec leur variation), dépliée d'un toucher
 // en grille détaillée avec les jauges. Le choix plié / déplié vaut pour toute l'appli.
 const ST_N = 3;
-// Valeurs de l'état du message i, avec leur variation depuis l'état précédent.
+// Valeurs de l'état du message i, avec leur variation depuis l'état précédent. c : valeur nouvelle ou changée
+// (rien au premier état) ; p0 : remplissage de la jauge avant le changement.
+const pctOf = v => {
+  const r = String(v).match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/);
+  return r ? Math.max(0, Math.min(100, (+r[1].replace(',', '.') / +r[2].replace(',', '.')) * 100)) : null;
+};
 const stRows = (i, m) => {
   const pm = new Map(lastEtat(app.cur.messages, i) || []);
   return m.state.map(([k, v]) => {
     const a = numOf(v),
       b = pm.has(k) ? numOf(pm.get(k)) : null,
       d = a != null && b != null && a !== b ? a - b : null;
-    return { k, v, d };
+    return { k, v, d, c: pm.size > 0 && pm.get(k) !== v, p0: pctOf(pm.get(k)) };
   });
 };
+// Attributs d'une valeur changée : sa variation, qui s'envole quand la réponse arrive (render, app.fresh).
+const chg = (r, cls) => ({
+  class: cls + (r.c ? ' nv' + (r.d < 0 ? ' dn' : '') : ''),
+  data: r.d != null ? { d: (r.d > 0 ? '+' : '−') + Math.round(Math.abs(r.d) * 100) / 100 } : null
+});
 const dl = (d, short) =>
   d != null &&
   el('em', {
@@ -129,15 +139,14 @@ const stGrid = rows =>
   el(
     'div',
     { class: 'stg' },
-    rows.map(({ k, v, d }) => {
-      const r = v.match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/),
-        p = r ? Math.max(0, Math.min(100, (+r[1].replace(',', '.') / +r[2].replace(',', '.')) * 100)) : null;
+    rows.map(r => {
+      const p = pctOf(r.v);
       return el(
         'div',
-        { class: 'kv' },
-        el('span', { text: k }),
-        el('b', null, v, dl(d)),
-        p != null && el('i', { class: 'bar' }, el('u', { style: 'width:' + p + '%' }))
+        chg(r, 'kv'),
+        el('span', { text: r.k }),
+        el('b', null, r.v, dl(r.d)),
+        p != null && el('i', { class: 'bar' }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }))
       );
     })
   );
@@ -152,8 +161,8 @@ const stCard = (i, m) => {
     el(
       'button',
       { class: 'stc', 'aria-expanded': String(open) },
-      rows.slice(0, ST_N).map(r => el('span', { class: 'stp' }, el('span', { text: r.k }), ' ' + r.v, dl(r.d, true))),
-      more > 0 && el('span', { class: 'stp stm', text: '+' + more }),
+      rows.slice(0, ST_N).map(r => el('span', chg(r, 'stp'), el('span', { text: r.k }), ' ' + r.v, dl(r.d, true))),
+      more > 0 && el('span', { class: 'stp stm' + (rows.slice(ST_N).some(r => r.c) ? ' nv' : ''), text: '+' + more }),
       ic('down', 14)
     ),
     el(
@@ -455,6 +464,22 @@ export function render(sc) {
     if (dt >= THROW) app.thrown = null;
     else if (r && !r.classList.contains('thrown')) throwDie(r, dt);
   }
+  // État de la réponse qui vient d'arriver (send.js : { i, at }) : ses valeurs changées s'animent une fois
+  // (style.css, .fresh), sous le message et dans la colonne de droite ; reprises là où elles en étaient si le
+  // message est reconstruit.
+  if (app.fresh) {
+    const { id, i, at } = app.fresh,
+      dt = Date.now() - at;
+    if (dt >= FRESH) app.fresh = null;
+    else if (id == app.cur.id)
+      for (const s of document.querySelectorAll('#msgs > .m[data-i="' + i + '"] .st, #side .stg'))
+        if (!s.classList.contains('fresh')) {
+          s.style.setProperty('--dt', -dt + 'ms');
+          s.classList.add('fresh');
+          // Retirée ensuite : déplier le panneau plus tard rejouerait l'animation.
+          setTimeout(() => s.classList.remove('fresh'), FRESH - dt);
+        }
+  }
   tk();
   memRing();
   navView();
@@ -462,7 +487,8 @@ export function render(sc) {
 }
 // Le d20 arrive en roulant depuis la droite, rebondit et se pose, ses chiffres défilant ; l'issue et le bonus
 // apparaissent ensuite (classe thrown). dt : temps déjà écoulé du lancer. Rien si les animations sont réduites.
-const THROW = 950;
+const THROW = 950,
+  FRESH = 1600;
 const throwDie = (c, dt) => {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   const d = c.querySelector('.rd'),

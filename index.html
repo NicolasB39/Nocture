@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="d6dd7b5008">
+<meta name="app-version" content="2a04d32480">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -164,7 +164,7 @@
 </dialog>
 
 <dialog id="ds" aria-labelledby="hds">
-<h2 id="hds">Réglages de l'histoire</h2>
+<h2 id="hds" tabindex="-1" autofocus>Réglages de l'histoire</h2>
 <label for="ssys">Prompt système</label>
 <textarea id="ssys"></textarea>
 <p id="scw" class="note warn" hidden></p>
@@ -218,7 +218,7 @@
 </dialog>
 
 <dialog id="dm" aria-labelledby="hdm">
-<h2 id="hdm">Mémoire et note</h2>
+<h2 id="hdm" tabindex="-1" autofocus>Mémoire et note</h2>
 <label for="nti">Note pour l'IA</label>
 <textarea id="nti" style="min-height:70px" placeholder="Une consigne que l'IA garde en tête à chaque tour : ton, rythme, ce qu'elle doit éviter…"></textarea>
 <p class="note">Envoyée avec la mémoire à chaque tour, jusqu'à ce que vous l'effaciez.</p>
@@ -313,7 +313,7 @@
 </dialog>
 
 <dialog id="dc" aria-labelledby="hdc">
-<h2 id="hdc">Réglages</h2>
+<h2 id="hdc" tabindex="-1" autofocus>Réglages</h2>
 <label for="ck">Clé API Claude</label>
 <input id="ck" type="password" autocomplete="off">
 <label for="cm">Modèle</label>
