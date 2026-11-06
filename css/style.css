@@ -2849,9 +2849,9 @@ dialog h2,
 .roll.ko {
   border-color: rgba(255, 107, 107, 0.5);
 }
-/* Le d20 : un hexagone (bord doré, intérieur teinté), le chiffre au centre, le bonus en pastille. */
+/* Le d20 (i-d20, index.html) : contour et facettes dorés, intérieur teinté (pleine couleur sur un critique), le
+   chiffre au centre, le bonus en pastille. */
 .roll .rd {
-  --hex: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
   flex: none;
   position: relative;
   width: 44px;
@@ -2860,19 +2860,10 @@ dialog h2,
   place-items: center;
   color: var(--ac);
 }
-.roll .rh,
-.roll .rh::before {
+.roll .rd .i {
   position: absolute;
-  clip-path: var(--hex);
-}
-.roll .rh {
   inset: 0;
-  background: var(--ac);
-}
-.roll .rh::before {
-  content: '';
-  inset: 1.5px;
-  background: color-mix(in srgb, var(--ac) 16%, var(--s1));
+  fill-opacity: 0.16;
 }
 .roll .rd b {
   position: relative;
@@ -2891,17 +2882,11 @@ dialog h2,
 .roll.ko .rd {
   color: var(--dg);
 }
-.roll.ko .rh {
-  background: var(--dg);
-}
-.roll.ko .rh::before {
-  background: color-mix(in srgb, var(--dg) 14%, var(--s1));
-}
 .roll.ko .rb {
   border-color: rgba(255, 107, 107, 0.5);
 }
-.roll.crit:not(.ko) .rh::before {
-  background: var(--ac);
+.roll.crit:not(.ko) .rd .i {
+  fill-opacity: 1;
 }
 .roll.crit:not(.ko) .rd b {
   color: var(--on);
@@ -2915,8 +2900,8 @@ dialog h2,
 .roll.thrown .rb {
   opacity: 0;
 }
-.roll.thrown.crit .rh::before {
-  background: color-mix(in srgb, var(--ac) 16%, var(--s1));
+.roll.thrown.crit .rd .i {
+  fill-opacity: 0.16;
 }
 .roll.thrown.crit .rd b {
   color: var(--ac);

@@ -15,7 +15,7 @@ const node = t => ({
     this[k] = v;
   }
 });
-globalThis.document = { createElement: node };
+globalThis.document = { createElement: node, createElementNS: (_, t) => node(t) };
 
 const { body } = await import('../js/format.js');
 
