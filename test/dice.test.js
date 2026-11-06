@@ -49,7 +49,11 @@ test('message envoyé : la marque devient le résultat, un message sans marque n
 test('carte du dé : le résultat se relit, la demande de jet du narrateur se retrouve', () => {
   assert.deepEqual(rollParts('Adresse, difficile (15) : 14 + 2 = 16, réussite'), {
     label: 'Adresse · difficile (15)',
+    what: 'Adresse · difficile',
     n: 14,
+    b: 2,
+    tot: 16,
+    dc: 15,
     sum: '14 + 2 = 16',
     r: 'réussite',
     ko: false,

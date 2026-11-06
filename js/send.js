@@ -306,6 +306,8 @@ $('#send').onclick = async () => {
       delete pv.ai;
     }
     app.cur.messages.push({ role: 'user', content: withRoll(t, app.cur), t: Date.now() });
+    // Si ce tour contient un jet, le dé sera lancé à l'affichage (view.js, throwDie).
+    app.thrown = { i: app.cur.messages.length - 1, at: Date.now() };
     await save();
   } finally {
     app.busy = false;

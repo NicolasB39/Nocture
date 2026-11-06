@@ -445,11 +445,48 @@ export function render(sc) {
             { once: true }
           );
   }
+  // Jet qui vient de partir (send.js, chat.js : { i, at }) : le dé est lancé une fois, jamais à la relecture. Le
+  // message est souvent reconstruit pendant le lancer (il cesse d'être le dernier quand la réponse arrive) :
+  // l'animation reprend alors là où elle en était.
+  if (app.thrown) {
+    const { i, at } = app.thrown,
+      dt = Date.now() - at,
+      r = w.querySelector(':scope > .m[data-i="' + i + '"] .roll');
+    if (dt >= THROW) app.thrown = null;
+    else if (r && !r.classList.contains('thrown')) throwDie(r, dt);
+  }
   tk();
   memRing();
   navView();
   refreshSpeech();
 }
+// Le d20 arrive en roulant depuis la droite, rebondit et se pose, ses chiffres défilant ; l'issue et le bonus
+// apparaissent ensuite (classe thrown). dt : temps déjà écoulé du lancer. Rien si les animations sont réduites.
+const THROW = 950;
+const throwDie = (c, dt) => {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const d = c.querySelector('.rd'),
+    b = d.querySelector('b'),
+    n = b.textContent,
+    iv = setInterval(() => (b.textContent = String(1 + Math.floor(Math.random() * 20))), 90);
+  c.classList.add('thrown');
+  const a = d.animate(
+    [
+      { transform: 'translate(120px, -50px) rotate(-300deg) scale(0.6)', opacity: 0 },
+      { transform: 'translate(30px, 6px) rotate(-120deg) scale(1)', opacity: 1, offset: 0.35 },
+      { transform: 'translate(8px, -10px) rotate(-30deg)', offset: 0.6 },
+      { transform: 'translate(-2px, 2px) rotate(8deg)', offset: 0.82 },
+      { transform: 'none' }
+    ],
+    { duration: THROW, easing: 'ease-out' }
+  );
+  a.currentTime = dt;
+  a.onfinish = () => {
+    clearInterval(iv);
+    b.textContent = n;
+    c.classList.remove('thrown');
+  };
+};
 // Jauge de la mémoire autour du bouton Envoyer : vide juste après une mise à jour (SUM_KEEP messages gardés mot
 // pour mot), pleine à SUM_PLAY, qui la déclenche. Les cinq derniers tours (un tour : deux messages) affichent
 // leur compte à rebours ; elle pulse pendant la mise à jour.

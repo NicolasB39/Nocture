@@ -81,7 +81,11 @@ export const rollParts = x => {
   return (
     m && {
       label: m[1].replace(', ', ' · ') + ' (' + m[2] + ')',
+      what: m[1].replace(', ', ' · '),
       n: +m[3],
+      b: m[4] == '−' ? -m[5] : +m[5],
+      tot: +m[6],
+      dc: +m[2],
       sum: m[3] + ' ' + m[4] + ' ' + m[5] + ' = ' + m[6],
       r,
       ko: r.startsWith('échec'),

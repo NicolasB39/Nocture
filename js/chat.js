@@ -144,7 +144,10 @@ async function resendFrom(i, t) {
     delete pv.alts;
     delete pv.ai;
   }
-  Object.assign(c.messages[i], { content: withRoll(t, c), t: Date.now() });
+  const tr = withRoll(t, c);
+  // Une nouvelle marque de jet a été lancée : le dé sera lancé à l'affichage (view.js, throwDie).
+  if (tr !== t) app.thrown = { i, at: Date.now() };
+  Object.assign(c.messages[i], { content: tr, t: Date.now() });
   // Verrou jusqu'à ask() : un second Renvoyer pendant l'enregistrement relancerait un tour en double.
   app.busy = true;
   try {

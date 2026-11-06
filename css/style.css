@@ -2761,8 +2761,7 @@ dialog h2,
   white-space: nowrap;
   vertical-align: 1px;
 }
-.jt.ko,
-.roll.ko .rd {
+.jt.ko {
   background: rgba(255, 107, 107, 0.13);
   color: var(--dg);
 }
@@ -2780,20 +2779,77 @@ dialog h2,
 .roll.ko {
   border-color: rgba(255, 107, 107, 0.5);
 }
+/* Le d20 : un hexagone (bord doré, intérieur teinté), le chiffre au centre, le bonus en pastille. */
 .roll .rd {
+  --hex: polygon(50% 0, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
   flex: none;
-  width: 40px;
-  height: 40px;
+  position: relative;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  border-radius: 10px;
-  background: var(--act);
   color: var(--ac);
-  font: 600 17px/1 var(--sans);
 }
-.roll.crit:not(.ko) .rd {
+.roll .rh,
+.roll .rh::before {
+  position: absolute;
+  clip-path: var(--hex);
+}
+.roll .rh {
+  inset: 0;
   background: var(--ac);
+}
+.roll .rh::before {
+  content: '';
+  inset: 1.5px;
+  background: color-mix(in srgb, var(--ac) 16%, var(--s1));
+}
+.roll .rd b {
+  position: relative;
+  font: 600 16px/1 var(--sans);
+}
+.roll .rb {
+  position: absolute;
+  right: -8px;
+  bottom: -5px;
+  padding: 0 4px;
+  border: 1px solid var(--acb);
+  border-radius: 8px;
+  background: var(--s1);
+  font: normal 600 10px/15px var(--sans);
+}
+.roll.ko .rd {
+  color: var(--dg);
+}
+.roll.ko .rh {
+  background: var(--dg);
+}
+.roll.ko .rh::before {
+  background: color-mix(in srgb, var(--dg) 14%, var(--s1));
+}
+.roll.ko .rb {
+  border-color: rgba(255, 107, 107, 0.5);
+}
+.roll.crit:not(.ko) .rh::before {
+  background: var(--ac);
+}
+.roll.crit:not(.ko) .rd b {
   color: var(--on);
+}
+/* Jet qui vient d'être lancé (view.js, throwDie) : l'issue et le bonus apparaissent quand le dé se pose. */
+.roll .rt,
+.roll .rb {
+  transition: opacity 0.25s;
+}
+.roll.thrown .rt,
+.roll.thrown .rb {
+  opacity: 0;
+}
+.roll.thrown.crit .rh::before {
+  background: color-mix(in srgb, var(--ac) 16%, var(--s1));
+}
+.roll.thrown.crit .rd b {
+  color: var(--ac);
 }
 .roll small,
 .rla small {

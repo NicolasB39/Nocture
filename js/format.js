@@ -1,5 +1,5 @@
 import { IMG, S, app, ctx, playerName } from './state.js';
-import { rollParts } from './dice.js';
+import { rollParts, signed } from './dice.js';
 import { KNEES, decorFor, scene } from './scene.js';
 import { el, ikey, JET } from './util.js';
 
@@ -190,16 +190,29 @@ export const paintLive = (b, v, z, ph, d) => {
   keepImgs(old, box);
   b.append(...box.childNodes);
 };
-// Carte d'un jet (dice.js) dans le message du joueur. Une demande de jet du narrateur n'affiche rien ici : le
-// bouton « Lancer » est sous la conversation.
+// Carte d'un jet (dice.js) dans le message du joueur : le d20 et son bonus en pastille, puis l'issue et le total
+// face au seuil (« Réussite · 18 / 13 »). Une demande de jet du narrateur n'affiche rien ici : le bouton
+// « Lancer » est sous la conversation.
 const rollCard = x => {
   const p = rollParts(x);
   if (!p) return null;
   return el(
     'div',
     { class: 'roll' + (p.ko ? ' ko' : '') + (p.crit ? ' crit' : '') },
-    el('span', { class: 'rd', 'aria-hidden': 'true', text: String(p.n) }),
-    el('span', { class: 'rt' }, el('small', { text: p.label }), el('span', null, el('b', { text: p.sum }), ' · ' + p.r))
+    el(
+      'span',
+      { class: 'rd', 'aria-hidden': 'true' },
+      el('span', { class: 'rh' }),
+      el('b', { text: String(p.n) }),
+      p.b ? el('i', { class: 'rb', text: signed(p.b) }) : null
+    ),
+    el(
+      'span',
+      { class: 'rt' },
+      el('span', { class: 'sr', text: 'Dé ' + p.n + ', bonus ' + signed(p.b) + '. ' }),
+      el('span', null, el('b', { text: p.r[0].toUpperCase() + p.r.slice(1) }), ' · ' + p.tot + ' / ' + p.dc),
+      el('small', { text: p.what })
+    )
   );
 };
 // user : message du joueur, le seul où un résultat de jet devient une carte (un résultat écrit par le
