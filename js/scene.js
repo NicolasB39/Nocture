@@ -4,8 +4,8 @@ import { el, hue, nz } from './util.js';
 export const lieuOf = st => (st || []).find(([k]) => /^(lieu|endroit|localisation|position)/.test(nz(k)))?.[1] || '';
 // Jour (ou Date) du récit : pas « Jours restants » ni « Journal ».
 export const jourOf = st => (st || []).find(([k]) => /^(jour|date)(\s|\(|$)/.test(nz(k).trim()))?.[1] || '';
-// « Jour 2 » pour une valeur qui n'est qu'un nombre, sinon la valeur telle quelle (« 3 mai »).
-export const jourLabel = v => (/^\d+$/.test((v = String(v || '').trim())) ? 'Jour ' + v : v);
+// « Jour 2 » (ou « Jour 1/12 ») pour une valeur qui n'est qu'un nombre, sinon la valeur telle quelle (« 3 mai »).
+export const jourLabel = v => (/^\d+(\s*\/\s*\d+)?$/.test((v = String(v || '').trim())) ? 'Jour ' + v : v);
 // Moment de la journée d'un état (champ Moment, Heure ou Période) : aube, soir ou nuit teintent les décors
 // (style.css, [data-mo]) ; le jour ou une valeur inconnue, aucune teinte. null : l'état ne dit rien du moment.
 export const momentOf = st => {

@@ -36,11 +36,32 @@ export const choicesOf = t => {
         .slice(0, 3)
     : [];
 };
+// Choix écrits sans leur balise <choix> (un oubli du modèle, surtout Haiku) : deux ou trois lignes « 1. »,
+// « 2. »… tout à la fin du récit, après une ligne vide, chacune commençant comme une action du joueur (geste en
+// italique, réplique, « Je »). Rend le récit sans la liste et les choix, ou null : une liste du récit (lettre,
+// inventaire) ne ressemble pas à cela.
+export const looseChoices = t => {
+  const ls = t.trimEnd().split('\n'),
+    n = [],
+    c = [];
+  for (let i = ls.length - 1; i >= 0; i--) {
+    const m = ls[i].match(/^\s*([1-3])[.)]\s+(\S.*)$/);
+    if (!m) break;
+    n.unshift(+m[1]);
+    c.unshift(m[2].trim());
+  }
+  if (c.length < 2 || c.length > 3 || n.some((x, k) => x != k + 1) || c.some(x => !/^(\*|«|"|je\b|j['’])/i.test(x)))
+    return null;
+  const before = ls.slice(0, ls.length - c.length);
+  if (before.length && before.at(-1).trim()) return null;
+  return { content: before.join('\n').trim(), choices: c };
+};
 export const split = raw => {
   const o = { content: raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim() },
     c = choicesOf(raw),
     s = parseEtat(raw);
   if (c.length) o.choices = c;
+  else Object.assign(o, looseChoices(o.content));
   if (s.length) o.state = s;
   return o;
 };

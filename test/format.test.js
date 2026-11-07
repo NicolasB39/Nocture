@@ -80,3 +80,30 @@ test('jets : carte dans un message du joueur seulement, demande masquée, balise
   for (const t of ['Il hésite.\n\n<jet>Adresse, diff', 'Il hésite.\n\n<jet>Adresse, difficile</je', 'Il hésite.\n\n<je'])
     assert.deepEqual(texts(t), ['Il hésite.'], t);
 });
+
+test('choix sans balise <choix> : rattrapés en fin de récit, jamais une liste du récit', async () => {
+  const { looseChoices, split } = await import('../js/format.js');
+  const { clean } = await import('../js/store.js');
+  // Cas réel (journal du 7 novembre, Haiku) : trois choix numérotés, marques de jet comprises.
+  const t =
+    '*Cendrine referme la main sur la manche.*\n\n' +
+    '1. *Je croise les bras et la fixe sans ciller.* « Votre nom entier. » (Prestance, moyen)\n' +
+    '2. *Je m’assieds à côté d’elle.* « Racontez-moi. »\n' +
+    '3. *Je fais un signe à Gontran.* « Une chose à la fois. » (Ruse, difficile)';
+  const s = split(t + '\n\n<etat>\nLieu: Route\n</etat>');
+  assert.equal(s.content, '*Cendrine referme la main sur la manche.*');
+  assert.equal(s.choices.length, 3);
+  assert.match(s.choices[0], /^\*Je croise.*\(Prestance, moyen\)$/);
+  assert.deepEqual(s.state, [['Lieu', 'Route']]);
+  // Avec la balise, rien ne change.
+  assert.deepEqual(split('Récit.\n\n<choix>\n1. Je pars\n2. Je reste\n</choix>').choices, ['Je pars', 'Je reste']);
+  // Pas des choix : liste du récit, numérotation fautive, liste collée au paragraphe, une seule ligne.
+  assert.equal(looseChoices('La lettre dit :\n\n1. Payer la dette\n2. Quitter la ville'), null);
+  assert.equal(looseChoices('Récit.\n\n1. *Je pars.*\n3. *Je reste.*'), null);
+  assert.equal(looseChoices('Récit :\n1. *Je pars.*\n2. *Je reste.*'), null);
+  assert.equal(looseChoices('Récit.\n\n1. *Je pars.*'), null);
+  // Réponse déjà enregistrée : corrigée au chargement.
+  const c = clean({ id: 'x', messages: [{ role: 'assistant', content: t }] });
+  assert.equal(c.messages[0].choices.length, 3);
+  assert.equal(c.messages[0].content, '*Cendrine referme la main sur la manche.*');
+});

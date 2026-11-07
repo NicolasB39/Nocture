@@ -1,6 +1,7 @@
 import { S, app, playerName } from './state.js';
 import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutChapters, cutLines } from './memory.js';
+import { looseChoices } from './format.js';
 
 let db;
 // Fiche du personnage (mode jeu de rôle) : un bonus entier par caractéristique, dans des bornes larges ; la fiche
@@ -17,6 +18,8 @@ const one = m => {
     c = (Array.isArray(m.choices) ? m.choices : []).filter(x => typeof x == 'string').slice(0, 3),
     t = (Array.isArray(m.state) ? m.state : []).filter(e => Array.isArray(e) && e.length == 2).slice(0, 12);
   if (c.length) r.choices = c;
+  // Réponse enregistrée avant le rattrapage des choix sans balise (looseChoices) : corrigée au chargement.
+  else if (m.role == 'assistant') Object.assign(r, looseChoices(r.content));
   if (t.length) r.state = t;
   return r;
 };

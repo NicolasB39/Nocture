@@ -110,6 +110,7 @@ test('moment de la journée : mots et heures reconnus, rien sans champ, le derni
   assert.equal(jourOf([['Date', '3 mai']]), '3 mai');
   assert.equal(jourLabel(' 2 '), 'Jour 2');
   assert.equal(jourLabel('3 mai'), '3 mai');
+  assert.equal(jourLabel('1/12'), 'Jour 1/12');
   assert.equal(momentNow(ms), '');
   assert.equal(momentNow(ms.slice(0, 3)), 'soir');
 });
