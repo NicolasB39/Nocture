@@ -81,6 +81,23 @@ test('jets : carte dans un message du joueur seulement, demande masquée, balise
     assert.deepEqual(texts(t), ['Il hésite.'], t);
 });
 
+test('écran de passage : seulement un lieu annoncé en tête, nouveau, et pas celui de la réponse régénérée', async () => {
+  const { passageLieu } = await import('../js/format.js');
+  const avant = [['Lieu', 'La cour']];
+  assert.equal(passageLieu('<lieu>Le gué</lieu>\n\n*L’eau monte.*', avant), 'Le gué');
+  assert.equal(passageLieu('  <lieu>Le Gué</lieu>', avant), 'Le Gué');
+  // Déjà là (accents et majuscules ignorés), ou annoncé au milieu de la réponse : rien.
+  assert.equal(passageLieu('<lieu>la cour</lieu>\n\nTexte', avant), '');
+  assert.equal(passageLieu('*Ils marchent.*\n\n<lieu>Le gué</lieu>', avant), '');
+  // Régénération d'une réponse qui annonçait déjà ce lieu : pas une seconde fois.
+  assert.equal(passageLieu('<lieu>Le gué</lieu>', avant, [['Lieu', 'Le gué']]), '');
+  // Premier lieu de l'histoire, ou état d'avant sans lieu : l'écran vient aussi.
+  assert.equal(passageLieu('<lieu>Pont-aux-Saules</lieu>', null), 'Pont-aux-Saules');
+  assert.equal(passageLieu('<lieu>Le gué</lieu>', [['Jour', '2']]), 'Le gué');
+  // Balise pas encore fermée pendant l'écriture : rien pour l'instant.
+  assert.equal(passageLieu('<lieu>Le g', avant), '');
+});
+
 test('choix sans balise <choix> : rattrapés en fin de récit, jamais une liste du récit', async () => {
   const { looseChoices, split } = await import('../js/format.js');
   const { clean } = await import('../js/store.js');

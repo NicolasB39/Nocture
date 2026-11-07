@@ -3,15 +3,15 @@ import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
 import { noRolls, withRoll } from './dice.js';
-import { fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, setBody, split } from './format.js';
+import { fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, passageLieu, setBody, split } from './format.js';
 import { passage } from './passage.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
-import { decorNow, lieuOf, momentNow } from './scene.js';
+import { decorNow, momentNow } from './scene.js';
 import { app, S } from './state.js';
 import { save } from './store.js';
-import { $, dlg, el, err, fit, LS, nz } from './util.js';
+import { $, dlg, el, err, fit, LS } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
 
 // Envoi d'un tour : appel au modèle, affichage progressif, erreurs, maintien du cache, zone de saisie.
@@ -65,11 +65,9 @@ export async function ask(old, cont, hint) {
     pend = ['', false],
     dl = decorNow(s.messages),
     lieu = '',
-    // Écran de passage (passage.js) : seulement quand la réponse annonce en tête un vrai changement de lieu depuis
-    // l'état d'avant, pendant l'attente du texte ; pas de nouveau en régénérant une réponse qui l'avait déjà (old).
-    // Jamais en fin de réponse : il recouvrirait le texte qu'on vient de lire.
-    l0 = nz(lieuOf(lastEtat(s.messages))),
-    moved = v => !!l0 && nz(v) != l0 && nz(v) != nz(lieuOf(old?.state));
+    // Écran de passage (passage.js, règle dans passageLieu) : état d'avant et réponse régénérée, pris au départ.
+    e0 = lastEtat(s.messages),
+    o0 = old?.state;
   const z = { fl: 0, fn: 0, ft: '' },
     // Attente : le personnage en scène « réfléchit », sur des lignes fantômes. Un seul nœud, réutilisé à
     // chaque image, pour ne pas recharger l'avatar.
@@ -96,7 +94,7 @@ export async function ask(old, cont, hint) {
     const lt = !cont && lieuTag(t);
     if (lt && lt != lieu) {
       dl = liveScene((lieu = lt));
-      if (moved(lt)) passage({ lieu, d: dl, mo: e.dataset.mo });
+      if (passageLieu(t, e0, o0)) passage({ lieu, d: dl, mo: e.dataset.mo });
     }
     const v = liveText(t.trim()),
       sec = Math.round((Date.now() - t0) / 1000);

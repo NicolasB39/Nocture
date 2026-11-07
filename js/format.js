@@ -1,7 +1,7 @@
 import { IMG, S, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
-import { KNEES, decorFor, scene } from './scene.js';
-import { el, ic, ikey, JET } from './util.js';
+import { KNEES, decorFor, lieuOf, scene } from './scene.js';
+import { el, ic, ikey, JET, nz } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
 export const ETX = /<etat>[\s\S]*?(?:<\/etat>|$)/gi;
@@ -9,6 +9,13 @@ export const ETX = /<etat>[\s\S]*?(?:<\/etat>|$)/gi;
 // gardée. La suppression s'arrête à la fin de la ligne : une balise mal fermée n'emporte pas la narration.
 export const LIX = /<lieu>[^\n]*?(?:<\/lieu>|(?=\n)|$)/gi;
 export const lieuTag = t => t.match(/<lieu>([^<\n]{1,80})<\/lieu>/i)?.[1].trim() || '';
+// Lieu de l'écran de passage (passage.js) : annoncé en tout début de réponse, donc pendant l'attente du texte
+// (une balise plus loin tomberait sur le texte en cours de lecture), et différent du lieu de l'état d'avant
+// (prev) comme de celui de la réponse qu'on régénère (old). '' sinon.
+export const passageLieu = (t, prev, old) => {
+  const l = /^\s*<lieu>/i.test(t) && lieuTag(t);
+  return l && nz(l) != nz(lieuOf(prev)) && nz(l) != nz(lieuOf(old)) ? l : '';
+};
 // Texte de la réponse en cours, sans l'annonce du lieu ni, tant qu'elle s'écrit, sa balise encore incomplète
 // tout au début (« <li »). Sur la réponse entière seulement : body() reçoit aussi des morceaux, et doit les
 // rendre comme le rendu complet.
