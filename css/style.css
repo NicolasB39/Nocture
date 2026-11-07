@@ -1410,7 +1410,7 @@ hr {
   object-fit: cover;
   animation-duration: 0.3s;
 }
-/* Écran de passage (passage.js) : décor plein écran assombri, titre du lieu, jour au-dessus, trait doré. */
+/* Écran de passage (passage.js) : décor plein écran assombri, titre du lieu, trait doré. */
 .pass {
   position: fixed;
   inset: 0;
@@ -1437,13 +1437,6 @@ hr {
   padding: 0 24px;
   color: var(--ac);
   text-align: center;
-}
-.pst small {
-  display: block;
-  color: #e6dccb;
-  font: 600 13px/1.4 var(--sans);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
 }
 .pst b {
   display: block;

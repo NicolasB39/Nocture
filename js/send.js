@@ -8,7 +8,7 @@ import { passage } from './passage.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
-import { decorNow, jourOf, lieuOf, momentNow } from './scene.js';
+import { decorNow, lieuOf, momentNow } from './scene.js';
 import { app, S } from './state.js';
 import { save } from './store.js';
 import { $, dlg, el, err, fit, LS, nz } from './util.js';
@@ -65,12 +65,11 @@ export async function ask(old, cont, hint) {
     pend = ['', false],
     dl = decorNow(s.messages),
     lieu = '',
-    // Écran de passage (passage.js) : pour un vrai changement depuis l'état d'avant (e0), pas de nouveau en
-    // régénérant une réponse qui l'avait déjà (o0), et une fois par réponse (passed).
-    e0 = lastEtat(s.messages),
-    o0 = old?.state,
-    moved = (f, v) => !!v && !!f(e0) && nz(v) != nz(f(e0)) && nz(v) != nz(f(o0)),
-    passed = false;
+    // Écran de passage (passage.js) : seulement quand la réponse annonce en tête un vrai changement de lieu depuis
+    // l'état d'avant, pendant l'attente du texte ; pas de nouveau en régénérant une réponse qui l'avait déjà (old).
+    // Jamais en fin de réponse : il recouvrirait le texte qu'on vient de lire.
+    l0 = nz(lieuOf(lastEtat(s.messages))),
+    moved = v => !!l0 && nz(v) != l0 && nz(v) != nz(lieuOf(old?.state));
   const z = { fl: 0, fn: 0, ft: '' },
     // Attente : le personnage en scène « réfléchit », sur des lignes fantômes. Un seul nœud, réutilisé à
     // chaque image, pour ne pas recharger l'avatar.
@@ -97,11 +96,7 @@ export async function ask(old, cont, hint) {
     const lt = !cont && lieuTag(t);
     if (lt && lt != lieu) {
       dl = liveScene((lieu = lt));
-      // Le lieu seul : le jour du nouvel état n'est pas encore connu.
-      if (moved(lieuOf, lt)) {
-        passed = true;
-        passage({ lieu, d: dl, mo: e.dataset.mo });
-      }
+      if (moved(lt)) passage({ lieu, d: dl, mo: e.dataset.mo });
     }
     const v = liveText(t.trim()),
       sec = Math.round((Date.now() - t0) / 1000);
@@ -191,11 +186,6 @@ export async function ask(old, cont, hint) {
     // Nouvel état : ses changements s'animent une fois à l'affichage (render, view.js). Après « Continuer »,
     // seulement si l'état a changé.
     if (p2.state && JSON.stringify(p2.state) !== st0) app.fresh = { id: s.id, i: s.messages.length - 1, at: Date.now() };
-    // Nouveau jour, ou lieu changé sans annonce en tête : l'écran de passage vient en fin de réponse (une fois :
-    // pas s'il est déjà venu avec l'annonce, ni après « Continuer »).
-    const j1 = jourOf(p2.state);
-    if (!cont && !passed && app.cur === s && (moved(jourOf, j1) || (!lieu && moved(lieuOf, lieuOf(p2.state)))))
-      passage({ lieu: lieuOf(p2.state) || lieuOf(e0), jour: j1, d: decorNow(s.messages), mo: momentNow(s.messages) });
     await save(s);
   } catch (e) {
     msg = e.message;

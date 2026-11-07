@@ -74,7 +74,7 @@ decors/
 
 C'est l'application qui choisit le décor, pas l'IA : elle lit le champ « Lieu » du panneau d'état (ou « Endroit », « Localisation »), et à défaut cherche les mots-clés dans le texte des derniers messages. Les mots-clés suivent les règles du lorebook (accents et majuscules ignorés, mot entier, `chateau*` pour les variantes) ; quand plusieurs décors correspondent, le mot-clé le plus long l'emporte (« forêt de nuit » avant « forêt »). Si rien ne correspond, c'est `defaut.webp`, et sans lui un fond généré aux couleurs du scénario : il n'y a jamais de vide. L'IA ne reçoit pas la liste des décors et écrit librement ; cela ne coûte aucun token.
 
-Un champ « Moment » dans `etat.md` (ou « Heure », « Période ») teinte les décors selon l'heure : rose à l'aube, orangé au crépuscule, bleu sombre la nuit. Un même décor sert ainsi à toute la journée ; détail des mots reconnus dans [utilisation.md](utilisation.md). Un champ « Jour » (ou « Date ») fait venir l'écran de passage quand il change.
+Un champ « Moment » dans `etat.md` (ou « Heure », « Période ») teinte les décors selon l'heure : rose à l'aube, orangé au crépuscule, bleu sombre la nuit. Un même décor sert ainsi à toute la journée ; détail des mots reconnus dans [utilisation.md](utilisation.md).
 
 Chaque message garde le décor de son moment : celui de son propre bloc d'état, sinon le dernier lieu connu avant lui. Relire une ancienne scène montre donc l'ancien décor. Pendant l'écriture, la scène prend le lieu précédent, puis bascule si la réponse annonce un nouveau lieu.
 

@@ -1,21 +1,19 @@
 import { fr } from './format.js';
-import { jourLabel } from './scene.js';
 import { el } from './util.js';
 
-// Écran de passage : quand le lieu change (annoncé en tête de réponse) ou que le jour change, le décor du lieu
-// remplit l'écran avec son titre, comme un changement de chapitre, puis s'efface. Un toucher le passe. Sans
-// décor, le titre seul sur fond sombre. Décoratif (aria-hidden) : l'intertitre du récit dit déjà le lieu.
+// Écran de passage : quand la réponse annonce en tête un nouveau lieu, son décor remplit l'écran avec son titre,
+// comme un changement de chapitre, pendant l'attente du texte, puis s'efface. Un toucher le passe. Sans décor,
+// le titre seul sur fond sombre. Décoratif (aria-hidden) : l'intertitre du récit dit déjà le lieu.
 // Posé dans #chat : il prend la couleur de l'histoire et disparaît avec la conversation.
 const T = 2800;
 export const passageOff = () => document.querySelector('.pass')?.remove();
-export function passage({ lieu = '', jour = '', d = '', mo = '' }) {
-  const j = jourLabel(jour);
-  if (!lieu && !j) return;
+export function passage({ lieu = '', d = '', mo = '' }) {
+  if (!lieu) return;
   passageOff();
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches,
     dec = d && el('div', { class: 'dec' }, el('img', { src: d, alt: '' })),
     gl = el('i'),
-    tt = el('div', { class: 'pst' }, lieu && j && el('small', { text: fr(j) }), el('b', { text: fr(lieu || j) }), gl),
+    tt = el('div', { class: 'pst' }, el('b', { text: fr(lieu) }), gl),
     o = el('div', { class: 'pass', 'aria-hidden': 'true', data: { mo } }, dec, tt),
     op = { duration: T, easing: 'ease-in-out', fill: 'both' };
   document.querySelector('#chat').append(o);
