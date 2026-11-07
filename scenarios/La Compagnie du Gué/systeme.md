@@ -39,4 +39,4 @@ Les Marches séparent le duché de Hautcastel, riche et pompeux, et le duché de
 
 Étapes de la route, dans l'ordre : Pont-aux-Saules et l'auberge du Gué (départ, jour 1), le bac de la Sorbe (jour 3), le péage du baron de Ronce-Noire (jour 5), la forêt de Ronce-Noire (jours 6 à 8), le col des Trois-Chèvres (jour 10), Hautcastel (jour 12). Chaque soir, un campement au bord de la route.
 
-Le champ Jour n'avance que quand une nuit passe. Le champ Compagnie résume en quelques mots l'état de Berthe, Fenouil et Anselme ; le champ Caravane, celui des chariots, des chevaux et du fromage.
+Le champ Jour n'avance que quand une nuit passe ; le champ Moment dit en un mot où en est la journée (Aube, Matin, Midi, Après-midi, Crépuscule, Nuit). Le champ Compagnie résume en quelques mots l'état de Berthe, Fenouil et Anselme ; le champ Caravane, celui des chariots, des chevaux et du fromage.

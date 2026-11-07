@@ -4,6 +4,8 @@ import { showList } from './list.js';
 import { cutChapters, cutLines } from './memory.js';
 import { conflicts } from './protocol.js';
 import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js';
+import { passageOff } from './passage.js';
+import { recap } from './recap.js';
 import { loadCtx, TERR } from './scenarios.js';
 import { zoomScene } from './scene.js';
 import { openSheet } from './sheet.js';
@@ -18,6 +20,7 @@ import { render } from './view.js';
 // suppression, bifurcation, menus).
 export async function openScenario(id) {
   stopSpeech();
+  passageOff();
   setReading(false);
   app.cur = await getOne(id);
   if (!app.cur) {
@@ -59,6 +62,7 @@ export async function openScenario(id) {
   setTimeout(() => (hd.style.viewTransitionName = ''), 600);
   // Début de séance avec Claude : la mémoire avance pendant la relecture, avant le premier envoi.
   sessionSum(app.cur);
+  recap(app.cur);
   if (back > 0) {
     const e = document.querySelector('#msgs .m[data-i="' + back + '"]');
     if (e) {

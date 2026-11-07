@@ -1,11 +1,14 @@
 import { bkOn, sync } from './backup.js';
 import { emit, on } from './bus.js';
+import { recapOff } from './recap.js';
 import { coverOf, getTree, localTree } from './scenarios.js';
 import { S, app, playerName } from './state.js';
 import { clean, del, getAll, getOne, put, saveSet } from './store.js';
 import { $, LS, ago, dlg, el, hue, ic, initial, nz, plain, uid, vt } from './util.js';
 
 export async function showList() {
+  // L'encart garde l'histoire en mémoire (Résumer) : retiré en quittant.
+  recapOff();
   app.cur = null;
   await draw();
   await vt(() => {

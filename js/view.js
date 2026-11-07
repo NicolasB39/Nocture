@@ -6,8 +6,9 @@ import { askOf, checkOf, rulesOf } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { refreshSpeech, ttsOk, visibleStart } from './read.js';
+import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
-import { decorFor, decorNow, decorsOf, lieuOf, scenesOf } from './scene.js';
+import { decorFor, decorNow, decorsOf, lieuOf, momentsOf, scenesOf } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
 import { $, accentVars, el, ic, LS, smooth } from './util.js';
 
@@ -177,11 +178,13 @@ const stCard = (i, m) => {
 // fin du message i, pour la légende des images.
 let LT = new Set(),
   LIEU = [],
+  MOM = [],
   SC = [];
 const sceneStarts = ms => {
   let shown = '';
   SC = scenesOf(ms);
   LIEU = ms.map(m => (shown = (m.role == 'assistant' && lieuOf(m.state)) || shown));
+  MOM = momentsOf(ms);
   return new Set(SC.map(s => s.at));
 };
 // Intertitres de lieu : avant la réponse qui change de lieu ; la première scène s'annonce en tête du récit.
@@ -241,19 +244,21 @@ const msgNode = (i, m, last, d = '') => {
   if (p) for (const s of b.querySelectorAll('.scn')) s.append(el('span', { class: 'scap', text: fr(p) }));
   const n = el(
     'div',
-    { class: 'm ' + m.role + (last ? ' last' : '') + (t ? ' lt' : ''), data: { i } },
+    // mo : moment de la journée, qui teinte les décors du message (style.css, [data-mo]).
+    { class: 'm ' + m.role + (last ? ' last' : '') + (t ? ' lt' : ''), data: { i, mo: MOM[i] || '' } },
     el('span', { class: 'sr', text: (m.role == 'user' ? 'Joueur' : 'Récit') + ' :' }),
     b,
     stCard(i, m),
     act(i, m, last)
   );
-  n._k = keyOf(m, last, d, t, p);
+  n._k = keyOf(m, last, d, t, p, MOM[i]);
   return n;
 };
 // Tout ce dont dépend le rendu d'un message : panneau d'état affiché ou non, index des images (ctx.iv,
 // changé par « Recharger l'index ») pour qu'une image ajoutée remplace son repère « image introuvable », et
 // nom du joueur (qui remplace {{user}}).
-const keyOf = (m, l, d, t, p) => ({
+const keyOf = (m, l, d, t, p, mo) => ({
+  mo,
   c: m.content,
   a: m.ai,
   l,
@@ -267,20 +272,8 @@ const keyOf = (m, l, d, t, p) => ({
   g: ctx.iv,
   u: playerName(app.cur)
 });
-const same = (a, b) =>
-  a &&
-  a.c === b.c &&
-  a.a === b.a &&
-  a.l === b.l &&
-  a.n === b.n &&
-  a.s === b.s &&
-  a.d === b.d &&
-  a.t === b.t &&
-  a.p === b.p &&
-  a.f === b.f &&
-  a.o === b.o &&
-  a.g === b.g &&
-  a.u === b.u;
+// Toutes les valeurs de keyOf, sans liste à tenir à jour : une clé ajoutée est comparée d'office.
+const same = (a, b) => a && Object.keys(b).every(k => a[k] === b[k]);
 const dayOf = t => new Date(t).toDateString();
 const cut6h = (t, p) => dayOf(t) !== dayOf(p) || t - p > 216e5;
 const dayLab = (t, p) => {
@@ -336,7 +329,7 @@ export function render(sc) {
   const fresh = [];
   for (const e of cur) {
     const i = +e.dataset.i,
-      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), ms[i].role == 'assistant' ? LIEU[i] || '' : '');
+      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), ms[i].role == 'assistant' ? LIEU[i] || '' : '', MOM[i]);
     if (!same(e._k, k)) {
       const x = msgNode(i, ms[i], k.l, D[i]);
       e.replaceWith(x);
@@ -454,6 +447,7 @@ export function render(sc) {
             { once: true }
           );
   }
+  recapCheck(app.cur);
   // Jet qui vient de partir (send.js, chat.js : { i, at }) : le dé est lancé une fois, jamais à la relecture. Le
   // message est souvent reconstruit pendant le lancer (il cesse d'être le dernier quand la réponse arrive) :
   // l'animation reprend alors là où elle en était.

@@ -2,6 +2,39 @@ import { app, ctx } from './state.js';
 import { el, hue, nz } from './util.js';
 
 export const lieuOf = st => (st || []).find(([k]) => /^(lieu|endroit|localisation|position)/.test(nz(k)))?.[1] || '';
+// Jour (ou Date) du récit : pas « Jours restants » ni « Journal ».
+export const jourOf = st => (st || []).find(([k]) => /^(jour|date)(\s|\(|$)/.test(nz(k).trim()))?.[1] || '';
+// « Jour 2 » pour une valeur qui n'est qu'un nombre, sinon la valeur telle quelle (« 3 mai »).
+export const jourLabel = v => (/^\d+$/.test((v = String(v || '').trim())) ? 'Jour ' + v : v);
+// Moment de la journée d'un état (champ Moment, Heure ou Période) : aube, soir ou nuit teintent les décors
+// (style.css, [data-mo]) ; le jour ou une valeur inconnue, aucune teinte. null : l'état ne dit rien du moment.
+export const momentOf = st => {
+  const v = (st || []).find(([k]) => /^(moment|heure|periode)/.test(nz(k)))?.[1];
+  if (v == null) return null;
+  const x = nz(v),
+    h = x.match(/(\d{1,2}) ?h/);
+  if (h) return +h[1] < 5 || +h[1] >= 21 ? 'nuit' : +h[1] < 8 ? 'aube' : +h[1] >= 18 ? 'soir' : '';
+  return /tombee de la nuit|crepuscule|coucher|soir/.test(x)
+    ? 'soir'
+    : /nuit/.test(x)
+      ? 'nuit'
+      : /aube|aurore|point du jour|lever/.test(x)
+        ? 'aube'
+        : '';
+};
+// Moment connu à la fin de chaque message : le dernier qu'un état a donné.
+export const momentsOf = ms => {
+  let mo = '';
+  return ms.map(m => (mo = momentOf(m.state) ?? mo));
+};
+// Moment présent : le dernier donné, en remontant depuis la fin.
+export const momentNow = ms => {
+  for (let i = ms.length - 1; i >= 0; i--) {
+    const mo = momentOf(ms[i].state);
+    if (mo != null) return mo;
+  }
+  return '';
+};
 // Scènes du récit, dans l'ordre : la première réponse en ouvre une, puis chaque réponse dont le lieu de l'état
 // change. at : cette réponse (lettrine) ; from / to : les messages de la scène, la première partant du début ;
 // lieu : le premier lieu connu de la scène (vide si l'état n'en donne pas).
@@ -168,6 +201,7 @@ export const zoomScene = n => {
   const b = scene(n.dataset.u, n.dataset.d, { x: +n.dataset.x, cls: 'big' }),
     dl = document.querySelector('#dpic');
   dl.querySelector('.scn')?.remove();
+  dl.dataset.mo = n.closest('[data-mo]')?.dataset.mo || '';
   document.querySelector('#dpici').hidden = true;
   dl.prepend(b);
   dl.showModal();

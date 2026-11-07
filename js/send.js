@@ -3,14 +3,15 @@ import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
 import { noRolls, withRoll } from './dice.js';
-import { fr, keepImgs, lieuTag, liveText, paintLive, setBody, split } from './format.js';
+import { fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, setBody, split } from './format.js';
+import { passage } from './passage.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { autoRead, stopSpeech } from './read.js';
-import { decorNow } from './scene.js';
+import { decorNow, jourOf, lieuOf, momentNow } from './scene.js';
 import { app, S } from './state.js';
 import { save } from './store.js';
-import { $, dlg, el, err, fit, LS } from './util.js';
+import { $, dlg, el, err, fit, LS, nz } from './util.js';
 import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
 
 // Envoi d'un tour : appel au modèle, affichage progressif, erreurs, maintien du cache, zone de saisie.
@@ -63,7 +64,13 @@ export async function ask(old, cont, hint) {
     raf = 0,
     pend = ['', false],
     dl = decorNow(s.messages),
-    lieu = '';
+    lieu = '',
+    // Écran de passage (passage.js) : pour un vrai changement depuis l'état d'avant (e0), pas de nouveau en
+    // régénérant une réponse qui l'avait déjà (o0), et une fois par réponse (passed).
+    e0 = lastEtat(s.messages),
+    o0 = old?.state,
+    moved = (f, v) => !!v && !!f(e0) && nz(v) != nz(f(e0)) && nz(v) != nz(f(o0)),
+    passed = false;
   const z = { fl: 0, fn: 0, ft: '' },
     // Attente : le personnage en scène « réfléchit », sur des lignes fantômes. Un seul nœud, réutilisé à
     // chaque image, pour ne pas recharger l'avatar.
@@ -82,13 +89,20 @@ export async function ask(old, cont, hint) {
     let e = document.querySelector('#live');
     if (!e) {
       const end = m.scrollHeight - m.scrollTop - m.clientHeight < 80;
-      e = el('div', { class: 'm assistant', id: 'live' }, el('div', { class: 'b' }));
+      e = el('div', { class: 'm assistant', id: 'live', data: { mo: momentNow(s.messages) } }, el('div', { class: 'b' }));
       $('#mfoot').before(e);
       if (end) m.scrollTop = m.scrollHeight;
     }
     // Lieu annoncé en tête : la scène s'installe avant le texte (intertitre, lettrine, décor).
     const lt = !cont && lieuTag(t);
-    if (lt && lt != lieu) dl = liveScene((lieu = lt));
+    if (lt && lt != lieu) {
+      dl = liveScene((lieu = lt));
+      // Le lieu seul : le jour du nouvel état n'est pas encore connu.
+      if (moved(lieuOf, lt)) {
+        passed = true;
+        passage({ lieu, d: dl, mo: e.dataset.mo });
+      }
+    }
     const v = liveText(t.trim()),
       sec = Math.round((Date.now() - t0) / 1000);
     if (!v)
@@ -177,6 +191,11 @@ export async function ask(old, cont, hint) {
     // Nouvel état : ses changements s'animent une fois à l'affichage (render, view.js). Après « Continuer »,
     // seulement si l'état a changé.
     if (p2.state && JSON.stringify(p2.state) !== st0) app.fresh = { id: s.id, i: s.messages.length - 1, at: Date.now() };
+    // Nouveau jour, ou lieu changé sans annonce en tête : l'écran de passage vient en fin de réponse (une fois :
+    // pas s'il est déjà venu avec l'annonce, ni après « Continuer »).
+    const j1 = jourOf(p2.state);
+    if (!cont && !passed && app.cur === s && (moved(jourOf, j1) || (!lieu && moved(lieuOf, lieuOf(p2.state)))))
+      passage({ lieu: lieuOf(p2.state) || lieuOf(e0), jour: j1, d: decorNow(s.messages), mo: momentNow(s.messages) });
     await save(s);
   } catch (e) {
     msg = e.message;

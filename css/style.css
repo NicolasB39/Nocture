@@ -698,6 +698,67 @@ header button:active {
   display: flex;
   flex-direction: column;
 }
+/* « Précédemment » (recap.js) : encart en tête de la conversation, à la reprise après une pause. */
+#prev {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  z-index: 4;
+  width: min(calc(100% - 24px), 640px);
+  transform: translateX(-50%);
+  padding: 12px 14px;
+  border: 1px solid var(--acb);
+  border-radius: 14px;
+  background: var(--s1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  animation: scnf 0.4s ease-out;
+}
+.pvh b {
+  display: block;
+  color: var(--ac);
+  font: 700 11px/1.4 var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.pvh small,
+.pve {
+  display: block;
+  color: var(--mu);
+  font-size: 12px;
+}
+.pvt {
+  margin: 8px 0 10px;
+  font: 15px/1.5 var(--ser);
+}
+.pvf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pvw {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+#prev .pav,
+#prev .scn.av {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+.pvs,
+.pvc {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+.pvs {
+  border: 1px solid var(--acb);
+  color: var(--ac);
+}
+.pvc {
+  color: var(--mu);
+}
 #msgs {
   flex: 1;
   min-width: 0;
@@ -809,7 +870,33 @@ hr {
   inset: 0;
   animation: scnf 0.3s ease-out;
 }
-.scn .dec img {
+/* Moment de la journée (scene.js, momentOf ; [data-mo] sur le message, la fenêtre ou l'écran de passage) : le
+   décor se teinte, rose à l'aube, orangé au crépuscule, bleu sombre la nuit ; les personnages s'assombrissent
+   la nuit. */
+[data-mo='aube'] .dec::after,
+[data-mo='soir'] .dec::after,
+[data-mo='nuit'] .dec::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  transition: background 0.6s;
+}
+[data-mo='aube'] .dec::after {
+  background: rgba(250, 170, 190, 0.5);
+}
+[data-mo='soir'] .dec::after {
+  background: rgba(240, 140, 60, 0.55);
+}
+[data-mo='nuit'] .dec::after {
+  background: rgba(30, 45, 110, 0.8);
+}
+[data-mo='nuit'] .scn .chr {
+  filter: brightness(0.72) saturate(0.8);
+}
+.scn .dec img,
+.pass .dec img {
   display: block;
   width: 100%;
   height: 100%;
@@ -1323,6 +1410,54 @@ hr {
   object-fit: cover;
   animation-duration: 0.3s;
 }
+/* Écran de passage (passage.js) : décor plein écran assombri, titre du lieu, jour au-dessus, trait doré. */
+.pass {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--bg);
+  cursor: pointer;
+}
+.pass .dec {
+  position: absolute;
+  inset: 0;
+}
+.pass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 8, 10, 0.45);
+}
+.pst {
+  position: relative;
+  z-index: 1;
+  padding: 0 24px;
+  color: var(--ac);
+  text-align: center;
+}
+.pst small {
+  display: block;
+  color: #e6dccb;
+  font: 600 13px/1.4 var(--sans);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.pst b {
+  display: block;
+  margin: 4px 0 10px;
+  font: 400 clamp(28px, 7vw, 44px) / 1.15 var(--ser);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.pst i {
+  display: block;
+  width: 72px;
+  height: 1px;
+  margin: 0 auto;
+  background: var(--ac);
+}
 /* Intertitre de scène : le lieu, centré, entre deux filets. */
 .scene {
   display: flex;
@@ -1344,6 +1479,10 @@ hr {
   min-width: 24px;
   height: 1px;
   background: var(--bd);
+}
+/* Mode lecture : pas d'encart « Précédemment » par-dessus le texte. */
+#chat.reading #prev {
+  display: none;
 }
 #chat.reading .scene {
   margin-block: 12px 4px;

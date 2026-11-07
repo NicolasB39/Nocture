@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { KNEES, SA, decorFor, decorNow, decorsOf, lieuOf, place } from '../js/scene.js';
+import { KNEES, SA, decorFor, decorNow, decorsOf, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
 import { ctx } from '../js/state.js';
 
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
@@ -83,4 +83,33 @@ test('la scène est un plan 16/9, le personnage y fait 90 % de la hauteur', () =
   assert.ok(Math.abs(SA - 16 / 9) < 1e-12);
   const p = place({ r: 0.5, b: [0, 1, 0, 1] });
   assert.ok(Math.abs(p.width - (0.9 * 0.5 * 100) / SA) < 1e-9, 'largeur du personnage : ' + p.width + ' %');
+});
+
+test('moment de la journée : mots et heures reconnus, rien sans champ, le dernier connu reste', () => {
+  const mo = v => momentOf([['Moment', v]]);
+  assert.equal(mo('Aube'), 'aube');
+  assert.equal(mo('Point du jour'), 'aube');
+  assert.equal(mo('Crépuscule'), 'soir');
+  assert.equal(mo('Tombée de la nuit'), 'soir');
+  assert.equal(mo('Nuit noire'), 'nuit');
+  assert.equal(mo('Minuit'), 'nuit');
+  assert.equal(mo('Midi'), '');
+  assert.equal(momentOf([['Heure', '21 h 30']]), 'nuit');
+  assert.equal(momentOf([['Heure', '6h']]), 'aube');
+  assert.equal(momentOf([['Heure', '14h']]), '');
+  assert.equal(momentOf([['Lieu', 'Le gué']]), null);
+  const ms = [
+    { role: 'assistant', content: '', state: [['Moment', 'Crépuscule']] },
+    { role: 'user', content: '' },
+    { role: 'assistant', content: '', state: [['Lieu', 'Camp']] },
+    { role: 'assistant', content: '', state: [['Moment', 'Matin']] }
+  ];
+  assert.deepEqual(momentsOf(ms), ['soir', 'soir', 'soir', '']);
+  assert.equal(jourOf([['Lieu', 'Gué'], ['Jour', '2']]), '2');
+  assert.equal(jourOf([['Jours restants', '5'], ['Journal', 'x']]), '');
+  assert.equal(jourOf([['Date', '3 mai']]), '3 mai');
+  assert.equal(jourLabel(' 2 '), 'Jour 2');
+  assert.equal(jourLabel('3 mai'), '3 mai');
+  assert.equal(momentNow(ms), '');
+  assert.equal(momentNow(ms.slice(0, 3)), 'soir');
 });

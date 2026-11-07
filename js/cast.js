@@ -1,6 +1,6 @@
 import { sameName } from './memory.js';
 import { inScene } from './prompt.js';
-import { decorNow, scene, zoomScene } from './scene.js';
+import { decorNow, momentNow, scene, zoomScene } from './scene.js';
 import { app, ctx, playerName } from './state.js';
 import { $, el, hue, ic, initial, plain } from './util.js';
 
@@ -110,6 +110,8 @@ export function view() {
 $('#pe').onclick = () => {
   if (!app.cur) return;
   view();
+  // Décors teintés par le moment présent (style.css, [data-mo]).
+  $('#dpe').dataset.mo = momentNow(app.cur.messages);
   $('#dpe').showModal();
 };
 $('#pec').onclick = () => $('#dpe').close();
