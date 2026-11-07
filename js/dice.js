@@ -69,6 +69,12 @@ export const roll = ({ k, d }, sheet = {}, n = d20()) => {
     r = n == 20 ? 'réussite critique' : n == 1 ? 'échec critique' : tot >= dc ? 'réussite' : 'échec';
   return '<jet>' + k + ', ' + d + ' (' + dc + ') : ' + n + ' ' + (b < 0 ? '−' : '+') + ' ' + Math.abs(b) + ' = ' + tot + ', ' + r + '</jet>';
 };
+// Chance de réussite d'un jet, en pourcentage, comme roll la tranche : le 20 réussit et le 1 échoue toujours.
+export const chance = ({ k, d }, sheet = {}) => {
+  let c = 1;
+  for (let n = 2; n < 20; n++) if (n + (sheet[k] || 0) >= DIFF[d]) c++;
+  return c * 5;
+};
 // Message du joueur de l'histoire s prêt à partir : la marque d'un choix remplacée par le résultat du jet.
 export const withRoll = (t, s) => {
   const c = checkOf(t, rulesOf(s));

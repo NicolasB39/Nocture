@@ -2,7 +2,7 @@ import { SUM_KEEP, SUM_PLAY, summing } from './ai.js';
 import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
-import { askOf, checkOf, rulesOf } from './dice.js';
+import { askOf, chance, checkOf, rulesOf, sheetOf } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { refreshSpeech, ttsOk, visibleStart } from './read.js';
@@ -231,10 +231,19 @@ const liveApply = fade => {
   headDecor(d || coverOf(app.cur));
   return d;
 };
-// Texte d'un choix : sa marque de jet « (Adresse, difficile) » devient une étiquette.
-const chText = (c, R) => {
+// Chance de réussite d'un jet avec la fiche de l'histoire ouverte (dice.js).
+const pct = k => chance(k, sheetOf(app.cur));
+// Pour un lecteur d'écran, le bouton d'un choix dit aussi la chance de réussite.
+const chAria = (c, R) => {
   const k = checkOf(c, R);
-  return k ? [line(k.text), el('span', { class: 'jt' }, ic('dice', 13), k.k + ' · ' + k.d)] : line(c);
+  return k ? ', ' + pct(k) + ' % de réussite' : '';
+};
+// Texte d'un choix : sa marque de jet « (Adresse, difficile) » devient une étiquette, avec la chance de réussite
+// (en rouge sous 35 %).
+const chText = (c, R) => {
+  const k = checkOf(c, R),
+    p = k && pct(k);
+  return k ? [line(k.text), el('span', { class: 'jt' + (p < 35 ? ' ko' : '') }, ic('dice', 13), k.k + ' · ' + k.d + ' · ' + p + ' %')] : line(c);
 };
 const msgNode = (i, m, last, d = '') => {
   const t = LT.has(i),
@@ -386,7 +395,7 @@ export function render(sc) {
           { class: 'chr' },
           el(
             'button',
-            { class: 'cht', data: { t: c }, 'aria-label': 'Envoyer : ' + c.replace(/\*/g, '') },
+            { class: 'cht', data: { t: c }, 'aria-label': 'Envoyer : ' + c.replace(/\*/g, '') + chAria(c, R) },
             el('span', { class: 'chn', 'aria-hidden': 'true', text: k + 1 }),
             el('span', { class: 'chx' }, chText(c, R))
           ),
@@ -408,7 +417,7 @@ export function render(sc) {
           'button',
           { class: 'rla', data: { k: rq.k, d: rq.d } },
           ic('dice', 18),
-          el('span', null, 'Lancer le dé', el('small', { text: ' ' + rq.k + ' · ' + rq.d }))
+          el('span', null, 'Lancer le dé', el('small', { text: ' ' + rq.k + ' · ' + rq.d + ' · ' + pct(rq) + ' %' }))
         ),
       it &&
         el(

@@ -115,6 +115,8 @@ Seule l'application lance les dés : un résultat que le narrateur écrirait lui
 
 Difficultés : facile (6), moyen (10), difficile (13), très difficile (16), soit 75, 55, 40 et 25 % de réussite sans bonus, 85, 65, 50 et 35 % avec +2. Les seuils sont choisis pour que l'échec reste l'exception sur une action ordinaire. Quand le joueur écrit lui-même une action risquée, l'IA amène le jet en deux ou trois phrases seulement. La fiche du personnage (menu « … » de la conversation, ou bouton de l'introduction avant le premier tour) répartit trois points : chaque caractéristique va de −1 à +2, et en baisser une rend un point. Une nouvelle partie repart avec une fiche vide. Elle n'est pas envoyée à l'IA : seuls les résultats le sont, une vingtaine de tokens par jet, dans la même requête que le tour. Les consignes des jets partent dans la partie fixe du prompt, en cache.
 
+L'étiquette d'un choix et le bouton « Lancer le dé » affichent la chance de réussite avec la fiche du personnage (« Adresse · difficile · 50 % »), en rouge sous 35 % ; elle suit la fiche dès qu'on la referme.
+
 Le mode est réservé aux scénarios GitHub. Pas besoin de décrire les jets dans `systeme.md` : l'application s'en charge, comme pour les choix et l'état.
 
 ## Protocole et préambule

@@ -1,7 +1,7 @@
 import './stub.js';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { askOf, checkOf, noRolls, roll, rollParts, sheetOf, spent, withRoll } from '../js/dice.js';
+import { askOf, chance, checkOf, noRolls, roll, rollParts, sheetOf, spent, withRoll } from '../js/dice.js';
 import { protocol } from '../js/protocol.js';
 import { buildInfo } from '../js/prompt.js';
 import { clean } from '../js/store.js';
@@ -37,6 +37,16 @@ test('jet : un d20 plus le bonus de la fiche, 20 et 1 naturels toujours critique
     const n = rollParts(roll({ k: 'Esprit', d: 'moyen' }).slice(5, -6)).n;
     assert.ok(n >= 1 && n <= 20, String(n));
   }
+});
+
+test('chance de réussite : comme le d20 de l’application, 20 toujours réussi, 1 toujours raté', () => {
+  assert.deepEqual(['facile', 'moyen', 'difficile', 'très difficile'].map(d => chance({ k: 'Adresse', d })), [75, 55, 40, 25]);
+  assert.equal(chance({ k: 'Adresse', d: 'difficile' }, { Adresse: 2 }), 50);
+  assert.equal(chance({ k: 'Adresse', d: 'facile' }, { Adresse: 9 }), 95);
+  assert.equal(chance({ k: 'Adresse', d: 'très difficile' }, { Adresse: -9 }), 5);
+  // Même calcul que roll, sur les vingt faces.
+  for (const b of [-1, 0, 2])
+    assert.equal(chance({ k: 'Esprit', d: 'moyen' }, { Esprit: b }), [...Array(20)].filter((_, n) => !roll({ k: 'Esprit', d: 'moyen' }, { Esprit: b }, n + 1).includes('échec')).length * 5);
 });
 
 test('message envoyé : la marque devient le résultat, un message sans marque ne change pas', () => {

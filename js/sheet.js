@@ -4,6 +4,7 @@ import { BONUS, rollParts, rulesOf, sheetOf, signed, spent } from './dice.js';
 import { app } from './state.js';
 import { save } from './store.js';
 import { $, el, JET } from './util.js';
+import { render } from './view.js';
 
 const fill = () => {
   const R = rulesOf(app.cur),
@@ -59,6 +60,8 @@ $('#shl').onclick = async e => {
   (same && !same.disabled ? same : row.find(x => !x.disabled))?.focus();
 };
 $('#dshc').onclick = () => $('#dsh').close();
+// Fiche refermée : les chances affichées sur les choix suivent les nouveaux bonus.
+$('#dsh').addEventListener('close', () => app.cur && render());
 $('#msh').onclick = () => {
   $('#dmn').close();
   openSheet();
