@@ -88,6 +88,13 @@ export const dropDup = (t, choices) => {
   if (i > 0 && /:\s*[*_]*$/.test(ls[i - 1]) && ls[i - 1].trim().length < 60) i--;
   return ls.slice(0, i).join('\n').trim();
 };
+// Marque du journal des appels : ce que la réponse du narrateur a fait de ses choix (bloc <choix> seul, recopiés
+// aussi dans le récit, écrits sans balise puis rattrapés, ou absents).
+export const choiceMark = raw => {
+  const c = choicesOf(raw),
+    b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim();
+  return c.length ? (dropDup(b, c) != b ? 'recopiés' : 'présents') : looseChoices(b) ? 'rattrapés' : 'absents';
+};
 export const split = raw => {
   const o = { content: raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim() },
     c = choicesOf(raw),

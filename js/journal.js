@@ -62,7 +62,8 @@ const head = c => {
     (c.e
       ? '≈ ' + f(p) + ' envoyés · ' + f(cr) + ' lus en cache · ' + f(w5 + w1) + ' écrits · ' + f(o) + ' en sortie' + (k != null ? ' · ' + money(k, S.fx) : '')
       : '') +
-    (c.err ? (c.e ? ' · ' : '') + 'échec : ' + c.err : c.stop && c.stop != 'end_turn' ? ' · fin : ' + c.stop : '')
+    (c.err ? (c.e ? ' · ' : '') + 'échec : ' + c.err : c.stop && c.stop != 'end_turn' ? ' · fin : ' + c.stop : '') +
+    (c.ch ? ' · choix ' + c.ch : '')
   );
 };
 const line = (a, b) => el('p', { class: 'scx', text: a + ' : ' + b });

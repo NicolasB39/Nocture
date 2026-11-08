@@ -125,6 +125,15 @@ test('choix sans balise <choix> : rattrapés en fin de récit, jamais une liste 
   assert.equal(c.messages[0].content, '*Cendrine referme la main sur la manche.*');
 });
 
+test('marque du journal : choix présents, recopiés, rattrapés ou absents', async () => {
+  const { choiceMark } = await import('../js/format.js');
+  const B = '\n\n<choix>\n1. *Je pars.*\n2. *Je reste.*\n</choix>';
+  assert.equal(choiceMark('Récit.' + B), 'présents');
+  assert.equal(choiceMark('Récit.\n\n1. *Je pars.*\n2. *Je reste.*' + B), 'recopiés');
+  assert.equal(choiceMark('Récit.\n\n1. *Je pars.*\n2. *Je reste.*'), 'rattrapés');
+  assert.equal(choiceMark('Récit.\n\n<etat>\nLieu: ici\n</etat>'), 'absents');
+});
+
 test('choix recopiés dans le récit en plus du bloc <choix> : la liste du récit est retirée', async () => {
   const { split, dropDup } = await import('../js/format.js');
   const { clean } = await import('../js/store.js');

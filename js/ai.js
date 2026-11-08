@@ -1,6 +1,7 @@
 import { HAIKU_LONG, LONG } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
+import { choiceMark } from './format.js';
 import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
@@ -224,6 +225,8 @@ export async function chat(
     // sortie est estimée sur le texte reçu, et le compte marqué comme estimé.
     if (part && u && out && u.out < estTok(out)) u = { ...u, out: estTok(out), est: true };
     const x = { sid, key, ...track(u, key, primary), stop: stop || (part ? 'coupée' : ''), ms: Date.now() - t0 };
+    // Tour du narrateur d'une histoire à choix : ce qu'il a fait de ses choix, pour les compter dans le journal.
+    if (kind == 'tour' && out && !(app.cur?.id == sid && app.cur.noChoices)) x.ch = choiceMark(out);
     if (stop == 'refusal') {
       journal(kind, body, x);
       throw logged(refusal(sd));
