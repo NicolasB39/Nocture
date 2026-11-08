@@ -123,6 +123,8 @@ export const vt = fn => {
   }
   try {
     const t = document.startViewTransition(fn);
+    // Transition sautée (deux changements d'écran rapprochés) : ready est rejetée, sans conséquence.
+    t.ready.catch(() => {});
     t.finished.catch(() => {});
     return t.updateCallbackDone;
   } catch (e) {

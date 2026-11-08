@@ -613,7 +613,20 @@ const navView = () => {
   $('#nav').hidden = !f;
   if (!f || !unseen(tail())) $('#newm').hidden = true;
 };
-$('#msgs').onscroll = navView;
+// Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
+// bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Seulement quand le fil rétrécit
+// depuis une hauteur réelle : à l'ouverture d'une histoire (fil caché puis montré), la position de lecture reste.
+let atEnd = true,
+  h0 = 0;
+$('#msgs').onscroll = () => {
+  atEnd = !far();
+  navView();
+};
+new ResizeObserver(([e]) => {
+  const h = e.contentRect.height;
+  if (h0 && h < h0 && atEnd && far()) $('#msgs').scrollTop = $('#msgs').scrollHeight;
+  h0 = h;
+}).observe($('#msgs'));
 $('#newm').onclick = () => {
   const m = $('#msgs');
   $('#newm').hidden = true;

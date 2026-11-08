@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="1bd3a548a0">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="app-version" content="3c3a9327af">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -180,7 +180,7 @@
 <details>
 <summary>Génération</summary>
 <label for="smo">Modèle pour cette histoire</label>
-<input id="smo" list="cml" autocomplete="off" autocapitalize="off">
+<input id="smo" list="cml" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <p class="note">Vide : le modèle des Réglages.</p>
 <label for="sef">Effort</label>
 <select id="sef"><option value="">Faible (recommandé)</option><option value="medium">Moyen</option><option value="high">Élevé</option></select>
@@ -207,7 +207,7 @@
 <textarea id="msu"></textarea>
 <label>Souvenirs</label>
 <div id="mml" class="chips"></div>
-<div class="row l"><input id="mmi" placeholder="Ajouter un souvenir"><button id="mma">Ajouter</button></div>
+<div class="row l"><input id="mmi" placeholder="Ajouter un souvenir" enterkeyhint="done"><button id="mma">Ajouter</button></div>
 <div class="row"><button id="dmc">Annuler</button><button id="dms" class="primary">Enregistrer</button></div>
 </dialog>
 
@@ -275,19 +275,19 @@
 <dialog id="dq" aria-labelledby="dqt">
 <h2 id="dqt"></h2>
 <p id="dqm" style="margin:0 0 8px;color:var(--mu)"></p>
-<input id="dqi">
+<input id="dqi" enterkeyhint="done">
 <div class="row"><button id="dqc">Annuler</button><button id="dqo" class="primary">OK</button></div>
 </dialog>
 
 <dialog id="dc" aria-labelledby="hdc">
 <h2 id="hdc" tabindex="-1" autofocus>Réglages</h2>
 <label for="ck">Clé API Claude</label>
-<input id="ck" type="password" autocomplete="off">
+<input id="ck" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <label for="cm">Modèle</label>
-<input id="cm" list="cml" autocomplete="off" autocapitalize="off">
+<input id="cm" list="cml" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <datalist id="cml"></datalist>
 <label for="cmm">Modèle pour la mémoire</label>
-<input id="cmm" list="cml" autocomplete="off" autocapitalize="off">
+<input id="cmm" list="cml" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <p class="note">Vide : Haiku 5.5. Les résumés de mémoire ne demandent pas votre meilleur modèle, un plus petit coûte moins cher.</p>
 <label><input id="cch" type="checkbox">Garder le cache une heure au lieu de 5 minutes</label>
 <p class="note">Utile si vous faites souvent des pauses de plus de 20 minutes entre deux tours. L’écriture en cache coûte alors 2 fois le prix normal au lieu de 1,25 fois ; la relecture reste au tarif réduit.</p>
@@ -332,7 +332,7 @@
 <details>
 <summary>GitHub et sauvegarde</summary>
 <label for="crp">Dépôt GitHub des scénarios</label>
-<input id="crp" placeholder="proprietaire/depot" autocomplete="off" autocapitalize="off">
+<input id="crp" placeholder="proprietaire/depot" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <p class="note">Vide : déduit de l'adresse du site.</p>
 <label>Sauvegarde en ligne</label>
 <div class="row l"><button id="bko">Configurer…</button></div>
@@ -357,11 +357,11 @@
 <label><input id="bp" type="checkbox">Sauvegarder sur GitHub (dépôt privé)</label>
 <div id="bgh" hidden>
 <label for="bgr">Dépôt privé (proprietaire/depot)</label>
-<input id="bgr" placeholder="proprietaire/sauvegardes" autocomplete="off" autocapitalize="off">
+<input id="bgr" placeholder="proprietaire/sauvegardes" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <label for="bgt">Jeton d'accès</label>
-<input id="bgt" type="password" autocomplete="off">
+<input id="bgt" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <label for="bgf">Fichier (défaut : histoires-backup.json)</label>
-<input id="bgf" autocomplete="off" autocapitalize="off">
+<input id="bgf" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
 <p class="note">Créez un dépôt privé, puis un jeton limité à ce dépôt avec la permission Contents en lecture et écriture.</p>
 </div>
 <p id="bks" class="note"></p>
