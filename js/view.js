@@ -608,11 +608,21 @@ export function newShow(t) {
   if (b.hidden || b.firstChild?.textContent != t) b.replaceChildren(el('span', { text: t }), ic('down', 16));
   b.hidden = false;
 }
+// Flèches de tour : là pendant le défilement et un moment après, puis effacées pour ne pas couvrir le texte qu'on
+// lit. Toucher le fil les rappelle.
+let navT;
+const navWake = () => {
+  $('#nav').classList.remove('idle');
+  clearTimeout(navT);
+  navT = setTimeout(() => $('#nav').classList.add('idle'), 2500);
+};
 const navView = () => {
   const f = far();
   $('#nav').hidden = !f;
+  if (f) navWake();
   if (!f || !unseen(tail())) $('#newm').hidden = true;
 };
+$('#msgs').addEventListener('pointerdown', () => far() && navWake(), { passive: true });
 // Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
 // bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Seulement quand le fil rétrécit
 // depuis une hauteur réelle : à l'ouverture d'une histoire (fil caché puis montré), la position de lecture reste.

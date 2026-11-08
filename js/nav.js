@@ -115,6 +115,40 @@ document.addEventListener(
     }),
   true
 );
+// Feuilles : tirer leur haut (poignée, titre) vers le bas les ferme ; un geste vif suffit, sans aller jusqu'en bas.
+// Au doigt seulement : à la souris, les feuilles n'ont pas de poignée. Vers le haut, la feuille résiste.
+document.addEventListener(
+  'touchstart',
+  e => {
+    const d = e.target.closest?.('dialog[open]');
+    if (!d || d.id == 'dpic' || e.touches.length > 1 || d.scrollTop > 0) return;
+    if (e.touches[0].clientY - d.getBoundingClientRect().top > 64) return;
+    if (e.target.closest('button, input, select, textarea, a, summary, label')) return;
+    const y0 = e.touches[0].clientY,
+      t0 = e.timeStamp;
+    let dy = 0;
+    const move = ev => {
+      if (ev.touches.length > 1) return;
+      ev.preventDefault();
+      dy = ev.touches[0].clientY - y0;
+      d.style.transition = 'none';
+      d.style.transform = 'translateY(' + (dy > 0 ? dy : -Math.sqrt(-dy)) + 'px)';
+    };
+    const end = ev => {
+      removeEventListener('touchmove', move);
+      removeEventListener('touchend', end);
+      removeEventListener('touchcancel', end);
+      // La transition reprend de là où le doigt a lâché : vers le bas pour fermer, sinon retour en place.
+      d.style.transition = d.style.transform = '';
+      if (ev.type == 'touchend' && (dy > Math.min(140, d.offsetHeight / 3) || (dy > 24 && dy / (ev.timeStamp - t0) > 0.3)))
+        d.close();
+    };
+    addEventListener('touchmove', move, { passive: false });
+    addEventListener('touchend', end);
+    addEventListener('touchcancel', end);
+  },
+  { passive: true }
+);
 addEventListener('popstate', () => {
   if (skip) {
     skip = false;

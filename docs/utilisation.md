@@ -63,6 +63,9 @@ Sous le dernier message restent les actions qu'on utilise en lisant : régénér
 - Histoire vide : sous la couverture, le titre, l'accroche et jusqu'à trois débuts proposés (toucher pour envoyer, crayon pour modifier). Source : `intro.md` pour un scénario GitHub, le champ « Introduction » de la feuille Réglages de l'histoire sinon. Les lignes qui commencent par `- ` ou `1. ` sont les débuts, le reste l'accroche.
 - Pendant l'attente de la réponse, le premier personnage en scène « réfléchit » (avec son avatar), sur trois lignes fantômes ; sans personnage, « Réflexion… ». Le compteur de secondes apparaît après 2 secondes.
 - Ouvrir une histoire depuis la liste fait glisser sa couverture jusqu'à l'en-tête (transition de vue, environ 0,4 s ; aucune animation si l'appareil demande moins d'animations ou ne gère pas les transitions de vue).
+- Les feuilles (menus, réglages) montent du bas de l’écran et y redescendent, plus vite à la fermeture ; sur grand écran, la fenêtre centrée apparaît sur place. Au doigt, tirer le haut d’une feuille (poignée ou titre) vers le bas la ferme : un geste vif suffit, sinon un tiers de sa hauteur. Les notifications montent légèrement en fondu.
+- Les flèches tour précédent / suivant s’effacent 2,5 s après le dernier défilement, pour ne pas couvrir le texte ; défiler ou toucher le fil les rappelle.
+- Quand l’appareil demande moins d’animations, rien ne glisse : feuilles, notifications et flèches gardent seulement un fondu.
 - Les compteurs (option « Afficher les compteurs ») tiennent dans une pastille : tokens du dernier envoi et coût estimé du tour, quand le modèle a un tarif. La toucher affiche le détail (tokens envoyés, cache, messages envoyés).
 - Les suggestions sont des lignes numérotées : toucher le texte l'envoie, le crayon à droite le place dans la zone de saisie.
 

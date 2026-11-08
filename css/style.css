@@ -38,6 +38,8 @@
   --ser: Literata, 'Iowan Old Style', 'Noto Serif', Palatino, Georgia, serif;
   --rf: var(--ser);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  /* Courbe des feuilles, comme sur iOS : départ franc, arrivée très douce. */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ast: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%23000' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg transform='translate(12 10.2) scale(0.7) translate(-12 -12)'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' stroke-width='3.2'/%3E%3C/g%3E%3Cpath d='M5 19.6h14' stroke-width='2.4'/%3E%3C/g%3E%3C/svg%3E");
 }
 html {
@@ -49,7 +51,7 @@ html {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
-[hidden] {
+[hidden]:not(#toast) {
   display: none !important;
 }
 body {
@@ -1131,6 +1133,13 @@ hr {
   flex-direction: column;
   gap: 8px;
   opacity: 0.86;
+  transition: opacity 0.2s var(--ease-out);
+}
+/* Effacées pendant la lecture (view.js, navWake) ; au clavier (focus visible), elles restent. */
+#nav.idle:not(:has(:focus-visible)) {
+  opacity: 0;
+  pointer-events: none;
+  transition-duration: 0.4s;
 }
 #nav button {
   width: 42px;
@@ -1560,18 +1569,60 @@ dialog {
     border-radius: 26px;
   }
 }
-dialog[open] {
-  animation: up 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* Les feuilles montent du bas de l'écran et y redescendent, plus vite à la fermeture ; le fond se fond avec elles.
+   display et overlay restent le temps de la sortie (navigateurs récents ; ailleurs, la feuille se ferme d'un coup). */
+dialog {
+  transform: translateY(100%);
+  transition:
+    transform 0.2s var(--ease-out),
+    opacity 0.2s var(--ease-out),
+    display 0.2s allow-discrete,
+    overlay 0.2s allow-discrete;
 }
-@keyframes up {
-  from {
-    transform: translateY(32px);
+dialog[open] {
+  transform: none;
+  transition-duration: 0.32s;
+  transition-timing-function: var(--ease-drawer);
+}
+@starting-style {
+  dialog[open] {
+    transform: translateY(100%);
+  }
+}
+/* Fenêtre centrée sur grand écran : elle apparaît sur place, sans glisser. */
+@media (min-width: 640px) {
+  dialog {
+    transform: scale(0.96);
     opacity: 0;
+  }
+  dialog[open] {
+    transform: none;
+    opacity: 1;
+  }
+  @starting-style {
+    dialog[open] {
+      transform: scale(0.96);
+      opacity: 0;
+    }
   }
 }
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.62);
   backdrop-filter: blur(3px);
+  opacity: 0;
+  transition:
+    opacity 0.2s,
+    display 0.2s allow-discrete,
+    overlay 0.2s allow-discrete;
+}
+dialog[open]::backdrop {
+  opacity: 1;
+  transition-duration: 0.32s;
+}
+@starting-style {
+  dialog[open]::backdrop {
+    opacity: 0;
+  }
 }
 dialog::before {
   content: '';
@@ -1796,6 +1847,35 @@ dialog label:has(> input[type='checkbox']) {
   font-size: 14px;
 }
 @media (prefers-reduced-motion: reduce) {
+  /* Mouvements réduits, pas supprimés : feuilles, fond, notifications et flèches de tour gardent leur fondu, sans
+     glisser. */
+  dialog,
+  dialog[open] {
+    transform: none !important;
+  }
+  dialog {
+    opacity: 0;
+  }
+  dialog[open] {
+    opacity: 1;
+  }
+  @starting-style {
+    dialog[open] {
+      opacity: 0;
+    }
+  }
+  #toast,
+  #toast:popover-open {
+    transform: translateX(-50%) !important;
+  }
+  dialog,
+  #toast,
+  #nav {
+    transition:
+      opacity 0.2s,
+      display 0.2s allow-discrete,
+      overlay 0.2s allow-discrete !important;
+  }
   *,
   *::before,
   *::after {
@@ -1845,10 +1925,44 @@ dialog label:has(> input[type='checkbox']) {
   color: inherit;
   overflow: visible;
   left: 50%;
-  transform: translateX(-50%);
   bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
   z-index: 50;
   display: flex;
+  /* Elle monte légèrement en fondu, et s'efface plus vite. Fermée, le navigateur la masque (popover) une fois sa
+     sortie jouée. */
+  opacity: 0;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 0.15s var(--ease-out),
+    transform 0.15s var(--ease-out),
+    display 0.15s allow-discrete,
+    overlay 0.15s allow-discrete;
+}
+#toast:not(:popover-open) {
+  display: none;
+}
+#toast:popover-open {
+  opacity: 1;
+  transform: translateX(-50%);
+  transition-duration: 0.2s;
+}
+@starting-style {
+  #toast:popover-open {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+}
+/* Sans popover (vieux navigateur) : masquée par son attribut, comme le reste. */
+@supports not selector(:popover-open) {
+  #toast[hidden] {
+    display: none;
+  }
+  #toast {
+    opacity: 1;
+    transform: translateX(-50%);
+  }
+}
+#toast {
   align-items: center;
   width: max-content;
   max-width: calc(100vw - 32px);
@@ -2156,6 +2270,21 @@ dialog input[type='range'] {
 #dpic[open] {
   display: grid;
   place-items: center;
+}
+#dpic,
+#dpic[open] {
+  transform: none;
+}
+#dpic {
+  opacity: 0;
+}
+#dpic[open] {
+  opacity: 1;
+}
+@starting-style {
+  #dpic[open] {
+    opacity: 0;
+  }
 }
 #dpic {
   width: 100%;
