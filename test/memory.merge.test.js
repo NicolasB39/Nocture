@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeMem, mergeRel, near, sameName } from '../js/memory.js';
+import { memsOf, mergeMem, mergeRel, near, sameName, situationOf } from '../js/memory.js';
 
 test('sameName rapproche les variantes d’un même nom', () => {
   assert.ok(sameName('Alice', 'alice'));
@@ -74,4 +74,21 @@ test('les accents fusionnent et l’orthographe accentuée l’emporte', () => {
 test('les accents ne créent pas de doublon de souvenir, la formulation récente gagne', () => {
   assert.deepEqual(mergeMem(['la fiole est verte'], ['La fiôle est vérte']), ['La fiôle est vérte']);
   assert.deepEqual(mergeMem(['La fiôle est vérte'], ['la fiole est verte']), ['la fiole est verte']);
+});
+
+test('souvenirs d’un personnage : son nom en mot entier, sans accents ni casse', () => {
+  const M = ['Sera doit son pain du matin à Buena.', 'Inès a menti au proviseur.', 'Seriel garde la clé du Hall B.', 'Buena promet de revoir SERA.'];
+  assert.deepEqual(memsOf(M, 'Sera'), [M[0], M[3]]);
+  assert.deepEqual(memsOf(M, 'Ines'), [M[1]]);
+  assert.deepEqual(memsOf(M, 'Brindille'), []);
+  assert.deepEqual(memsOf(undefined, 'Sera'), []);
+});
+
+test('chapitre clos : le résumé principal repart de la Situation actuelle', () => {
+  const r = 'Événements : J+0, Buena paie Orbec.' + '\n\n' + 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.';
+  assert.equal(situationOf(r), 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.');
+  assert.equal(situationOf('Événements : x.' + '\n' + '**Situation actuelle** : y.'), '**Situation actuelle** : y.');
+  // Déjà réduit, ou sans repère : inchangé.
+  assert.equal(situationOf('Situation actuelle : y.'), 'Situation actuelle : y.');
+  assert.equal(situationOf('Buena attend devant le Hall B.'), 'Buena attend devant le Hall B.');
 });

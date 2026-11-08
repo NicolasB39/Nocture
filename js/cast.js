@@ -1,4 +1,4 @@
-import { sameName } from './memory.js';
+import { memsOf, sameName } from './memory.js';
 import { inScene } from './prompt.js';
 import { KNEES, decorNow, momentNow, scene, zoomScene } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
@@ -25,6 +25,7 @@ export const face = c => {
 const row = (c, i, on, open) => {
   const id = 'pcp' + i,
     rel = relOf(c.name),
+    mems = memsOf(app.cur?.mem?.memories, c.name).slice(-5),
     imgs = (c.images || []).filter(urlOf);
   const pan = el(
     'div',
@@ -53,7 +54,11 @@ const row = (c, i, on, open) => {
       { class: 'pcr' },
       el('span', { class: 'stl', text: 'Relation avec vous' }),
       el('p', { class: rel ? '' : 'none', text: rel || 'Aucune relation mémorisée pour l’instant.' })
-    )
+    ),
+    // Ce que la mémoire a retenu à son sujet : les cinq derniers souvenirs qui le citent.
+    mems.length
+      ? el('div', { class: 'pcr pcs' }, el('span', { class: 'stl', text: 'Souvenirs' }), el('ul', null, mems.map(t => el('li', { text: t }))))
+      : null
   );
   const btn = el(
     'button',

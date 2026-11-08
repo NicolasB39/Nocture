@@ -19,6 +19,17 @@ const key = s =>
     .trim();
 const parts = s => key(s).split(' ').filter(Boolean);
 const words = s => new Set(parts(s).filter(w => w.length > 3));
+// Souvenirs qui citent un personnage (fenêtre Personnages) : un mot de son nom, entier, accents et casse ignorés.
+export const memsOf = (mems, name) => {
+  const N = parts(name).filter(w => w.length > 2);
+  return N.length ? (mems || []).filter(m => parts(m).some(w => N.includes(w))) : [];
+};
+// Chapitre clos : le résumé principal repart de sa Situation actuelle (fils en suspens compris). Le modèle garde
+// parfois aussi ses Événements, déjà racontés par le résumé du chapitre, et le prompt les enverrait deux fois.
+export const situationOf = t => {
+  const m = t.match(/(^|\n)[\s*#_]*Situation actuelle\b/i);
+  return m ? t.slice(m.index).trim() : t;
+};
 
 export const sameName = (a, b) => {
   const A = parts(a),

@@ -2832,6 +2832,18 @@ dialog input[type='range'] {
 .pcr p.none {
   color: var(--mu);
 }
+.pcs {
+  margin-top: 14px;
+}
+.pcs ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--mu2);
+  font: 14px/1.5 var(--ser);
+}
+.pcs li + li {
+  margin-top: 4px;
+}
 .pcx {
   margin-top: 18px;
 }
