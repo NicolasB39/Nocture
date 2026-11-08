@@ -148,7 +148,7 @@ js/
   scene.js          scènes : choix du décor, moment de la journée, détection de la transparence, placement du personnage
   passage.js        écran de passage au changement de lieu ou de jour
   recap.js          encart « Précédemment » à la reprise d'une histoire
-  read.js           réglages de lecture (taille, police, interlignage) et position de lecture
+  read.js           réglages de lecture (taille, police, interlignage, cadrage)
   cast.js           fenêtre Personnages
   view.js           conversation, affichage : messages, état, scènes, compteurs, en-tête, navigation
   send.js           conversation, envoi : appel au modèle, affichage progressif, maintien du cache, saisie

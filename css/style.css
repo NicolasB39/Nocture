@@ -1563,16 +1563,15 @@ dialog {
   background: var(--s1);
   color: var(--fg);
 }
-@media (min-width: 640px) {
-  dialog {
-    margin: auto;
-    border-radius: 26px;
-  }
-}
-/* Les feuilles montent du bas de l'écran et y redescendent, plus vite à la fermeture ; le fond se fond avec elles.
-   display et overlay restent le temps de la sortie (navigateurs récents ; ailleurs, la feuille se ferme d'un coup). */
+/* Les feuilles montent du bas de l'écran (--from) et y redescendent, plus vite à la fermeture ; le fond se fond
+   avec elles. Grand écran, image en plein écran et mouvements réduits ne changent que --from et l'opacité de départ
+   (--o0). display et overlay restent le temps de la sortie (navigateurs récents ; ailleurs, la feuille se ferme d'un
+   coup). */
 dialog {
-  transform: translateY(100%);
+  --from: translateY(100%);
+  --o0: 1;
+  transform: var(--from);
+  opacity: var(--o0);
   transition:
     transform 0.2s var(--ease-out),
     opacity 0.2s var(--ease-out),
@@ -1581,34 +1580,29 @@ dialog {
 }
 dialog[open] {
   transform: none;
+  opacity: 1;
   transition-duration: 0.32s;
   transition-timing-function: var(--ease-drawer);
 }
 @starting-style {
   dialog[open] {
-    transform: translateY(100%);
+    transform: var(--from);
+    opacity: var(--o0);
   }
 }
 /* Fenêtre centrée sur grand écran : elle apparaît sur place, sans glisser. */
 @media (min-width: 640px) {
   dialog {
-    transform: scale(0.96);
-    opacity: 0;
-  }
-  dialog[open] {
-    transform: none;
-    opacity: 1;
-  }
-  @starting-style {
-    dialog[open] {
-      transform: scale(0.96);
-      opacity: 0;
-    }
+    --from: scale(0.96);
+    --o0: 0;
+    margin: auto;
+    border-radius: 26px;
   }
 }
+/* Fond sans flou : sous un voile aussi sombre il se voyait à peine, et le recalculer à chaque image du fondu
+   saccadait sur les téléphones modestes. */
 dialog::backdrop {
-  background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.7);
   opacity: 0;
   transition:
     opacity 0.2s,
@@ -1849,20 +1843,9 @@ dialog label:has(> input[type='checkbox']) {
 @media (prefers-reduced-motion: reduce) {
   /* Mouvements réduits, pas supprimés : feuilles, fond, notifications et flèches de tour gardent leur fondu, sans
      glisser. */
-  dialog,
-  dialog[open] {
-    transform: none !important;
-  }
   dialog {
-    opacity: 0;
-  }
-  dialog[open] {
-    opacity: 1;
-  }
-  @starting-style {
-    dialog[open] {
-      opacity: 0;
-    }
+    --from: none;
+    --o0: 0;
   }
   #toast,
   #toast:popover-open {
@@ -2271,22 +2254,10 @@ dialog input[type='range'] {
   display: grid;
   place-items: center;
 }
-#dpic,
-#dpic[open] {
-  transform: none;
-}
+/* Image en plein écran : un simple fondu. */
 #dpic {
-  opacity: 0;
-}
-#dpic[open] {
-  opacity: 1;
-}
-@starting-style {
-  #dpic[open] {
-    opacity: 0;
-  }
-}
-#dpic {
+  --from: none;
+  --o0: 0;
   width: 100%;
   max-width: none;
   max-height: 100dvh;

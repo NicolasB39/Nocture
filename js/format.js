@@ -1,6 +1,6 @@
 import { IMG, S, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
-import { KNEES, decorFor, lieuOf, scene } from './scene.js';
+import { decorFor, frame, lieuOf, scene } from './scene.js';
 import { el, ic, ikey, JET, nz } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
@@ -115,7 +115,7 @@ const imgFor = c => {
 const imgNode = (c, d) => {
   const u = imgFor(c);
   return u
-    ? scene(u, d ?? decorFor(''), S.fullBody ? { cls: 'pic' } : { cls: 'pic kn', ...KNEES })
+    ? scene(u, d ?? decorFor(''), frame('pic'))
     : el('span', { class: 'miss', text: 'image introuvable : ' + c.trim() });
 };
 // Typographie française, à l'affichage seulement (le texte enregistré et envoyé ne change pas) : apostrophes

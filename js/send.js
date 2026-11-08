@@ -11,7 +11,7 @@ import { decorNow, momentNow } from './scene.js';
 import { app, S } from './state.js';
 import { save } from './store.js';
 import { $, dlg, el, err, fit, LS } from './util.js';
-import { liveEnd, liveScene, newShow, render, tail, unseen } from './view.js';
+import { far, liveEnd, liveScene, navView, newShow, render, tail, unseen } from './view.js';
 
 // Envoi d'un tour : appel au modèle, affichage progressif, erreurs, maintien du cache, zone de saisie.
 export async function regenHint() {
@@ -84,7 +84,7 @@ export async function ask(old, cont, hint) {
     const m = $('#msgs');
     let e = document.querySelector('#live');
     if (!e) {
-      const end = m.scrollHeight - m.scrollTop - m.clientHeight < 80;
+      const end = !far();
       e = el('div', { class: 'm assistant', id: 'live', data: { mo: momentNow(s.messages) } }, el('div', { class: 'b' }));
       $('#mfoot').before(e);
       if (end) m.scrollTop = m.scrollHeight;
@@ -101,7 +101,7 @@ export async function ask(old, cont, hint) {
       wt.querySelector('.act').textContent =
         (who ? fr(who.name + ' réfléchit…') : 'Réflexion…') + (sec > 2 || th ? ' ' + sec + ' s' : '');
     paintLive(e.firstChild, v, z, v ? null : wt, dl);
-    m.dispatchEvent(new Event('scroll'));
+    navView();
     if (unseen(e)) newShow('Réponse en cours');
   };
   const live = (t, th) => {

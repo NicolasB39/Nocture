@@ -3,7 +3,6 @@ import { raw, setBody, split } from './format.js';
 import { showList } from './list.js';
 import { cutChapters, cutLines } from './memory.js';
 import { conflicts } from './protocol.js';
-import { readPos } from './read.js';
 import { passageOff } from './passage.js';
 import { recap } from './recap.js';
 import { loadCtx, TERR } from './scenarios.js';
@@ -14,7 +13,7 @@ import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx, playerName } from './state.js';
 import { forkOf, getOne, save } from './store.js';
 import { $, dlg, err, fit, LS, plain, smooth, toast, uid, vt } from './util.js';
-import { render } from './view.js';
+import { readPos, render } from './view.js';
 
 // Conversation : ouverture d'une histoire et actions sur les messages (variantes, modification,
 // suppression, bifurcation, menus).

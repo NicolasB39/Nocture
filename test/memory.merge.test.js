@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { memsOf, mergeMem, mergeRel, near, sameName, situationOf } from '../js/memory.js';
+import { mergeMem, mergeRel, near, sameName, situationOf } from '../js/memory.js';
 
 test('sameName rapproche les variantes d’un même nom', () => {
   assert.ok(sameName('Alice', 'alice'));
@@ -74,17 +74,6 @@ test('les accents fusionnent et l’orthographe accentuée l’emporte', () => {
 test('les accents ne créent pas de doublon de souvenir, la formulation récente gagne', () => {
   assert.deepEqual(mergeMem(['la fiole est verte'], ['La fiôle est vérte']), ['La fiôle est vérte']);
   assert.deepEqual(mergeMem(['La fiôle est vérte'], ['la fiole est verte']), ['la fiole est verte']);
-});
-
-test('souvenirs d’un personnage : son nom en mot entier, sans accents ni casse', () => {
-  const M = ['Sera doit son pain du matin à Buena.', 'Inès a menti au proviseur.', 'Seriel garde la clé du Hall B.', 'Buena promet de revoir SERA.'];
-  assert.deepEqual(memsOf(M, 'Sera'), [M[0], M[3]]);
-  assert.deepEqual(memsOf(M, 'Ines'), [M[1]]);
-  assert.deepEqual(memsOf(M, 'Brindille'), []);
-  assert.deepEqual(memsOf(undefined, 'Sera'), []);
-  // Nom composé : le titre ne suffit pas.
-  const D = ['La dame du péage a menti.', 'Isaure a payé le passeur.'];
-  assert.deepEqual(memsOf(D, 'Dame Isaure'), [D[1]]);
 });
 
 test('chapitre clos : le résumé principal repart de la Situation actuelle', () => {

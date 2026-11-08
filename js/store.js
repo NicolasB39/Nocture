@@ -315,6 +315,8 @@ export const clearCalls = () =>
 export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);
+    // Réglages de fonctions retirées (v105) : plus lus, ils ne sont plus réenregistrés.
+    for (const k of ['tts', 'cap', 'follow']) delete S[k];
   });
 export const saveSet = () => tx('settings', 'readwrite', s => s.put({ key: 'main', value: S })).then(told('set'));
 export const loadStats = () => tx('settings', 'readonly', s => s.get('usage')).then(r => r?.value || null);

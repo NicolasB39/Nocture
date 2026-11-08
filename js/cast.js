@@ -1,8 +1,8 @@
-import { memsOf, sameName } from './memory.js';
+import { sameName } from './memory.js';
 import { inScene } from './prompt.js';
-import { KNEES, decorNow, momentNow, scene, zoomScene } from './scene.js';
-import { app, ctx, playerName, S } from './state.js';
-import { $, el, hue, ic, initial, plain } from './util.js';
+import { decorNow, frame, momentNow, scene, zoomScene } from './scene.js';
+import { app, ctx, playerName } from './state.js';
+import { $, el, hue, ic, initial, nz, plain } from './util.js';
 
 const urlOf = code => (ctx.images || []).find(x => x.code == code)?.url || '';
 const label = (c, code) => {
@@ -25,7 +25,7 @@ export const face = c => {
 const row = (c, i, on, open) => {
   const id = 'pcp' + i,
     rel = relOf(c.name),
-    mems = memsOf(app.cur?.mem?.memories, c.name).slice(-5),
+    mems = (app.cur?.mem?.memories || []).filter(m => c.keys?.some(k => k.test(nz(m)))).slice(-5),
     imgs = (c.images || []).filter(urlOf);
   const pan = el(
     'div',
@@ -43,7 +43,7 @@ const row = (c, i, on, open) => {
                 onclick: e => zoomScene(e.currentTarget.querySelector('.scn'))
               },
               // Même cadrage que dans le récit (Réglages › Lecture) ; l'agrandissement montre toujours le personnage en pied.
-              scene(urlOf(code), dec(), { x: 0.5, sa: 21 / 9, ...(S.fullBody ? { fill: 0.92, cls: 'tile' } : { ...KNEES, cls: 'tile kn' }) }),
+              scene(urlOf(code), dec(), { x: 0.5, sa: 21 / 9, ...frame('tile', { fill: 0.92 }) }),
               el('span', { text: label(c, code) })
             )
           )
@@ -55,7 +55,7 @@ const row = (c, i, on, open) => {
       el('span', { class: 'stl', text: 'Relation avec vous' }),
       el('p', { class: rel ? '' : 'none', text: rel || 'Aucune relation mémorisée pour l’instant.' })
     ),
-    // Ce que la mémoire a retenu à son sujet : les cinq derniers souvenirs qui le citent.
+    // Ce que la mémoire a retenu à son sujet : les cinq derniers souvenirs qui le citent (nom ou mot-clé de sa fiche).
     mems.length
       ? el('div', { class: 'pcr pcs' }, el('span', { class: 'stl', text: 'Souvenirs' }), el('ul', null, mems.map(t => el('li', { text: t }))))
       : null

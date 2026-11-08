@@ -5,7 +5,6 @@ import { money } from './cost.js';
 import { askOf, chance, checkOf, rulesOf, sheetOf } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
-import { visibleStart } from './read.js';
 import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
 import { decorFor, decorNow, decorsOf, lieuOf, momentsOf, scenesOf } from './scene.js';
@@ -595,9 +594,25 @@ const goTurn = d => {
   if (e) e.scrollIntoView({ block: 'start' });
   else w.scrollTo({ top: d < 0 ? 0 : w.scrollHeight });
 };
-const far = () => {
+// Loin de la fin du fil (plus de 80 px dessous) : flèches de tour, position de lecture, réponse qui arrive.
+export const far = () => {
   const m = $('#msgs');
   return m.scrollHeight - m.scrollTop - m.clientHeight >= 80;
+};
+// Premier message visible en haut du fil.
+export const visibleStart = () => {
+  const m = $('#msgs'),
+    top = m.getBoundingClientRect().top,
+    els = [...m.querySelectorAll('.m')],
+    e = els.find(x => x.getBoundingClientRect().bottom > top + 24) || els.at(-1);
+  return e ? +e.dataset.i : 0;
+};
+// Position de lecture d'une histoire : le premier message visible, rien si on est à la fin.
+export const readPos = id => {
+  if (!id || $('#chat').hidden) return;
+  const i = far() ? visibleStart() : 0;
+  if (i > 0) LS.set('pos:' + id, i);
+  else LS.del('pos:' + id);
 };
 // Pastille « Nouveau message » : signale une réponse qui arrive ou est arrivée sous l'écran, jusqu'à ce que
 // son début soit visible.
@@ -609,35 +624,35 @@ export function newShow(t) {
   b.hidden = false;
 }
 // Flèches de tour : là pendant le défilement et un moment après, puis effacées pour ne pas couvrir le texte qu'on
-// lit. Toucher le fil les rappelle, comme un vrai défilement ; pas celui que send.js simule à chaque image pendant
-// l'écriture de l'IA, sinon elles couvriraient la réponse qu'on est en train de lire.
+// lit. Défiler ou toucher le fil les rappelle ; pas l'écriture de l'IA, qui appelle navView à chaque image sans les
+// réveiller, sinon elles couvriraient la réponse qu'on est en train de lire.
 let navT;
 const navWake = () => {
   $('#nav').classList.remove('idle');
   clearTimeout(navT);
   navT = setTimeout(() => $('#nav').classList.add('idle'), 2500);
 };
-const navView = () => {
+export const navView = () => {
   const f = far(),
     n = $('#nav');
   if (f && n.hidden) navWake();
   n.hidden = !f;
   if (!f || !unseen(tail())) $('#newm').hidden = true;
 };
-$('#msgs').addEventListener('pointerdown', () => far() && navWake(), { passive: true });
-// Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
-// bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Seulement quand le fil rétrécit
-// depuis une hauteur réelle : à l'ouverture d'une histoire (fil caché puis montré), la position de lecture reste.
-let atEnd = true,
-  h0 = 0;
-$('#msgs').onscroll = e => {
-  atEnd = !far();
-  if (e.isTrusted && !atEnd) navWake();
+$('#msgs').addEventListener('pointerdown', navWake, { passive: true });
+$('#msgs').onscroll = () => {
+  navWake();
   navView();
 };
+// Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
+// bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Le rétrécissement ne déplace pas
+// scrollTop : l'écart d'avant se lit avec l'ancienne hauteur. Rien depuis une hauteur nulle : à l'ouverture d'une
+// histoire (fil caché puis montré), la position de lecture reste.
+let h0 = 0;
 new ResizeObserver(([e]) => {
-  const h = e.contentRect.height;
-  if (h0 && h < h0 && atEnd && far()) $('#msgs').scrollTop = $('#msgs').scrollHeight;
+  const h = e.contentRect.height,
+    m = $('#msgs');
+  if (h0 && h < h0 && m.scrollHeight - m.scrollTop - h0 < 80) m.scrollTop = m.scrollHeight;
   h0 = h;
 }).observe($('#msgs'));
 $('#newm').onclick = () => {

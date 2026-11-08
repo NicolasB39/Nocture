@@ -1,7 +1,7 @@
 import { emit } from './bus.js';
 import { S } from './state.js';
 import { saveSet } from './store.js';
-import { $, LS } from './util.js';
+import { $ } from './util.js';
 
 const FS = [14, 30];
 
@@ -24,22 +24,6 @@ const setFs = n => {
   fsLabel();
   saveSet();
 };
-export const readPos = id => {
-  if (!id || $('#chat').hidden) return;
-  const m = $('#msgs'),
-    i = m.scrollHeight - m.scrollTop - m.clientHeight < 80 ? 0 : visibleStart();
-  if (i > 0) LS.set('pos:' + id, i);
-  else LS.del('pos:' + id);
-};
-
-export const visibleStart = () => {
-  const m = $('#msgs'),
-    top = m.getBoundingClientRect().top,
-    els = [...m.querySelectorAll('.m')],
-    el = els.find(e => e.getBoundingClientRect().bottom > top + 24) || els.at(-1);
-  return el ? +el.dataset.i : 0;
-};
-
 const lhLabel = () => {
   $('#llv').textContent = (S.lh || 1.7).toFixed(2);
   $('#lcv').textContent = (S.cw || 45) + ' em';

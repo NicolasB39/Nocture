@@ -845,9 +845,9 @@ try {
     assert.ok((await nav()) > 0.8, 'flèches visibles au défilement');
     await wait(2900);
     assert.equal(await nav(), 0, 'flèches effacées pendant la lecture');
-    await p4.evaluate(() => document.querySelector('#msgs').dispatchEvent(new Event('scroll')));
+    await p4.evaluate(async () => (await import('/js/view.js')).navView());
     await wait(300);
-    assert.equal(await nav(), 0, 'le défilement simulé (écriture de l’IA) ne les rappelle pas');
+    assert.equal(await nav(), 0, 'l’écriture de l’IA (navView à chaque image) ne les rappelle pas');
     await p4.mouse.click(150, 400);
     await wait(300);
     assert.ok((await nav()) > 0.8, 'toucher le fil les rappelle');

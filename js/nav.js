@@ -1,4 +1,3 @@
-import { readPos } from './read.js';
 import { sync } from './backup.js';
 import { on } from './bus.js';
 import { openScenario } from './chat.js';
@@ -7,7 +6,7 @@ import { coverOf, localTree } from './scenarios.js';
 import { app } from './state.js';
 import { getSome } from './store.js';
 import { $, el, hue, initial, LS, toast } from './util.js';
-import { WIDE } from './view.js';
+import { readPos, WIDE } from './view.js';
 
 export const go = async id => {
   history.pushState({ c: 1 }, '');
@@ -118,13 +117,14 @@ document.addEventListener(
 // Feuilles : tirer leur haut (poignée, titre) vers le bas les ferme ; un geste vif suffit, sans aller jusqu'en bas.
 // Au doigt seulement : à la souris, les feuilles n'ont pas de poignée. Vers le haut, la feuille résiste. Pas sur
 // grand écran, où la fenêtre est centrée (elle se ferme en fondu, pas en glissant), ni depuis le fond assombri.
-const SHEET = matchMedia('(max-width: 639px)');
+const CENTRE = matchMedia('(min-width: 640px)');
 document.addEventListener(
   'touchstart',
   e => {
     const d = e.target.closest?.('dialog[open]');
-    if (!d || d.id == 'dpic' || !SHEET.matches || e.touches.length > 1 || d.scrollTop > 0) return;
-    const y = e.touches[0].clientY - d.getBoundingClientRect().top;
+    if (!d || d.id == 'dpic' || CENTRE.matches || e.touches.length > 1 || d.scrollTop > 0) return;
+    const r = d.getBoundingClientRect(),
+      y = e.touches[0].clientY - r.top;
     if (y < 0 || y > 64) return;
     if (e.target.closest('button, input, select, textarea, a, summary, label')) return;
     const y0 = e.touches[0].clientY;
@@ -133,6 +133,9 @@ document.addEventListener(
       v = 0,
       ly = y0,
       lt = e.timeStamp;
+    const ac = new AbortController(),
+      o = { signal: ac.signal };
+    d.style.transition = 'none';
     const move = ev => {
       if (ev.touches.length > 1) return;
       ev.preventDefault();
@@ -141,21 +144,18 @@ document.addEventListener(
       ly = cy;
       lt = ev.timeStamp;
       dy = cy - y0;
-      d.style.transition = 'none';
       d.style.transform = 'translateY(' + (dy > 0 ? dy : -Math.sqrt(-dy)) + 'px)';
     };
     const end = ev => {
-      removeEventListener('touchmove', move);
-      removeEventListener('touchend', end);
-      removeEventListener('touchcancel', end);
+      ac.abort();
       if (ev.timeStamp - lt > 100) v = 0;
       // La transition reprend de là où le doigt a lâché : vers le bas pour fermer, sinon retour en place.
       d.style.transition = d.style.transform = '';
-      if (ev.type == 'touchend' && (dy > Math.min(140, d.offsetHeight / 3) || (dy > 24 && v > 0.3))) d.close();
+      if (ev.type == 'touchend' && (dy > Math.min(140, r.height / 3) || (dy > 24 && v > 0.3))) d.close();
     };
-    addEventListener('touchmove', move, { passive: false });
-    addEventListener('touchend', end);
-    addEventListener('touchcancel', end);
+    addEventListener('touchmove', move, { ...o, passive: false });
+    addEventListener('touchend', end, o);
+    addEventListener('touchcancel', end, o);
   },
   { passive: true }
 );
