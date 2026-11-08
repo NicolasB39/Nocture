@@ -2,9 +2,9 @@ import { bkOn, sync } from './backup.js';
 import { emit, on } from './bus.js';
 import { recapOff } from './recap.js';
 import { coverOf, getTree, localTree } from './scenarios.js';
-import { S, app, playerName } from './state.js';
+import { S, app } from './state.js';
 import { clean, del, getAll, getOne, put, saveSet } from './store.js';
-import { $, LS, ago, dlg, el, hue, ic, initial, nz, plain, uid, vt } from './util.js';
+import { $, LS, ago, dlg, el, hue, ic, initial, nz, uid, vt } from './util.js';
 
 export async function showList() {
   // L'encart garde l'histoire en mémoire (Résumer) : retiré en quittant.
@@ -43,24 +43,19 @@ const coverImg = (id, src) => {
   }
   return e;
 };
-// Ordre de la liste : épinglées d'abord, puis la plus récemment modifiée.
-export const byRecent = (x, y) => (y.pin ? 1 : 0) - (x.pin ? 1 : 0) || y.updated - x.updated;
+// Ordre de la liste : la plus récemment modifiée d'abord.
+export const byRecent = (x, y) => y.updated - x.updated;
 export async function draw() {
   const a = (await getAll()).sort(byRecent);
   const T0 = localTree();
   const q = nz($('#q').value.trim());
-  let f = a.filter(s =>
-    app.FIL == 'play' ? s.n > 0 : app.FIL == 'lib' ? s.remote : app.FIL == 'own' ? !s.remote : true
-  );
-  if (q) f = f.filter(s => nz(s.name + ' ' + (s.pv || '')).includes(q));
-  const hero = !q && app.FIL == 'all' ? f.find(s => s.n > 0) : null;
+  const f = q ? a.filter(s => nz(s.name + ' ' + (s.pv || '')).includes(q)) : a;
+  const hero = q ? null : f.find(s => s.n > 0);
   const card = (s, h) => {
     const cv = coverOf(s, T0),
       hv = hue(s.name),
       tags = [];
-    if (s.pin) tags.push(el('span', { class: 'tag', text: 'Épinglé' }));
     if (!s.n && !h) tags.push(el('span', { class: 'tag', text: 'Nouveau' }));
-    if (LS.get('draft:' + s.id)) tags.push(el('span', { class: 'tag q2', text: 'Brouillon' }));
     return el(
       'div',
       { class: 'item ' + (h ? 'hero' : 'card') },
@@ -89,7 +84,7 @@ export async function draw() {
         'button',
         {
           class: 'menu',
-          data: { id: s.id, pin: s.pin ? '1' : '', played: s.n > 0 ? '1' : '' },
+          data: { id: s.id, played: s.n > 0 ? '1' : '' },
           'aria-label': 'Options de ' + s.name
         },
         ic('more', 18)
@@ -106,19 +101,11 @@ export async function draw() {
             { class: 'empty' },
             ic('logo', 44),
             el('p', {
-              text: a.length ? 'Aucun résultat.' : 'Aucune histoire. Touchez « Nouveau » pour créer un scénario.'
+              text: a.length ? 'Aucun résultat.' : 'Aucune histoire. Touchez ↻ en haut pour charger les scénarios de GitHub.'
             })
           )
         ])
   );
-  const cnt = {
-    all: a.length,
-    play: a.filter(s => s.n > 0).length,
-    lib: a.filter(s => s.remote).length,
-    own: a.filter(s => !s.remote).length
-  };
-  for (const b of $('#tabs').querySelectorAll('button'))
-    b.querySelector('.cnt').textContent = cnt[b.dataset.f] || '';
   $('#ak').hidden = !!S.key;
   $('#bk').hidden = !(
     a.some(s => s.n > 0) &&
@@ -130,7 +117,6 @@ $('#items').onclick = e => {
   const m = e.target.closest('.menu');
   if (m) {
     app.menuId = m.dataset.id;
-    $('#mp').textContent = m.dataset.pin ? 'Détacher' : 'Épingler';
     // Une histoire jamais jouée est déjà une partie vierge.
     $('#mng').hidden = !m.dataset.played;
     $('#mnt').textContent = m.closest('.item').querySelector('.ttl').textContent;
@@ -148,28 +134,9 @@ $('#q').oninput = () => {
   clearTimeout(qt);
   qt = setTimeout(draw, 150);
 };
-$('#tabs').onclick = e => {
-  const b = e.target.closest('button');
-  if (!b) return;
-  app.FIL = b.dataset.f;
-  $('#tabs')
-    .querySelectorAll('button')
-    .forEach(x => {
-      x.classList.toggle('on', x == b);
-      x.setAttribute('aria-checked', x == b);
-    });
-  draw();
-};
 // Histoire visée par une action de menu : celle de la conversation ouverte (l'objet vivant, qu'une copie lue en
 // base écraserait au prochain enregistrement) ou une autre, lue en base.
 const target = id => (!$('#chat').hidden && app.cur?.id == id ? app.cur : getOne(id));
-export async function pinStory(id) {
-  const s = await target(id);
-  s.pin = !s.pin;
-  s.updated = Date.now();
-  await put(s);
-  return s.pin;
-}
 // Renommer : vrai si le nom a changé.
 // L'histoire est relue après la boîte : une synchronisation pendant la saisie a pu la remplacer.
 export async function renameStory(id) {
@@ -189,7 +156,6 @@ export async function newGame(id) {
       ...s,
       id: uid(),
       name: s.name.endsWith(' (nouvelle partie)') ? s.name : s.name + ' (nouvelle partie)',
-      pin: false,
       reset: 0,
       updated: Date.now(),
       messages: [],
@@ -200,36 +166,10 @@ export async function newGame(id) {
   await put(c);
   return c.id;
 }
-export async function exportStory(id) {
-  const s = await target(id),
-    nm = playerName(s) || 'Joueur';
-  const t =
-    '# ' +
-    s.name +
-    '\n\n' +
-    s.messages
-      .map(m => '**' + (m.role == 'user' ? nm : 'Narrateur') + '**\n\n' + plain(m.content, nm))
-      .join('\n\n---\n\n') +
-    '\n';
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([t], { type: 'text/markdown' }));
-  a.download = (s.name.replace(/[\\/:*?"<>|]+/g, '_') || 'histoire') + '.md';
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1e4);
-}
 $('#mc').onclick = () => $('#mn').close();
 $('#mng').onclick = async () => {
   $('#mn').close();
   emit('open', await newGame(app.menuId));
-};
-$('#mp').onclick = async () => {
-  $('#mn').close();
-  await pinStory(app.menuId);
-  draw();
-};
-$('#mt').onclick = () => {
-  $('#mn').close();
-  exportStory(app.menuId);
 };
 $('#mr').onclick = async () => {
   $('#mn').close();
@@ -268,53 +208,6 @@ $('#mx').onclick = async () => {
     if (bkOn()) sync();
   }
 };
-const TPL = {
-  tp0: '',
-  tp1: `Nous jouons une enquête contemporaine. Le joueur est enquêteur ; je suis le narrateur et tous les autres personnages.
-
-Ville de province, pluie, hiver. Les gens mentent par habitude plus que par calcul. Les indices se gagnent en parlant aux bonnes personnes, pas en fouillant au hasard.
-
-Voix : présent, deuxième personne, phrases courtes. Les dialogues portent l'essentiel. Pas de récapitulatif, pas de morale.
-
-Je ne résous pas l'affaire à la place du joueur. Chaque réponse fait avancer d'une scène, et se termine sur quelque chose que le joueur peut saisir : une porte, une question, un silence.`,
-  tp2: `Nous jouons un récit de fantasy itinérante. Le joueur est un voyageur ; je suis le narrateur et tous les autres personnages.
-
-Un monde ancien, traversé de routes et de ruines, où la magie coûte toujours quelque chose. Pas d'élu, pas de prophétie : des gens, des dettes, des saisons.
-
-Voix : présent, deuxième personne, descriptions concrètes et sensorielles, jamais plus de deux images par paragraphe.
-
-Les rencontres ont leurs propres intentions et continuent d'exister quand il s'éloigne. Chaque réponse fait avancer d'une scène et laisse une route ouverte.`,
-  tp3: `Nous jouons un huis clos. Le joueur est l'un des occupants ; je suis le narrateur et tous les autres personnages.
-
-Un lieu fermé, un petit groupe, une raison de ne pas pouvoir partir. La tension vient de ce que les gens taisent. Rien de surnaturel tant que le joueur ne l'amène pas.
-
-Voix : présent, deuxième personne, beaucoup de dialogue, peu de décor une fois le lieu posé. Les silences comptent autant que les répliques.
-
-Chaque personnage a un secret et une peur ; ils agissent même quand on ne les regarde pas. Chaque réponse resserre un peu l'étau.`
-};
-let NEW = '';
-$('#new').onclick = async () => {
-  const n = await dlg('Nom du scénario', { v: '' });
-  if (!n || !n.trim()) return;
-  NEW = n.trim();
-  $('#dtp').showModal();
-};
-$('#tpx').onclick = () => $('#dtp').close();
-for (const k of Object.keys(TPL))
-  $('#' + k).onclick = async () => {
-    $('#dtp').close();
-    const s = {
-      id: uid(),
-      name: NEW,
-      updated: Date.now(),
-      system: TPL[k],
-      avatar: '',
-      messages: []
-    };
-    await put(s);
-    await emit('open', s.id);
-    emit('settings:open');
-  };
 $('#rf').onclick = async () => {
   await getTree(true);
   showList();

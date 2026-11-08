@@ -157,6 +157,18 @@ try {
     );
     await wait(200);
   };
+  // Histoire locale (scénario hors GitHub, comme après un import) : ouverte, avec sa feuille de réglages.
+  const newLocal = async name => {
+    await pg.evaluate(async n => {
+      const s = { id: 'loc' + Date.now(), name: n, updated: Date.now(), system: 'Nous jouons une enquête.', avatar: '', messages: [] };
+      await (await import('/js/store.js')).put(s);
+      await (await import('/js/bus.js')).emit('open', s.id);
+    }, name);
+    await pg.waitForSelector('#chat:not([hidden])');
+    await pg.click('#mo');
+    await pg.click('#sc');
+    await pg.waitForSelector('#ds[open]');
+  };
 
   await step('démarrage sans erreur', async () => {
     await pg.goto(base + '/index.html');
@@ -210,11 +222,7 @@ try {
     await pg.fill('#ck', 'k');
     await pg.evaluate(() => (document.querySelector('#ctc').checked = true));
     await pg.click('#dcs');
-    await pg.click('#new');
-    await pg.fill('#dqi', 'Test');
-    await pg.click('#dqo');
-    await pg.click('#tp1');
-    await pg.waitForSelector('#ds[open]');
+    await newLocal('Test');
     await pg.fill('#sint', 'Une nuit de tempête.\n- Je frappe à la porte.\n- J\'observe la plage.');
     await pg.click('#dss');
     await pg.waitForSelector('#ds', { state: 'hidden' });
@@ -530,7 +538,9 @@ try {
     await syncDone();
     assert.deepEqual(ghLog, []);
     await pg.locator('.menu').first().click();
-    await pg.click('#mp');
+    await pg.click('#mr');
+    await pg.fill('#dqi', 'Renommée');
+    await pg.click('#dqo');
     await wait(200);
     await pg.click('#sy');
     await wait(300);
@@ -540,11 +550,7 @@ try {
   });
 
   await step('synchronisation : la couverture part à part, une seule fois', async () => {
-    await pg.click('#new');
-    await pg.fill('#dqi', 'Couv');
-    await pg.click('#dqo');
-    await pg.click('#tp1');
-    await pg.waitForSelector('#ds[open]');
+    await newLocal('Couv');
     await pg.setInputFiles('#scvf', {
       name: 'c.png',
       mimeType: 'image/png',
@@ -564,7 +570,9 @@ try {
     assert.match(JSON.parse(GH.get(cv[0]).text).d, /^data:image\/webp/);
     ghLog.length = 0;
     await pg.click('[aria-label="Options de Couv"]');
-    await pg.click('#mp');
+    await pg.click('#mr');
+    await pg.fill('#dqi', 'Couv 2');
+    await pg.click('#dqo');
     await wait(200);
     await pg.click('#sy');
     await wait(300);
@@ -574,7 +582,8 @@ try {
 
   await step('journal des appels : envoi sur GitHub, ignoré par la synchronisation', async () => {
     await pg.evaluate(async () => (await import('/js/store.js')).addCall({ t: Date.now(), kind: 'tour', sid: 'x', body: { messages: [{ role: 'user', content: 'Envoyé sur GitHub.' }] } }));
-    await pg.evaluate(async () => (await import('/js/statview.js')).openStats('session'));
+    await pg.click('#usb');
+    await pg.waitForSelector('#dus[open]');
     await pg.click('#usj');
     await pg.waitForSelector('#jrg:not([hidden])');
     await pg.click('#jrg');

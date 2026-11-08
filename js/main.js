@@ -2,7 +2,6 @@ import { sync } from './backup.js';
 import { showList } from './list.js';
 import { STATS, load as loadUsage, shift, watch } from './stats.js';
 import { loadSet, loadStats, onPeer, openDB, saveStats } from './store.js';
-import { capCheck } from './statview.js';
 import './cast.js';
 import { LS, toast } from './util.js';
 import { applyFs } from './read.js';
@@ -12,8 +11,9 @@ import './nav.js';
 import './settings.js';
 import './backup.js';
 import './journal.js';
+import './statview.js';
 
-const VERSION = '460c848a72';
+const VERSION = '1bd3a548a0';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(
@@ -92,7 +92,6 @@ openDB()
     });
     watch(() => {
       if (!t) t = setTimeout(flush, 1500);
-      capCheck();
     });
     addEventListener('visibilitychange', () => {
       if (document.visibilityState == 'hidden' && t) flush();

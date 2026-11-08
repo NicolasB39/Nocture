@@ -1,4 +1,4 @@
-import { readPos, stopSpeech } from './read.js';
+import { readPos } from './read.js';
 import { sync } from './backup.js';
 import { on } from './bus.js';
 import { openScenario } from './chat.js';
@@ -23,7 +23,6 @@ on('open', go);
 let to = null;
 const leave = async id => {
   readPos(app.cur?.id);
-  stopSpeech();
   if (app.busy) app.ctl?.abort('stop');
   if (id) {
     to = id;
@@ -38,7 +37,7 @@ const leave = async id => {
   } else showList();
   if (LS.get('bkd')) sync();
 };
-// Changer d'histoire sans repasser par la bibliothèque (titre sur grand écran, ou Ctrl+K) : les histoires
+// Changer d'histoire sans repasser par la bibliothèque (titre sur grand écran) : les histoires
 // commencées, dans l'ordre de la liste, et celle en cours.
 const SW_N = 8;
 async function openSwitch() {
@@ -97,25 +96,6 @@ addEventListener('pointerover', e => {
 $('#back').onclick = () => (history.state?.c ? history.back() : leave());
 addEventListener('visibilitychange', () => {
   if (document.visibilityState == 'hidden') readPos(app.cur?.id);
-});
-addEventListener('keydown', e => {
-  if (e.defaultPrevented) return;
-  // Ctrl+K (Cmd+K) : changer d'histoire dans une conversation, chercher dans la bibliothèque.
-  if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() == 'k' && !document.querySelector('dialog[open]')) {
-    e.preventDefault();
-    if (!$('#chat').hidden) openSwitch();
-    else $('#q').focus();
-    return;
-  }
-  if (e.metaKey || e.ctrlKey || e.altKey) return;
-  const t = e.target,
-    g = t.tagName;
-  if (g == 'INPUT' || g == 'TEXTAREA' || g == 'SELECT' || t.isContentEditable) return;
-  if (document.querySelector('dialog[open]')) return;
-  if (e.key == '/' && !$('#list').hidden) {
-    e.preventDefault();
-    $('#q').focus();
-  } else if (e.key == 'Escape' && !$('#chat').hidden) $('#back').click();
 });
 let skip = false;
 const open = () => document.querySelector('dialog[open]');

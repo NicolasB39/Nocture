@@ -10,7 +10,6 @@ const { modelOf } = await import('../js/protocol.js');
 const { extrasOf } = await import('../js/prompt.js');
 const { clean } = await import('../js/store.js');
 const { SESSION, clear } = await import('../js/stats.js');
-const { capLevel } = await import('../js/statview.js');
 
 const ms = [
   { role: 'system', content: 'SYS' },
@@ -134,10 +133,3 @@ test('extrasOf mesure le poids des choix et de l’état dans la sortie', () => 
   );
 });
 
-test('capLevel : rien sans plafond, alerte à 80 % puis à 100 %', () => {
-  assert.equal(capLevel(10, 0), 0);
-  assert.equal(capLevel(3, 5), 0);
-  assert.equal(capLevel(4, 5), 0.8);
-  assert.equal(capLevel(5, 5), 1);
-  assert.equal(capLevel(9, 5), 1);
-});

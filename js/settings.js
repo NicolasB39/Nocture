@@ -1,18 +1,17 @@
 import { effortOk, memModel } from './ai.js';
-import { on } from './bus.js';
 import { jump, render, tk } from './view.js';
 import { PRICES, money, priceOf } from './cost.js';
 import { rulesOf } from './dice.js';
 import { fr } from './format.js';
-import { draw, exportStory, pinStory, renameStory, showList } from './list.js';
+import { draw, renameStory, showList } from './list.js';
 import { extrasOf, statOn } from './prompt.js';
 import { DEFAULT_CHOICE, DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
-import { fillLec, setReading } from './read.js';
+import { fillLec } from './read.js';
 import { tocOf } from './scene.js';
-import { TERR, coverOf, getTree, loadCtx } from './scenarios.js';
+import { TERR, getTree, loadCtx } from './scenarios.js';
 import { API, S, app, ctx, playerName } from './state.js';
 import { clean, put, save, saveSet } from './store.js';
-import { $, LS, dlg, el, ic, nz, pickAccent, plain, toast } from './util.js';
+import { $, LS, dlg, el, ic, nz, plain } from './util.js';
 
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
@@ -50,49 +49,8 @@ const extrasNote = () => {
     (per != null ? ' (≈ ' + money(per * 100, S.fx) + ' pour 100 réponses)' : '') +
     '. Décochez ce qui ne vous sert pas.';
 };
-// Couleur d'accent du scénario ; vide : celle de l'appli.
-const ACC0 = '#e8b45c';
-let ACC = '';
-const accView = () => {
-  $('#sacc').value = ACC || ACC0;
-  $('#sacx').hidden = !ACC;
-  $('#sacn').textContent = ACC
-    ? 'Liseré de vos tours, numéros des choix, lettrine et bouton d’envoi prennent cette couleur dans cette histoire.'
-    : 'Couleur de l’appli. Choisissez-en une, ou tirez-la de la couverture.';
-};
-$('#sacc').oninput = () => {
-  ACC = $('#sacc').value.toLowerCase();
-  accView();
-};
-$('#sacx').onclick = () => {
-  ACC = '';
-  accView();
-};
-$('#saca').onclick = async () => {
-  const src = COVER || coverOf(app.cur);
-  if (!src) {
-    toast('Pas de couverture pour cette histoire');
-    return;
-  }
-  try {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    const c = Object.assign(document.createElement('canvas'), { width: 32, height: 32 }),
-      g = c.getContext('2d');
-    g.drawImage(img, 0, 0, 32, 32);
-    const h = pickAccent(g.getImageData(0, 0, 32, 32).data);
-    if (!h) throw new Error('image trop sombre');
-    ACC = h;
-    accView();
-  } catch (e) {
-    toast('Impossible de lire la couverture');
-  }
-};
 export function openSc() {
   const c = app.cur.remote ? ctx : app.cur;
-  ACC = app.cur.accent || '';
-  accView();
   $('#smo').value = app.cur.model || '';
   $('#sef').value = app.cur.effort || '';
   genNotes();
@@ -144,7 +102,6 @@ function imgView() {
     )
   );
 }
-on('settings:open', openSc);
 // Recharger l'index : seuls les champs venus de GitHub sont relus ; ce que vous avez saisi dans la feuille reste.
 $('#simr').onclick = async () => {
   await getTree(true);
@@ -158,23 +115,14 @@ $('#simr').onclick = async () => {
   render();
 };
 $('#mo').onclick = () => {
-  $('#mpin span').textContent = app.cur.pin ? 'Détacher' : 'Épingler';
   $('#mnew').hidden = !app.cur.messages.length;
   $('#msh').hidden = !rulesOf(app.cur).length;
   $('#dmn').showModal();
 };
 $('#dmnc').onclick = () => $('#dmn').close();
-$('#mpin').onclick = async () => {
-  $('#dmn').close();
-  toast((await pinStory(app.cur.id)) ? 'Histoire épinglée en tête de liste' : 'Histoire détachée');
-};
 $('#mren').onclick = async () => {
   $('#dmn').close();
   if (await renameStory(app.cur.id)) render();
-};
-$('#mexp').onclick = () => {
-  $('#dmn').close();
-  exportStory(app.cur.id);
 };
 $('#sc').onclick = () => {
   $('#dmn').close();
@@ -314,7 +262,6 @@ $('#dss').onclick = async () => {
   }
   app.cur.pname = $('#snm').value.trim();
   app.cur.cover = COVER;
-  app.cur.accent = ACC;
   app.cur.effort = $('#sef').value;
   app.cur.model = $('#smo').value.trim();
   app.cur.noChoices = !$('#sch').checked;
@@ -361,10 +308,6 @@ function openCfg() {
 }
 $('#cfg').onclick = openCfg;
 $('#akb').onclick = openCfg;
-$('#mlr').onclick = () => {
-  $('#dmn').close();
-  setReading(true);
-};
 $('#cfg2').onclick = () => {
   $('#dmn').close();
   openCfg();

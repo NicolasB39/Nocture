@@ -14,7 +14,7 @@ import {
   months,
   total
 } from './stats.js';
-import { $, LS, dlg, el, toast } from './util.js';
+import { $, dlg, el } from './util.js';
 
 const fmt = n => Math.round(n).toLocaleString('fr-FR');
 const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
@@ -104,26 +104,6 @@ const bars = ym => {
   );
 };
 
-// Plafond mensuel (S.cap, en dollars comme les tarifs) : il ne bloque rien, il prévient à 80 % puis à
-// 100 %, une fois par mois et par seuil.
-const monthCost = () => costMap(monthMap(monthKey(dayKey()))).sum;
-export const capLevel = (spent, cap) => (!cap ? 0 : spent >= cap ? 1 : spent >= cap * 0.8 ? 0.8 : 0);
-export function capCheck() {
-  if (!S.cap) return;
-  const spent = monthCost(),
-    lv = capLevel(spent, S.cap),
-    k = 'cap:' + monthKey(dayKey());
-  if (!lv || +(LS.get(k) || 0) >= lv) return;
-  LS.set(k, lv);
-  toast(
-    (lv >= 1 ? 'Plafond mensuel atteint : ' : '80 % du plafond mensuel : ') +
-      money(spent, S.fx) +
-      ' sur ' +
-      money(S.cap, S.fx) +
-      ' ce mois-ci',
-    { label: 'Voir', fn: () => openStats('month') }
-  );
-}
 export function openStats(m = 'session') {
   mode = m;
   cur = new Date();
@@ -156,19 +136,6 @@ const monthRows = () =>
       );
     })
   );
-const capRow = () => {
-  if (!S.cap) return null;
-  const spent = monthCost(),
-    pc = Math.min(100, (spent / S.cap) * 100);
-  return el(
-    'div',
-    { class: 'ucap' + (spent >= S.cap ? ' over' : '') },
-    el('small', {
-      text: 'Ce mois-ci : ' + money(spent, S.fx) + ' sur un plafond de ' + money(S.cap, S.fx)
-    }),
-    el('i', { class: 'bar' }, el('u', { style: 'width:' + Math.max(1, pc) + '%' }))
-  );
-};
 export function view() {
   for (const b of $('#ust').querySelectorAll('button'))
     b.setAttribute('aria-checked', b.dataset.m == mode);
@@ -216,7 +183,6 @@ export function view() {
       }),
       cm.any ? el('span', { class: 'uc', text: '≈ ' + money(cm.sum, S.fx) + ' dépensés' }) : null
     ),
-    capRow(),
     ym && t[2] ? bars(ym) : null,
     mode == 'all' && t[2] ? monthRows() : null,
     ...(t[2]
@@ -283,30 +249,6 @@ export function view() {
 }
 
 $('#usb').onclick = () => openStats(mode);
-$('#usk').onclick = async () => {
-  const fx = S.fx || 1,
-    v = await dlg('Plafond mensuel', {
-      m:
-        'Montant, en ' +
-        (S.fx ? 'euros' : 'dollars') +
-        ', au-delà duquel l’application vous prévient (à 80 % puis à 100 %). Elle ne bloque aucun envoi. Vide : pas de plafond.',
-      v: S.cap ? num2(Math.round(S.cap * fx * 100) / 100) : '',
-      ok: 'Enregistrer'
-    });
-  if (v === null) return;
-  const n = parseAmount(v);
-  if (n === undefined) {
-    await dlg('Montant illisible', { m: 'Écrivez un nombre, par exemple 15 ou 7,50.', no: 'Fermer' });
-    return;
-  }
-  const cap = n ? n / fx : 0;
-  // Repère du mois (avertissement déjà donné) remis à zéro seulement si le plafond change.
-  if (Math.abs(cap - (S.cap || 0)) > 1e-9) LS.del('cap:' + monthKey(dayKey()));
-  S.cap = cap;
-  await saveSet();
-  view();
-  capCheck();
-};
 $('#ust').onclick = e => {
   const b = e.target.closest('button');
   if (!b) return;

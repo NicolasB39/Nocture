@@ -3,7 +3,7 @@ import { raw, setBody, split } from './format.js';
 import { showList } from './list.js';
 import { cutChapters, cutLines } from './memory.js';
 import { conflicts } from './protocol.js';
-import { readPos, setReading, speakFrom, speakMsg, stopSpeech } from './read.js';
+import { readPos } from './read.js';
 import { passageOff } from './passage.js';
 import { recap } from './recap.js';
 import { loadCtx, TERR } from './scenarios.js';
@@ -19,9 +19,7 @@ import { render } from './view.js';
 // Conversation : ouverture d'une histoire et actions sur les messages (variantes, modification,
 // suppression, bifurcation, menus).
 export async function openScenario(id) {
-  stopSpeech();
   passageOff();
-  setReading(false);
   app.cur = await getOne(id);
   if (!app.cur) {
     showList();
@@ -97,7 +95,6 @@ on('cur:remote', async (k, u) => {
   return true;
 });
 async function delFrom(i) {
-  stopSpeech();
   const c = app.cur,
     upto = c.mem.upto,
     lines = c.mem.lines || [],
@@ -136,7 +133,6 @@ async function delFrom(i) {
 async function resendFrom(i, t) {
   const c = app.cur;
   if (!t || app.busy || c.messages[i]?.role != 'user') return;
-  stopSpeech();
   const upto = c.mem.upto,
     n = c.messages.splice(i + 1).length,
     pv = c.messages[i - 1];
@@ -176,7 +172,6 @@ async function forkFrom(i) {
       ok: 'Créer'
     });
   if (!name?.trim() || app.cur !== s) return;
-  stopSpeech();
   readPos(s.id);
   const c = forkOf(s, i, name.trim(), uid());
   await save(c);
@@ -193,7 +188,6 @@ const useAlt = (m, k) => {
   app.fresh = null;
 };
 async function swipe(d) {
-  stopSpeech();
   const m = app.cur.messages.at(-1);
   useAlt(m, (m.ai + d + m.alts.length) % m.alts.length);
   await save();
@@ -208,9 +202,8 @@ $('#msgs').onclick = e => {
   const b = e.target.closest('button');
   if (!b) {
     const m = e.target.closest('.m[data-i]');
-    if (app.reading && m) speakFrom(+m.dataset.i);
     // Au toucher, faute de survol : toucher un ancien message affiche ses actions.
-    else if (m && !m.classList.contains('last') && !getSelection()?.toString()) {
+    if (m && !m.classList.contains('last') && !getSelection()?.toString()) {
       const on = !m.classList.contains('sel');
       for (const x of $('#msgs').querySelectorAll(':scope > .m.sel')) x.classList.remove('sel');
       m.classList.toggle('sel', on);
@@ -265,10 +258,6 @@ $('#msgs').onclick = e => {
   }
   const a = b.dataset.a,
     i = +b.dataset.i;
-  if (a == 'v') {
-    speakMsg(i);
-    return;
-  }
   if (a == 'm') {
     const last = i == app.cur.messages.length - 1;
     app.actI = i;
@@ -339,15 +328,6 @@ $('#mac').onclick = () => {
     .then(() => toast('Message copié'))
     .catch(() => toast('Copie impossible'));
 };
-// Flèche haut dans le champ vide (au clavier) : modifier et renvoyer le dernier tour du joueur.
-$('#inp').addEventListener('keydown', e => {
-  if (e.key != 'ArrowUp' || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey || $('#inp').value || app.busy) return;
-  const i = app.cur.messages.findLastIndex(m => m.role == 'user');
-  if (i < 0) return;
-  e.preventDefault();
-  app.actI = i;
-  editOpen(true);
-});
 const editOpen = re => {
   $('#dma').close();
   if (app.busy) return;

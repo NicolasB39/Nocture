@@ -26,7 +26,7 @@ Le choix du niveau suit un arbitrage simple. Un bloc placé avant l'historique e
 
 La mémoire ne change que par paliers, surtout en début de séance (voir « API Claude ») : elle vient juste après la partie fixe, et les souvenirs partent tous (soixante au plus) plutôt que triés par pertinence, pour qu'ils ne varient pas d'un tour à l'autre. Le lorebook et les fiches de personnages déclenchés par mots-clés changent bien plus souvent : ils restent en queue, où ils n'invalident rien. Seuls ceux qui ne changent jamais (`toujours`, ou tout un lorebook et des fiches modestes, voir [« Fiches de personnages »](scenarios.md#fiches-de-personnages)) montent dans la partie fixe. L'état précédent change à chaque tour par nature.
 
-Le compteur sous la conversation indique par exemple « ≈ 6 953 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 », et une ligne « l'IA lit à partir d'ici » marque dans le fil le premier message envoyé tel quel : au-dessus, l'IA n'a plus que la mémoire.
+Le compteur sous la conversation indique par exemple « ≈ 6 953 tokens envoyés (réel : 7 012) · 10 messages envoyés sur 16 » : les messages plus anciens ne sont plus envoyés, l'IA n'en a que la mémoire.
 
 Le compteur est **masqué par défaut** : on lit une histoire, pas un tableau de bord. « Afficher les compteurs sous la conversation » (Réglages, section « Compteurs et journal ») le rend permanent.
 
@@ -148,12 +148,12 @@ js/
   scene.js          scènes : choix du décor, moment de la journée, détection de la transparence, placement du personnage
   passage.js        écran de passage au changement de lieu ou de jour
   recap.js          encart « Précédemment » à la reprise d'une histoire
-  read.js           lecture : taille du texte, mode lecture, lecture à voix haute
+  read.js           réglages de lecture (taille, police, interlignage) et position de lecture
   cast.js           fenêtre Personnages
   view.js           conversation, affichage : messages, état, scènes, compteurs, en-tête, navigation
   send.js           conversation, envoi : appel au modèle, affichage progressif, maintien du cache, saisie
   chat.js           conversation, actions : ouverture, variantes, modification, suppression, bifurcation
-  list.js           liste des scénarios : recherche, onglets, menu, création
+  list.js           liste des scénarios : recherche, menu des cartes
   nav.js            navigation (bouton retour du téléphone)
   settings.js       réglages de l'histoire, mémoire, note, réglages IA, import
   backup.js         export, synchronisation GitHub (syncOnce testé avec un dépôt simulé, test/sync.test.js)
@@ -182,7 +182,7 @@ Règles du projet :
 - `render()` ne reconstruit pas la conversation à chaque tour : il compare les nœuds existants à l'état voulu et ne remplace que ceux qui ont changé. Un message ajouté laisse les précédents en place, avec leur sélection de texte et leurs images déjà chargées.
 - L'état partagé qui change vit dans `state.js` (`app.cur`, `app.busy`…). Les autres variables restent locales à leur module.
 - Un module ne doit appeler aucune fonction d'un autre module au moment du chargement, seulement dans des gestionnaires d'événements ou des fonctions (s'abonner avec `on()` de `bus.js` est la seule exception).
-- **Pas d'import en boucle**, ni direct ni par un détour : `npm run build` refuse `backup.js → send.js → backup.js`. Les imports vont de l'interface vers les couches basses (`send.js` importe `backup.js`, jamais l'inverse ; dans la conversation, `chat.js` importe `send.js`, qui importe `view.js`). Quand une couche basse doit faire réagir l'interface, elle l'annonce par `emit()` de `bus.js` et l'interface s'abonne avec `on()`. Annonces actuelles : `open` (ouvrir une histoire, géré par `nav.js`), `settings:open` (feuille du scénario, `settings.js`), `list:stale` (redessiner la liste si elle est visible, `list.js`), `cur:remote` (histoire ouverte modifiée ou supprimée par la synchronisation, `chat.js`). `emit()` rend une promesse résolue quand toutes les réactions sont terminées.
+- **Pas d'import en boucle**, ni direct ni par un détour : `npm run build` refuse `backup.js → send.js → backup.js`. Les imports vont de l'interface vers les couches basses (`send.js` importe `backup.js`, jamais l'inverse ; dans la conversation, `chat.js` importe `send.js`, qui importe `view.js`). Quand une couche basse doit faire réagir l'interface, elle l'annonce par `emit()` de `bus.js` et l'interface s'abonne avec `on()`. Annonces actuelles : `open` (ouvrir une histoire, géré par `nav.js`), `list:stale` (redessiner la liste si elle est visible, `list.js`), `cur:remote` (histoire ouverte modifiée ou supprimée par la synchronisation, `chat.js`). `emit()` rend une promesse résolue quand toutes les réactions sont terminées.
 - Pour tester en local, servez le dossier avec un serveur HTTP (`python3 -m http.server`), car les modules ne se chargent pas depuis `file://`.
 - Quand vous ajoutez un fichier JavaScript dans `js/`, il est repris automatiquement par `npm run build` (service worker et `modulepreload`). Rien à déclarer à la main.
 - Les numéros de version sont calculés à partir du contenu des fichiers par `npm run build`, lancé par le workflow à chaque déploiement. Ne les modifiez pas à la main.

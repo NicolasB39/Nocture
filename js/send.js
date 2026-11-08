@@ -7,7 +7,6 @@ import { fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, passageLieu, setB
 import { passage } from './passage.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
-import { autoRead, stopSpeech } from './read.js';
 import { decorNow, momentNow } from './scene.js';
 import { app, S } from './state.js';
 import { save } from './store.js';
@@ -102,8 +101,6 @@ export async function ask(old, cont, hint) {
       wt.querySelector('.act').textContent =
         (who ? fr(who.name + ' réfléchit…') : 'Réflexion…') + (sec > 2 || th ? ' ' + sec + ' s' : '');
     paintLive(e.firstChild, v, z, v ? null : wt, dl);
-    if (S.follow && m.scrollHeight - m.scrollTop - m.clientHeight < 200)
-      m.scrollTop = m.scrollHeight;
     m.dispatchEvent(new Event('scroll'));
     if (unseen(e)) newShow('Réponse en cours');
   };
@@ -241,27 +238,24 @@ export async function ask(old, cont, hint) {
       // Position de la réponse à l'écran, et son intertitre s'il était déjà là (lieu annoncé en tête).
       top = lv?.getBoundingClientRect().top,
       had = !!lv?.previousElementSibling?.matches('.scene');
-    render(S.follow);
+    render();
     const fin = lv && !msg && m.querySelector(':scope > .m[data-i="' + (s.messages.length - 1) + '"]');
     if (fin) keepImgs(lv, fin);
     lv?.remove();
     const sc = fin?.previousElementSibling,
       nsc = !!sc?.matches('.scene') && !had;
-    if (!S.follow) {
-      m.scrollTop = y;
-      const a2 = ai != null && m.querySelector(':scope > .m[data-i="' + ai + '"]');
-      if (a2) m.scrollTop += Math.round(a2.getBoundingClientRect().top - at);
-      // Lieu connu seulement à la fin : l'intertitre arrive en fondu au-dessus de la réponse, et le défilement
-      // compense sa hauteur pour que le texte en cours de lecture ne bouge pas. Sa hauteur seule : le message
-      // du joueur, qui n'est plus le dernier, raccourcit aussi (barre d'actions rangée à côté de la bulle), et
-      // caler la réponse sur sa place d'avant ferait descendre tout le fil d'autant.
-      if (nsc && top < m.getBoundingClientRect().bottom)
-        m.scrollTop += fin.getBoundingClientRect().top - sc.getBoundingClientRect().top;
-    }
+    m.scrollTop = y;
+    const a2 = ai != null && m.querySelector(':scope > .m[data-i="' + ai + '"]');
+    if (a2) m.scrollTop += Math.round(a2.getBoundingClientRect().top - at);
+    // Lieu connu seulement à la fin : l'intertitre arrive en fondu au-dessus de la réponse, et le défilement
+    // compense sa hauteur pour que le texte en cours de lecture ne bouge pas. Sa hauteur seule : le message
+    // du joueur, qui n'est plus le dernier, raccourcit aussi (barre d'actions rangée à côté de la bulle), et
+    // caler la réponse sur sa place d'avant ferait descendre tout le fil d'autant.
+    if (nsc && top < m.getBoundingClientRect().bottom)
+      m.scrollTop += fin.getBoundingClientRect().top - sc.getBoundingClientRect().top;
     if (nsc) sc.classList.add('in');
     if (!msg && unseen(tail())) newShow('Nouveau message');
     else $('#newm').hidden = true;
-    if (!msg && !cont) autoRead(s.messages.length - 1);
   } else lv?.remove();
   if (!msg) {
     warmN = 0;
@@ -300,7 +294,6 @@ document.addEventListener('visibilitychange', () => {
 });
 export async function regen(hint) {
   if (app.busy) return;
-  stopSpeech();
   const old = app.cur.messages.at(-1)?.role == 'assistant' ? app.cur.messages.pop() : null;
   render(true);
   ask(old, false, hint);
@@ -311,7 +304,6 @@ $('#send').onclick = async () => {
   // Verrou posé avant l'enregistrement : un double toucher pendant l'attente enverrait deux fois le tour.
   app.busy = true;
   try {
-    stopSpeech();
     $('#inp').value = '';
     fit();
     LS.del('draft:' + app.cur.id);

@@ -130,53 +130,6 @@ export const vt = fn => {
     return Promise.resolve();
   }
 };
-// Couleur d'accent d'un scénario : les variables CSS qu'elle remplace (null : celles de l'appli). Le texte posé
-// sur l'accent passe en clair si la couleur est sombre.
-const rgbOf = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-export const accentVars = h => {
-  if (!/^#[0-9a-f]{6}$/i.test(h || '')) return null;
-  const [r, g, b] = rgbOf(h),
-    a = x => 'rgba(' + r + ', ' + g + ', ' + b + ', ' + x + ')',
-    lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return { '--ac': h, '--acs': a(0.13), '--act': a(0.16), '--acb': a(0.45), '--on': lum > 0.5 ? '#0a0a0b' : '#ffffff' };
-};
-// Accent tiré d'une image (pixels RGBA) : la moyenne des pixels les plus vifs, éclaircie pour rester lisible
-// sur le fond sombre.
-export const pickAccent = px => {
-  const c = [];
-  for (let i = 0; i + 3 < px.length; i += 4) {
-    const [r, g, b, al] = [px[i], px[i + 1], px[i + 2], px[i + 3]],
-      mx = Math.max(r, g, b),
-      mn = Math.min(r, g, b);
-    if (al < 128 || mx < 60) continue;
-    c.push({ r, g, b, s: ((mx - mn) / mx) * (mx / 255) });
-  }
-  if (!c.length) return '';
-  c.sort((x, y) => y.s - x.s);
-  const top = c.slice(0, Math.max(1, Math.ceil(c.length / 10))),
-    avg = k => top.reduce((a, x) => a + x[k], 0) / top.length;
-  let [r, g, b] = [avg('r'), avg('g'), avg('b')].map(x => x / 255);
-  const mx = Math.max(r, g, b),
-    mn = Math.min(r, g, b);
-  let h = 0,
-    l = (mx + mn) / 2,
-    s = mx == mn ? 0 : l > 0.5 ? (mx - mn) / (2 - mx - mn) : (mx - mn) / (mx + mn);
-  if (mx != mn)
-    h = mx == r ? (g - b) / (mx - mn) + (g < b ? 6 : 0) : mx == g ? (b - r) / (mx - mn) + 2 : (r - g) / (mx - mn) + 4;
-  h /= 6;
-  s = Math.max(s, 0.45);
-  l = Math.min(Math.max(l, 0.62), 0.78);
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s,
-    p = 2 * l - q,
-    hue = t => {
-      t = (t + 1) % 1;
-      return t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p;
-    };
-  return (
-    '#' +
-    [hue(h + 1 / 3), hue(h), hue(h - 1 / 3)].map(x => Math.round(x * 255).toString(16).padStart(2, '0')).join('')
-  );
-};
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 // Balise des jets de dés (dice.js) : une demande du narrateur (« Adresse, difficile ») ou un résultat lancé par
 // l'application (« … : 14 + 2 = 16, réussite », reconnu à ses deux-points).

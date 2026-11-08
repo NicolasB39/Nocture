@@ -1,7 +1,7 @@
 import { sameName } from './memory.js';
 import { inScene } from './prompt.js';
-import { decorNow, momentNow, scene, zoomScene } from './scene.js';
-import { app, ctx, playerName } from './state.js';
+import { KNEES, decorNow, momentNow, scene, zoomScene } from './scene.js';
+import { app, ctx, playerName, S } from './state.js';
 import { $, el, hue, ic, initial, plain } from './util.js';
 
 const urlOf = code => (ctx.images || []).find(x => x.code == code)?.url || '';
@@ -41,7 +41,8 @@ const row = (c, i, on, open) => {
                 'aria-label': 'Agrandir : ' + label(c, code),
                 onclick: e => zoomScene(e.currentTarget.querySelector('.scn'))
               },
-              scene(urlOf(code), dec(), { x: 0.5, fill: 0.92, sa: 21 / 9, cls: 'tile' }),
+              // Même cadrage que dans le récit (Réglages › Lecture) ; l'agrandissement montre toujours le personnage en pied.
+              scene(urlOf(code), dec(), { x: 0.5, sa: 21 / 9, ...(S.fullBody ? { fill: 0.92, cls: 'tile' } : { ...KNEES, cls: 'tile kn' }) }),
               el('span', { text: label(c, code) })
             )
           )

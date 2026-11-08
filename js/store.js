@@ -52,7 +52,6 @@ export const clean = x => {
     updated: n(x.updated) || Date.now(),
     remote: !!x.remote,
     reset: n(x.reset),
-    pin: !!x.pin,
     folder: s(x.folder),
     system: s(x.system),
     avatar: s(x.avatar),
@@ -63,7 +62,6 @@ export const clean = x => {
     noChoices: !!x.noChoices,
     noPre: !!x.noPre,
     cover: typeof x.cover == 'string' && x.cover.startsWith('data:') ? x.cover : '',
-    accent: typeof x.accent == 'string' && /^#[0-9a-f]{6}$/i.test(x.accent) ? x.accent.toLowerCase() : '',
     effort: ['low', 'medium', 'high'].includes(x.effort) ? x.effort : '',
     model: s(x.model).trim(),
     stat: typeof x.stat == 'boolean' ? x.stat : undefined,
@@ -92,7 +90,7 @@ export const clean = x => {
 export const forkOf = (s, i, name, id) => {
   const c = structuredClone(s),
     n = i + 1;
-  Object.assign(c, { id, name, pin: false });
+  Object.assign(c, { id, name });
   c.messages = c.messages.slice(0, n);
   c.mem.lines = cutLines(c.mem.lines, n);
   c.mem.chapters = cutChapters(c.mem.chapters, n);
@@ -115,7 +113,6 @@ const META = s => ({
   updated: s.updated,
   remote: s.remote,
   reset: s.reset || 0,
-  pin: !!s.pin,
   folder: s.folder,
   n: s.messages?.length || 0,
   pv: pvOf(s)

@@ -5,12 +5,12 @@ import { money } from './cost.js';
 import { askOf, chance, checkOf, rulesOf, sheetOf } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
-import { refreshSpeech, ttsOk, visibleStart } from './read.js';
+import { visibleStart } from './read.js';
 import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
 import { decorFor, decorNow, decorsOf, lieuOf, momentsOf, scenesOf } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
-import { $, accentVars, el, ic, LS, smooth } from './util.js';
+import { $, el, ic, LS, smooth } from './util.js';
 
 // Affichage de la conversation : messages, panneau d'état, scènes, compteurs, en-tête, navigation.
 let IO = null,
@@ -91,7 +91,6 @@ const act = (i, m, last) => {
     );
   const b = (a, lbl, icon) =>
     el('button', { data: { a, i }, 'aria-label': lbl }, ic(icon, 17));
-  if (ttsOk) r.append(b('v', 'Lire à voix haute', 'vol'));
   if (last) {
     const rg = b('r', 'Régénérer', 'refresh');
     rg.title = 'Régénérer · appui long ou clic droit : avec une indication';
@@ -312,8 +311,7 @@ export function render(sc) {
     ms = app.cur.messages,
     n = ms.length,
     st = Math.max(0, n - app.LIM);
-  const win = Math.min(app.cur.mem.upto, n),
-    D = decorsOf(ms);
+  const D = decorsOf(ms);
   LT = sceneStarts(ms);
   const cv = !st && coverOf(app.cur);
   head.replaceChildren(
@@ -322,7 +320,6 @@ export function render(sc) {
       st && el('button', { class: 'more', text: 'Afficher les messages précédents' })
     ].filter(Boolean)
   );
-  const wi = win > st && win < n ? win : -1;
   let cur = [...w.querySelectorAll(':scope > .m[data-i]')];
   for (const e of cur) {
     const i = +e.dataset.i;
@@ -353,11 +350,6 @@ export function render(sc) {
     f.append(x);
   }
   foot.before(f);
-  w.querySelector(':scope > .lim')?.remove();
-  if (wi > 0)
-    w.querySelector(':scope > .m[data-i="' + wi + '"]')?.before(
-      el('div', { class: 'lim', text: 'l’IA lit à partir d’ici' })
-    );
   for (const e of w.querySelectorAll(':scope > .day')) e.remove();
   let pt = 0;
   for (let i = st; i < n; i++) {
@@ -375,11 +367,6 @@ export function render(sc) {
     cs = lm?.role == 'assistant' && !app.cur.noChoices ? lm.choices || [] : [];
   headDecor(decorNow(ms) || coverOf(app.cur));
   if (LIVE?.id == app.cur.id && $('#live')) liveApply();
-  const av = accentVars(app.cur.accent),
-    ch = $('#chat');
-  for (const k of ['--ac', '--acs', '--act', '--acb', '--on'])
-    if (av) ch.style.setProperty(k, av[k]);
-    else ch.style.removeProperty(k);
   const R = rulesOf(app.cur),
     rq = lm?.role == 'assistant' && askOf(lm.content, R);
   const pr = inScene(ms.slice(-6));
@@ -486,7 +473,6 @@ export function render(sc) {
   tk();
   memRing();
   navView();
-  refreshSpeech();
 }
 // Le d20 arrive en roulant depuis la droite, rebondit et se pose, ses chiffres défilant ; l'issue et le bonus
 // apparaissent ensuite (classe thrown). dt : temps déjà écoulé du lancer. Rien si les animations sont réduites.

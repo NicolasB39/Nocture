@@ -40,7 +40,7 @@ Le workflow génère aussi `index.json` (liste des fichiers de `scenarios/`) à 
 - Protocole de sortie centralisé, conseils de narration communs et préambule commun à tous les scénarios.
 - Modèles proposés dans les champs Modèle : ceux dont le tarif est connu (`js/cost.js`) ; un autre se tape à la main.
 - Compteurs : estimation des tokens envoyés, cache et coût du dernier tour sous la conversation (voir [« Prompt et cache »](docs/technique.md#prompt-et-cache)).
-- Recherche dans la liste, export d'une histoire en `.md`, sauvegarde JSON (clés API exclues) avec rappel tous les 30 jours, synchronisation en ligne sur un dépôt GitHub privé.
+- Recherche dans la liste, sauvegarde JSON (clés API exclues) avec rappel tous les 30 jours, synchronisation en ligne sur un dépôt GitHub privé.
 - Bouton retour du téléphone géré, y compris pour fermer une feuille ouverte depuis la liste, fonctionnement hors ligne : les fichiers des scénarios, images comprises, restent en cache d'une version de l'application à l'autre (400 au plus).
 
 ## Licence

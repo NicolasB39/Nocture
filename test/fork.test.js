@@ -26,7 +26,6 @@ test('chapitres : coupés avec l’histoire, nettoyés au chargement', () => {
 const s = clean({
   id: 'a',
   name: 'Brume',
-  pin: true,
   messages: Array.from({ length: 10 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'm' + i })),
   mem: {
     summary: 'Tout',
@@ -40,7 +39,6 @@ test('la bifurcation garde les messages jusqu’au point choisi inclus', () => {
   const c = forkOf(s, 4, 'Brume (bifurcation)', 'b');
   assert.equal(c.id, 'b');
   assert.equal(c.name, 'Brume (bifurcation)');
-  assert.equal(c.pin, false);
   assert.deepEqual(c.messages.map(m => m.content), ['m0', 'm1', 'm2', 'm3', 'm4']);
 });
 
