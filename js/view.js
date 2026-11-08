@@ -609,7 +609,8 @@ export function newShow(t) {
   b.hidden = false;
 }
 // Flèches de tour : là pendant le défilement et un moment après, puis effacées pour ne pas couvrir le texte qu'on
-// lit. Toucher le fil les rappelle.
+// lit. Toucher le fil les rappelle, comme un vrai défilement ; pas celui que send.js simule à chaque image pendant
+// l'écriture de l'IA, sinon elles couvriraient la réponse qu'on est en train de lire.
 let navT;
 const navWake = () => {
   $('#nav').classList.remove('idle');
@@ -617,9 +618,10 @@ const navWake = () => {
   navT = setTimeout(() => $('#nav').classList.add('idle'), 2500);
 };
 const navView = () => {
-  const f = far();
-  $('#nav').hidden = !f;
-  if (f) navWake();
+  const f = far(),
+    n = $('#nav');
+  if (f && n.hidden) navWake();
+  n.hidden = !f;
   if (!f || !unseen(tail())) $('#newm').hidden = true;
 };
 $('#msgs').addEventListener('pointerdown', () => far() && navWake(), { passive: true });
@@ -628,8 +630,9 @@ $('#msgs').addEventListener('pointerdown', () => far() && navWake(), { passive: 
 // depuis une hauteur réelle : à l'ouverture d'une histoire (fil caché puis montré), la position de lecture reste.
 let atEnd = true,
   h0 = 0;
-$('#msgs').onscroll = () => {
+$('#msgs').onscroll = e => {
   atEnd = !far();
+  if (e.isTrusted && !atEnd) navWake();
   navView();
 };
 new ResizeObserver(([e]) => {

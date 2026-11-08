@@ -186,7 +186,7 @@ $('#md').onclick = async () => {
   showList();
 };
 // Supprimer une histoire : la conversation, sa mémoire et ses réglages. Un scénario GitHub reste dans le dépôt ;
-// celui créé dans l'application n'existe que dans ses histoires, le message le dit.
+// une histoire locale (importée, ou créée par une ancienne version) n'existe que sur l'appareil, le message le dit.
 $('#mx').onclick = async () => {
   $('#mn').close();
   const s = await getOne(app.menuId);
@@ -197,7 +197,7 @@ $('#mx').onclick = async () => {
         'La conversation, sa mémoire et ses réglages sont effacés. ' +
         (s.remote
           ? 'Le scénario « ' + s.folder + ' » n’est pas touché : tant qu’il est dans le dépôt, il reste dans la bibliothèque, prêt pour une nouvelle partie.'
-          : 'Ce scénario a été créé dans l’application : son prompt disparaît avec elle s’il n’a pas d’autre histoire. Pour le garder, lancez d’abord une « Nouvelle partie ».'),
+          : 'Cette histoire ne vient pas d’un scénario GitHub : son prompt disparaît avec elle s’il n’a pas d’autre histoire. Pour le garder, lancez d’abord une « Nouvelle partie ».'),
       ok: 'Supprimer'
     })
   ) {

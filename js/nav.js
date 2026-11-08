@@ -116,21 +116,31 @@ document.addEventListener(
   true
 );
 // Feuilles : tirer leur haut (poignée, titre) vers le bas les ferme ; un geste vif suffit, sans aller jusqu'en bas.
-// Au doigt seulement : à la souris, les feuilles n'ont pas de poignée. Vers le haut, la feuille résiste.
+// Au doigt seulement : à la souris, les feuilles n'ont pas de poignée. Vers le haut, la feuille résiste. Pas sur
+// grand écran, où la fenêtre est centrée (elle se ferme en fondu, pas en glissant), ni depuis le fond assombri.
+const SHEET = matchMedia('(max-width: 639px)');
 document.addEventListener(
   'touchstart',
   e => {
     const d = e.target.closest?.('dialog[open]');
-    if (!d || d.id == 'dpic' || e.touches.length > 1 || d.scrollTop > 0) return;
-    if (e.touches[0].clientY - d.getBoundingClientRect().top > 64) return;
+    if (!d || d.id == 'dpic' || !SHEET.matches || e.touches.length > 1 || d.scrollTop > 0) return;
+    const y = e.touches[0].clientY - d.getBoundingClientRect().top;
+    if (y < 0 || y > 64) return;
     if (e.target.closest('button, input, select, textarea, a, summary, label')) return;
-    const y0 = e.touches[0].clientY,
-      t0 = e.timeStamp;
-    let dy = 0;
+    const y0 = e.touches[0].clientY;
+    // Vitesse au lâcher : celle du dernier mouvement, nulle si le doigt s'est arrêté avant de se lever.
+    let dy = 0,
+      v = 0,
+      ly = y0,
+      lt = e.timeStamp;
     const move = ev => {
       if (ev.touches.length > 1) return;
       ev.preventDefault();
-      dy = ev.touches[0].clientY - y0;
+      const cy = ev.touches[0].clientY;
+      v = (cy - ly) / Math.max(1, ev.timeStamp - lt);
+      ly = cy;
+      lt = ev.timeStamp;
+      dy = cy - y0;
       d.style.transition = 'none';
       d.style.transform = 'translateY(' + (dy > 0 ? dy : -Math.sqrt(-dy)) + 'px)';
     };
@@ -138,10 +148,10 @@ document.addEventListener(
       removeEventListener('touchmove', move);
       removeEventListener('touchend', end);
       removeEventListener('touchcancel', end);
+      if (ev.timeStamp - lt > 100) v = 0;
       // La transition reprend de là où le doigt a lâché : vers le bas pour fermer, sinon retour en place.
       d.style.transition = d.style.transform = '';
-      if (ev.type == 'touchend' && (dy > Math.min(140, d.offsetHeight / 3) || (dy > 24 && dy / (ev.timeStamp - t0) > 0.3)))
-        d.close();
+      if (ev.type == 'touchend' && (dy > Math.min(140, d.offsetHeight / 3) || (dy > 24 && v > 0.3))) d.close();
     };
     addEventListener('touchmove', move, { passive: false });
     addEventListener('touchend', end);

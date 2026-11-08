@@ -820,6 +820,69 @@ try {
     await c3.close();
   });
 
+  await step('téléphone : flèches de tour, clavier ouvert, feuille tirée vers le bas', async () => {
+    const c4 = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block', hasTouch: true, isMobile: true }),
+      p4 = await c4.newPage();
+    watch(p4);
+    await c4.route(base + '/index.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await p4.goto(base + '/index.html');
+    await until(p4, () => window.__started);
+    // Bibliothèque dessinée : la base locale est ouverte.
+    await until(p4, () => document.querySelector('#items').children.length > 0);
+    await p4.evaluate(async () => {
+      const ms = [];
+      for (let i = 0; i < 24; i++)
+        ms.push({ role: i % 2 ? 'assistant' : 'user', content: 'Tour ' + i + '. ' + 'Le vent souffle sur la lande. '.repeat(8), t: Date.now() - (24 - i) * 6e4 });
+      await (await import('/js/store.js')).put({ id: 'tel', name: 'Téléphone', updated: Date.now(), system: 'Narrateur.', avatar: '', messages: ms });
+      await (await import('/js/bus.js')).emit('open', 'tel');
+    });
+    await p4.waitForSelector('#chat:not([hidden])');
+    const nav = () => p4.evaluate(() => !document.querySelector('#nav').hidden && +getComputedStyle(document.querySelector('#nav')).opacity);
+    const gap = () => p4.evaluate(() => { const m = document.querySelector('#msgs'); return m.scrollHeight - m.scrollTop - m.clientHeight; });
+    // Flèches : là au défilement, effacées ensuite ; le défilement simulé pendant l'écriture ne les rappelle pas.
+    await p4.evaluate(() => (document.querySelector('#msgs').scrollTop = 300));
+    await wait(300);
+    assert.ok((await nav()) > 0.8, 'flèches visibles au défilement');
+    await wait(2900);
+    assert.equal(await nav(), 0, 'flèches effacées pendant la lecture');
+    await p4.evaluate(() => document.querySelector('#msgs').dispatchEvent(new Event('scroll')));
+    await wait(300);
+    assert.equal(await nav(), 0, 'le défilement simulé (écriture de l’IA) ne les rappelle pas');
+    await p4.mouse.click(150, 400);
+    await wait(300);
+    assert.ok((await nav()) > 0.8, 'toucher le fil les rappelle');
+    // Clavier ouvert : à la fin du fil, la fin reste en vue.
+    await p4.evaluate(() => (document.querySelector('#msgs').scrollTop = 1e6));
+    await wait(200);
+    await p4.setViewportSize({ width: 390, height: 460 });
+    await wait(300);
+    assert.ok((await gap()) < 5, 'clavier ouvert : la fin reste en vue');
+    await p4.setViewportSize({ width: 390, height: 800 });
+    await wait(300);
+    // Feuille : tirée depuis sa poignée, elle se ferme ; un geste parti du fond assombri ne la touche pas.
+    const cdp = await c4.newCDPSession(p4),
+      touch = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type == 'touchEnd' ? [] : [{ x: 195, y }] }),
+      drag = async (from, dist) => {
+        await touch('touchStart', from);
+        for (let i = 1; i <= 10; i++) {
+          await touch('touchMove', from + (dist * i) / 10);
+          await wait(30);
+        }
+        await touch('touchEnd');
+        await wait(450);
+      },
+      top = () => p4.evaluate(() => document.querySelector('#dmn').getBoundingClientRect().top),
+      isOpen = () => p4.evaluate(() => document.querySelector('#dmn').open);
+    await p4.click('#mo');
+    await wait(500);
+    await drag((await top()) - 30, 260);
+    assert.ok(await isOpen(), 'geste parti du fond : la feuille reste');
+    await drag((await top()) + 12, 260);
+    assert.ok(!(await isOpen()), 'tirée depuis la poignée : la feuille se ferme');
+    assert.ok(await p4.evaluate(() => !history.state?.d), 'pas d’entrée d’historique orpheline');
+    await c4.close();
+  });
+
   assert.deepEqual(errors, []);
   console.log('tous les tests de bout en bout sont passés');
 } catch (e) {

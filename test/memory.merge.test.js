@@ -82,12 +82,17 @@ test('souvenirs d’un personnage : son nom en mot entier, sans accents ni casse
   assert.deepEqual(memsOf(M, 'Ines'), [M[1]]);
   assert.deepEqual(memsOf(M, 'Brindille'), []);
   assert.deepEqual(memsOf(undefined, 'Sera'), []);
+  // Nom composé : le titre ne suffit pas.
+  const D = ['La dame du péage a menti.', 'Isaure a payé le passeur.'];
+  assert.deepEqual(memsOf(D, 'Dame Isaure'), [D[1]]);
 });
 
 test('chapitre clos : le résumé principal repart de la Situation actuelle', () => {
   const r = 'Événements : J+0, Buena paie Orbec.' + '\n\n' + 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.';
   assert.equal(situationOf(r), 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.');
   assert.equal(situationOf('Événements : x.' + '\n' + '**Situation actuelle** : y.'), '**Situation actuelle** : y.');
+  // Tout sur une ligne : coupé au début de la phrase.
+  assert.equal(situationOf('Événements : Buena paie. Situation actuelle : Buena attend.'), 'Situation actuelle : Buena attend.');
   // Déjà réduit, ou sans repère : inchangé.
   assert.equal(situationOf('Situation actuelle : y.'), 'Situation actuelle : y.');
   assert.equal(situationOf('Buena attend devant le Hall B.'), 'Buena attend devant le Hall B.');

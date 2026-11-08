@@ -20,15 +20,19 @@ const key = s =>
 const parts = s => key(s).split(' ').filter(Boolean);
 const words = s => new Set(parts(s).filter(w => w.length > 3));
 // Souvenirs qui citent un personnage (fenêtre Personnages) : un mot de son nom, entier, accents et casse ignorés.
+// Les titres et articles d'un nom composé (« Dame Isaure », « Le Chevalier ») ne comptent pas : « la dame du
+// péage » n'est pas Isaure.
+const TITRES = new Set('les des dame sire messire maitre frere soeur pere mere capitaine professeur docteur madame monsieur mademoiselle'.split(' '));
 export const memsOf = (mems, name) => {
-  const N = parts(name).filter(w => w.length > 2);
+  const N = parts(name).filter(w => w.length > 2 && !TITRES.has(w));
   return N.length ? (mems || []).filter(m => parts(m).some(w => N.includes(w))) : [];
 };
 // Chapitre clos : le résumé principal repart de sa Situation actuelle (fils en suspens compris). Le modèle garde
 // parfois aussi ses Événements, déjà racontés par le résumé du chapitre, et le prompt les enverrait deux fois.
+// Le repère est cherché en début de ligne ou de phrase : le modèle n'en fait pas toujours un paragraphe.
 export const situationOf = t => {
-  const m = t.match(/(^|\n)[\s*#_]*Situation actuelle\b/i);
-  return m ? t.slice(m.index).trim() : t;
+  const m = t.match(/(^|\n|[.!?…»]\s+)[\s*#_]*Situation actuelle\b/i);
+  return m ? t.slice(m.index + m[1].length).trim() : t;
 };
 
 export const sameName = (a, b) => {
