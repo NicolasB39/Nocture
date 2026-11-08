@@ -104,7 +104,8 @@ test('début de séance : la mémoire avance jusqu’à 40 messages gardés, un 
     fmt = JSON.parse(o.body).output_config?.format;
     const n = (JSON.parse(o.body).messages.at(-1).content.match(/^\d+\. /gm) || []).length;
     const t = JSON.stringify({
-      resume: 'Résumé ' + calls,
+      evenements: 'Résumé ' + calls,
+      situation: 'Ici.',
       souvenirs: [' Un fait. '],
       relations: [{ nom: 'Alice', relation: 'amie' }],
       lignes: Array.from({ length: n }, (_, i) => 'ligne ' + i),
@@ -155,7 +156,8 @@ test('chapitres : clos par le modèle à partir de 60 messages, jamais avant ; c
       n = (c.match(/^\d+\. Joueur|^\d+\. Narrateur/gm) || []).length;
     asked.push(c.match(/Chapitre en cours : .*/)[0]);
     const t = JSON.stringify({
-      resume: 'Situation',
+      evenements: 'Tout ce qui précède.',
+      situation: 'Situation',
       souvenirs: [],
       relations: [],
       lignes: Array.from({ length: n }, () => 'l'),
@@ -244,7 +246,7 @@ test('mémoire : une réponse coupée ou un résumé vide laissent la mémoire i
     globalThis.fetch = async () =>
       new Response(
         JSON.stringify({
-          content: [{ type: 'text', text: stop == 'max_tokens' ? '{"resume":"' + resume : JSON.stringify({ resume, souvenirs: [], relations: [], lignes: [] }) }],
+          content: [{ type: 'text', text: stop == 'max_tokens' ? '{"evenements":"' + resume : JSON.stringify({ evenements: resume, situation: resume, souvenirs: [], relations: [], lignes: [] }) }],
           stop_reason: stop,
           usage: { input_tokens: 900, output_tokens: 200 }
         }),

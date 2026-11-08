@@ -63,11 +63,36 @@ export const looseChoices = t => {
   if (before.length && before.at(-1).trim()) return null;
   return { content: before.join('\n').trim(), choices: c };
 };
+// Choix recopiés en fin de récit alors que le bloc <choix> les donne aussi : la liste numérotée qui les répète est
+// retirée du texte, avec sa ligne d'annonce (« Vos options : »), pour ne pas les afficher deux fois. Une ligne de la
+// liste compte si elle reprend le début d'un choix, ou si elle a la forme d'une action du joueur (« Je », « J' »,
+// guillemets) ; il en faut au moins deux, et pas plus que de choix plus un.
+const ck = t => nz(t).replace(/[^a-z0-9]+/g, '').slice(0, 16);
+export const dropDup = (t, choices) => {
+  const ls = t.trimEnd().split('\n'),
+    K = choices.map(ck);
+  let i = ls.length,
+    n = 0;
+  while (i > 0) {
+    const l = ls[i - 1];
+    if (!l.trim()) {
+      i--;
+      continue;
+    }
+    const m = l.match(/^\s*[-*]?\s*\**\d[.)]\**\s+(\S.*)$/);
+    if (!m || !(K.includes(ck(m[1])) || /^[*_]*(«|"|je\b|j['’])/i.test(m[1]))) break;
+    n++;
+    i--;
+  }
+  if (n < 2 || n > choices.length + 1) return t;
+  if (i > 0 && /:\s*[*_]*$/.test(ls[i - 1]) && ls[i - 1].trim().length < 60) i--;
+  return ls.slice(0, i).join('\n').trim();
+};
 export const split = raw => {
   const o = { content: raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim() },
     c = choicesOf(raw),
     s = parseEtat(raw);
-  if (c.length) o.choices = c;
+  if (c.length) Object.assign(o, { choices: c, content: dropDup(o.content, c) });
   else Object.assign(o, looseChoices(o.content));
   if (s.length) o.state = s;
   return o;

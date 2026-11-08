@@ -19,12 +19,15 @@ const key = s =>
     .trim();
 const parts = s => key(s).split(' ').filter(Boolean);
 const words = s => new Set(parts(s).filter(w => w.length > 3));
-// Chapitre clos : le résumé principal repart de sa Situation actuelle (fils en suspens compris). Le modèle garde
-// parfois aussi ses Événements, déjà racontés par le résumé du chapitre, et le prompt les enverrait deux fois.
-// Le repère est cherché en début de ligne ou de phrase : le modèle n'en fait pas toujours un paragraphe.
-export const situationOf = t => {
-  const m = t.match(/(^|\n|[.!?…»]\s+)[\s*#_]*Situation actuelle\b/i);
-  return m ? t.slice(m.index + m[1].length).trim() : t;
+// Résumé principal, assemblé à partir des deux champs de la mémoire : les Événements du chapitre en cours, puis la
+// Situation actuelle (fils en suspens compris). Un chapitre qui se clôt emporte ses Événements dans son propre
+// résumé : il ne reste que la Situation. Chaque partie a sa place réservée, pour qu'une coupe ne mange jamais la
+// Situation ; un intertitre écrit par le modèle malgré la consigne est retiré.
+const bare = t => String(t || '').trim().replace(/^[\s*#_]*(?:événements|situation(?: actuelle)?)[\s*_]*:\s*/i, '');
+export const summaryOf = (ev, sit, clos) => {
+  const s = clip(bare(sit), 500),
+    e = clos ? '' : clip(bare(ev), SUM_MAX - 540);
+  return [e && 'Événements : ' + e, s && 'Situation actuelle : ' + s].filter(Boolean).join('\n\n');
 };
 
 export const sameName = (a, b) => {

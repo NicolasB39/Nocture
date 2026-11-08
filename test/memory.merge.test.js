@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mergeMem, mergeRel, near, sameName, situationOf } from '../js/memory.js';
+import { mergeMem, mergeRel, near, sameName, summaryOf } from '../js/memory.js';
 
 test('sameName rapproche les variantes d’un même nom', () => {
   assert.ok(sameName('Alice', 'alice'));
@@ -76,13 +76,13 @@ test('les accents ne créent pas de doublon de souvenir, la formulation récente
   assert.deepEqual(mergeMem(['La fiôle est vérte'], ['la fiole est verte']), ['la fiole est verte']);
 });
 
-test('chapitre clos : le résumé principal repart de la Situation actuelle', () => {
-  const r = 'Événements : J+0, Buena paie Orbec.' + '\n\n' + 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.';
-  assert.equal(situationOf(r), 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.');
-  assert.equal(situationOf('Événements : x.' + '\n' + '**Situation actuelle** : y.'), '**Situation actuelle** : y.');
-  // Tout sur une ligne : coupé au début de la phrase.
-  assert.equal(situationOf('Événements : Buena paie. Situation actuelle : Buena attend.'), 'Situation actuelle : Buena attend.');
-  // Déjà réduit, ou sans repère : inchangé.
-  assert.equal(situationOf('Situation actuelle : y.'), 'Situation actuelle : y.');
-  assert.equal(situationOf('Buena attend devant le Hall B.'), 'Buena attend devant le Hall B.');
+test('résumé principal : Événements puis Situation, la Situation seule à la clôture d’un chapitre', () => {
+  assert.equal(summaryOf('Buena paie Orbec.', 'Buena attend. Fils en suspens : tenue chez Orbec.'), 'Événements : Buena paie Orbec.' + '\n\n' + 'Situation actuelle : Buena attend. Fils en suspens : tenue chez Orbec.');
+  assert.equal(summaryOf('Buena paie Orbec.', 'Buena attend.', true), 'Situation actuelle : Buena attend.');
+  // Intertitre recopié par le modèle malgré la consigne : retiré.
+  assert.equal(summaryOf('**Événements** : x.', 'Situation actuelle : y.'), 'Événements : x.' + '\n\n' + 'Situation actuelle : y.');
+  // Événements trop longs : coupés, la Situation garde sa place.
+  const r = summaryOf('Une phrase longue. '.repeat(120), 'Buena attend.');
+  assert.ok(r.length <= 1400 && r.endsWith('Situation actuelle : Buena attend.'), r.length);
+  assert.equal(summaryOf('  ', '  '), '');
 });

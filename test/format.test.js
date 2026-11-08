@@ -124,3 +124,25 @@ test('choix sans balise <choix> : rattrapés en fin de récit, jamais une liste 
   assert.equal(c.messages[0].choices.length, 3);
   assert.equal(c.messages[0].content, '*Cendrine referme la main sur la manche.*');
 });
+
+test('choix recopiés dans le récit en plus du bloc <choix> : la liste du récit est retirée', async () => {
+  const { split, dropDup } = await import('../js/format.js');
+  const { clean } = await import('../js/store.js');
+  const B = '<choix>\n1. *Je descends sonder le passage.*\n2. « On campe ici. »\n3. *Je demande à Berthe.*\n</choix>';
+  const t = '*Le soir tombe sur la rivière.*\n\n**Vos options :**\n\n1. **Je descends sonder le passage.**\n2. « On campe ici. »\n3. *Je demande à Berthe.*';
+  const s = split(t + '\n\n' + B);
+  assert.equal(s.content, '*Le soir tombe sur la rivière.*');
+  assert.equal(s.choices.length, 3);
+  // Paraphrasés mais en forme d'actions du joueur, séparés par des lignes vides : retirés aussi.
+  assert.equal(
+    split('Récit.\n\n1. *Je sonde le gué.*\n\n2. *J’installe le camp.*\n\n3. « Berthe ? »\n\n' + B).content,
+    'Récit.'
+  );
+  // Une liste du récit (lettre, inventaire) reste : ni reprise des choix, ni action du joueur.
+  assert.equal(split('La lettre dit :\n\n1. Payer la dette.\n2. Quitter la ville.\n\n' + B).content, 'La lettre dit :\n\n1. Payer la dette.\n2. Quitter la ville.');
+  // Une seule ligne numérotée : laissée.
+  assert.equal(dropDup('Récit.\n\n1. *Je pars.*', ['*Je pars.*', 'Rester']), 'Récit.\n\n1. *Je pars.*');
+  // Réponse déjà enregistrée en double : corrigée au chargement.
+  const c = clean({ id: 'd', messages: [{ role: 'assistant', content: t, choices: ['*Je descends sonder le passage.*', '« On campe ici. »', '*Je demande à Berthe.*'] }] });
+  assert.equal(c.messages[0].content, '*Le soir tombe sur la rivière.*');
+});

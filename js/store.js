@@ -1,7 +1,7 @@
 import { S, app, playerName } from './state.js';
 import { LS, plain, uid } from './util.js';
 import { REL_MAX, cutChapters, cutLines } from './memory.js';
-import { looseChoices } from './format.js';
+import { dropDup, looseChoices } from './format.js';
 
 let db;
 // Fiche du personnage (mode jeu de rôle) : un bonus entier par caractéristique, dans des bornes larges ; la fiche
@@ -17,8 +17,9 @@ const one = m => {
   const r = { role: m.role, content: m.content },
     c = (Array.isArray(m.choices) ? m.choices : []).filter(x => typeof x == 'string').slice(0, 3),
     t = (Array.isArray(m.state) ? m.state : []).filter(e => Array.isArray(e) && e.length == 2).slice(0, 12);
-  if (c.length) r.choices = c;
-  // Réponse enregistrée avant le rattrapage des choix sans balise (looseChoices) : corrigée au chargement.
+  // Réponse enregistrée avant ces corrections : choix recopiés dans le récit (dropDup) ou écrits sans balise
+  // (looseChoices), corrigée au chargement.
+  if (c.length) Object.assign(r, { choices: c, content: m.role == 'assistant' ? dropDup(r.content, c) : r.content });
   else if (m.role == 'assistant') Object.assign(r, looseChoices(r.content));
   if (t.length) r.state = t;
   return r;

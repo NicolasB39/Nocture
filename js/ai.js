@@ -1,7 +1,7 @@
 import { HAIKU_LONG, LONG } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
-import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, situationOf, unnum } from './memory.js';
+import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { emit } from './bus.js';
@@ -372,18 +372,20 @@ export const waitMsg = (w, why) =>
   ' s…';
 const SUMJ =
   "Tu mets à jour la mémoire d'une histoire interactive. Écris en français.\n" +
-  "- resume : récit condensé et mis à jour du chapitre en cours (toute l'histoire depuis le dernier chapitre clos), 1200 caractères maximum, en deux parties (Événements, Situation actuelle) ; la Situation actuelle nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver) ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
+  "- evenements : récit condensé et mis à jour du chapitre en cours (toute l'histoire depuis le dernier chapitre clos), 850 caractères maximum, sans intertitre ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
+  '- situation : où en est le joueur maintenant, point de départ du prochain tour, 450 caractères maximum, sans intertitre ; nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver).\n' +
   '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
   "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.\n" +
   "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.\n" +
-  "- chapitre (seulement quand il est demandé) : clos vaut true si ces messages terminent un arc ou en ouvrent un nouveau (lieu quitté pour de bon, quête achevée ou nouvelle, ellipse) : un arc fini plus tôt dans le chapitre ne se représentera pas. titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier, et le resume principal ne garde que la Situation actuelle, fils en suspens compris, point de départ du chapitre suivant. Sinon clos vaut false, titre et resume vides.";
+  "- chapitre (seulement quand il est demandé) : clos vaut true si ces messages terminent un arc ou en ouvrent un nouveau (lieu quitté pour de bon, quête achevée ou nouvelle, ellipse) : un arc fini plus tôt dans le chapitre ne se représentera pas. titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier ; seule la situation ouvre le chapitre suivant. Sinon clos vaut false, titre et resume vides.";
 // Réponse de la mémoire, garantie conforme par l'API (sorties structurées). Le champ chapitre n'existe que si
-// le chapitre en cours est assez long pour être clos : un modèle qui le clôturerait trop tôt ne ramènerait
-// pas pour autant le résumé principal à la seule Situation actuelle.
+// le chapitre en cours est assez long pour être clos. Le résumé principal est en deux champs, assemblés par
+// summaryOf (memory.js) : à la clôture, l'application ne garde que la situation, sans dépendre du modèle.
 const SCHEMA = ch => ({
   type: 'object',
   properties: {
-    resume: { type: 'string' },
+    evenements: { type: 'string' },
+    situation: { type: 'string' },
     souvenirs: { type: 'array', items: { type: 'string' } },
     relations: {
       type: 'array',
@@ -404,7 +406,7 @@ const SCHEMA = ch => ({
       }
     })
   },
-  required: ['resume', 'souvenirs', 'relations', 'lignes', ...(ch ? ['chapitre'] : [])],
+  required: ['evenements', 'situation', 'souvenirs', 'relations', 'lignes', ...(ch ? ['chapitre'] : [])],
   additionalProperties: false
 });
 // RUN : histoires dont la mémoire est en train d'avancer (jauge du bouton Envoyer, annoncée par « mem »).
@@ -533,8 +535,9 @@ async function sumRun(s, start) {
       if (cut) throw new Error('réponse coupée par la longueur maximale');
       const j = JSON.parse(t),
         list = a => a.map(x => x.trim()).filter(Boolean);
-      if (!j.resume.trim()) throw new Error('résumé vide');
-      const ch = k >= CH_MIN && j.chapitre;
+      const ch = k >= CH_MIN && j.chapitre,
+        sum = summaryOf(j.evenements, j.situation, ch?.clos);
+      if (!sum) throw new Error('résumé vide');
       // Clos sans résumé, le chapitre perdrait ses Événements, déjà retirés du résumé principal.
       if (ch?.clos && !ch.resume.trim()) throw new Error('chapitre clos sans résumé');
       if (ch?.clos)
@@ -542,7 +545,7 @@ async function sumRun(s, start) {
           ...chs,
           { t: ch.titre.trim() || 'Chapitre ' + (chs.length + 1), s: clip(ch.resume.trim(), CH_SUM), upto: s.mem.upto + parts.length }
         ];
-      s.mem.summary = clip((ch?.clos ? situationOf(j.resume) : j.resume).trim(), SUM_MAX);
+      s.mem.summary = sum;
       s.mem.memories = mergeMem(s.mem.memories, list(j.souvenirs));
       s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), keep);
       addLines(s, list(j.lignes), parts.length);
