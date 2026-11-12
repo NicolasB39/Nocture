@@ -1,6 +1,6 @@
 import { rulesOf } from './dice.js';
 import { lastEtat } from './format.js';
-import { CH_FULL, SUM_MAX, clip, sameName } from './memory.js';
+import { CH_FULL, SUM_KEEP, SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, protocol } from './protocol.js';
 import { recall, recallTag } from './recall.js';
 import { S, ctx, playerName } from './state.js';
@@ -145,7 +145,11 @@ export function buildInfo(s, cont, hint) {
   ];
   sys = blocks.map(b => b.text).join('');
 
-  const start = Math.min(s.mem.upto, s.messages.length);
+  // Toujours SUM_KEEP messages mot pour mot : une coupe dans la zone déjà résumée (bifurcation, suppression,
+  // tour modifié) ramène upto au nombre de messages, qui partiraient sinon sans aucun historique. Le début recule
+  // alors par paliers de 20 depuis upto, pour ne rater le cache des messages qu'une fois tous les 10 tours.
+  const lack = s.mem.upto - (s.messages.length - SUM_KEEP),
+    start = Math.max(0, lack > 0 ? s.mem.upto - Math.ceil(lack / 20) * 20 : s.mem.upto);
   const ms = s.messages.slice(start).map(m => ({ role: m.role, content: m.content }));
   if (cont)
     ms.push({

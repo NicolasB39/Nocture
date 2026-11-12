@@ -303,7 +303,8 @@ $('#des').onclick = async () => {
     i = app.editI,
     m = c.messages[i],
     // Seule l'application lance les dés : un résultat ajouté à une réponse du narrateur est retiré, comme à la réception.
-    p = split(m.role == 'assistant' ? noRolls($('#et').value) : $('#et').value),
+    // Un tour du joueur reste tel quel (ni choix ni état à mettre à part).
+    p = m.role == 'assistant' ? split(noRolls($('#et').value), !c.noChoices) : { content: $('#et').value },
     old = m.content !== p.content && i < c.mem.upto;
   setBody(m, p);
   if (m.alts) m.alts[m.ai] = p;

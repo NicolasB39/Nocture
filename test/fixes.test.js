@@ -36,11 +36,10 @@ test('les choix demandent un geste entre astérisques puis la réplique', () => 
   assert.match(protocol({ choices: true }), /\*un geste\*/);
 });
 
-test('l’import plafonne les relations à REL_MAX en gardant les plus récentes', () => {
+test('le chargement garde toutes les relations (mergeRel les plafonne, sauf les personnages à fiche)', () => {
   const rel = Object.fromEntries(Array.from({ length: 20 }, (_, i) => ['P' + i, 'x']));
   const r = clean({ id: 'r', messages: [], mem: { relations: rel } });
-  assert.equal(Object.keys(r.mem.relations).length, 12);
-  assert.ok('P19' in r.mem.relations);
+  assert.equal(Object.keys(r.mem.relations).length, 20);
 });
 
 test('settled fige les paragraphes terminés, jamais une balise ni une image coupée', () => {

@@ -62,6 +62,8 @@ test('le bloc nomme le joueur et prévient que les passages peuvent dater', () =
 
 test('buildInfo joint le passage au dernier message, jamais au prompt système', () => {
   const ms = story();
+  // Au moins SUM_KEEP messages après la partie résumée, toujours envoyés tels quels.
+  for (let i = 0; i < 40; i++) ms.push({ role: i % 2 ? 'assistant' : 'user', content: 'suite ' + i });
   ms.push({ role: 'user', content: 'Je montre le pendentif à Mirelle.' });
   const s = clean({ id: 's', name: 'S', system: 'SYS', noChoices: true, messages: ms, mem: { upto: 10 } });
   const r = buildInfo(s);

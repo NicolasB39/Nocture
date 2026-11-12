@@ -2,7 +2,7 @@ import { HAIKU_LONG, LONG } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { choiceMark } from './format.js';
-import { CH_MAX, CH_MIN, CH_SUM, SUM_MAX, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
+import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, SUM_MAX, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { emit } from './bus.js';
@@ -13,7 +13,7 @@ import { $, bare, err, LS } from './util.js';
 // le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
 // cache a expiré et sera réécrit de toute façon, elle part dès SUM_START (sessionSum, send.js), avant le premier
 // envoi, qui écrit alors directement le prompt raccourci.
-export const SUM_KEEP = 40;
+export { SUM_KEEP };
 export const SUM_PLAY = 120;
 export const SUM_START = 50;
 export const sumGate = (u, go, hi = SUM_PLAY) => u >= hi || (go && u > SUM_KEEP);
@@ -420,25 +420,26 @@ const LINES_MAX = 24;
 // Histoire ouverte : on l'enregistre telle quelle, une copie relue en base pourrait dater d'avant la
 // réponse que l'envoi est en train d'enregistrer. Pendant un tour, rien : la mémoire est sur le même objet
 // et la fin du tour l'enregistrera (Régénérer a retiré la réponse en mémoire seulement, l'enregistrer ici
-// la perdrait). Histoire fermée : seulement si la base n'a pas changé depuis (synchronisation).
+// la perdrait). Histoire fermée : seulement si la base n'a pas changé depuis (synchronisation). Rend false si
+// rien n'a pu être enregistré : la mise à jour s'arrête au lieu de payer des lots perdus.
 const persist = async s => {
   if (app.cur?.id == s.id) {
     app.cur.mem = s.mem;
     if (!app.busy) await save(app.cur);
-    return;
+    return true;
   }
   const f = await getOne(s.id);
-  if (f && f.updated === s.updated) {
-    f.mem = s.mem;
-    await save(f);
-    s.updated = f.updated;
-  }
+  if (!f || f.updated !== s.updated) return false;
+  f.mem = s.mem;
+  await save(f);
+  s.updated = f.updated;
+  return true;
 };
 const addLines = (s, ln, n) => {
   if (ln.length)
     s.mem.lines = [
       ...(s.mem.lines || []),
-      ...ln.map((t, k) => ({ i: ln.length == n ? s.mem.upto + k : -1, t: unnum(t) }))
+      ...ln.map((t, k) => (ln.length == n ? { i: s.mem.upto + k, t: unnum(t) } : { i: -1, u: s.mem.upto + n - 1, t: unnum(t) }))
     ].slice(-LINES_MAX);
 };
 // Instantané d'un lot de n messages à résumer. Pendant l'appel, le joueur peut supprimer ou modifier un
@@ -460,10 +461,19 @@ export const batchGuard = (s, n) => {
 };
 // Une seule mise à jour à la fois par histoire ; un second appel rend celle en cours, que l'envoi peut attendre.
 // start : début de séance, la mémoire avance dès SUM_START messages en attente.
+// Histoire quittée : rien, la mémoire repartira à sa prochaine ouverture (ses personnages à fiche, connus
+// seulement histoire ouverte, ne seraient pas protégés). Histoire rouverte pendant une mise à jour (nouvel objet,
+// dont l'ancienne abandonnera le résultat) : la nouvelle part après elle.
 export function summarize(s, start = false) {
-  if (!s) return Promise.resolve();
-  if (!SUMS.has(s.id)) SUMS.set(s.id, sumRun(s, start).finally(() => SUMS.delete(s.id)));
-  return SUMS.get(s.id);
+  if (!s || app.cur !== s) return Promise.resolve();
+  const r = SUMS.get(s.id);
+  if (r?.s === s) return r.p;
+  const p = Promise.resolve(r?.p)
+    .catch(() => {})
+    .then(() => sumRun(s, start))
+    .finally(() => SUMS.get(s.id)?.p === p && SUMS.delete(s.id));
+  SUMS.set(s.id, { s, p });
+  return p;
 }
 async function sumRun(s, start) {
   // État de la mémoire dans la bande #err : seulement si elle est vide ou porte encore notre message, pour ne
@@ -554,7 +564,7 @@ async function sumRun(s, start) {
       s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), keep);
       addLines(s, list(j.lignes), parts.length);
       s.mem.upto += parts.length;
-      await persist(s);
+      if (!(await persist(s))) break;
       emit('mem');
     }
     if (said && mine()) err('');

@@ -150,7 +150,7 @@ export async function ask(old, cont, hint) {
     const out = r.t;
     cut = r.cut;
     part = !!r.partial;
-    const p2 = split(out);
+    const p2 = split(out, !s.noChoices);
     p2.content = noRolls(p2.content);
     // Rien à raconter (réponse arrêtée juste après l'annonce du lieu, ou réduite à l'état) : un message vide
     // ferait refuser les tours suivants. Échec, avec Réessayer, et l'ancienne réponse remise en place.

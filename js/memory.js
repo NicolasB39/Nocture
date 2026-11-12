@@ -10,6 +10,9 @@ export const CH_MIN = 60;
 export const CH_MAX = 200;
 export const CH_SUM = 700;
 export const CH_FULL = 12;
+// Messages gardés mot pour mot par la mémoire (ai.js), et toujours envoyés tels quels au narrateur (prompt.js),
+// même juste après une coupe dans la zone déjà résumée.
+export const SUM_KEEP = 40;
 // Premier message du chapitre en cours : la fin du dernier chapitre clos.
 export const chStart = mem => Math.min(mem.chapters?.at(-1)?.upto || 0, mem.upto);
 
@@ -30,11 +33,16 @@ export const summaryOf = (ev, sit, clos) => {
   return [e && 'Événements : ' + e, s && 'Situation actuelle : ' + s].filter(Boolean).join('\n\n');
 };
 
+const TITLE = /^(roi|reine|prince|princesse|duc|duchesse|comte|comtesse|vicomte|vicomtesse|marquis|marquise|baron|baronne|dame|sire|seigneur|chevalier)$/;
 export const sameName = (a, b) => {
   const A = parts(a),
     B = parts(b);
   if (!A.length || !B.length) return false;
   const [x, y] = A.length <= B.length ? [A, B] : [B, A];
+  // « La mère de Lena » n'est pas Lena ; « Marquise de Merteuil » ou « La marquise de Merteuil » reste Merteuil.
+  const i = y.findIndex(w => x.includes(w));
+  if (/^(la|le|les|l|un|une)$/.test(y[0]) && i > 1 && /^(de|du|des|d)$/.test(y[i - 1]) && !TITLE.test(y[i - 2]))
+    return false;
   return x.every(w => y.includes(w));
 };
 
@@ -83,13 +91,16 @@ export function mergeMem(cur = [], inc = [], max = MEM_MAX) {
     const t = String(raw).trim();
     if (!t) continue;
     const i = out.findIndex(x => near(x, t));
+    // « Alice a quitté la ville. » n'efface pas « Alice a quitté la ville avec la carte volée. » qui le contient.
+    const v = i >= 0 && key(out[i]) !== key(t) && key(out[i]).includes(key(t)) ? out[i] : t;
     if (i >= 0) out.splice(i, 1);
-    out.push(t);
+    out.push(v);
   }
   return out.slice(-max);
 }
 
-export const cutLines = (lines, i) => (lines || []).filter(l => l.i < i);
+// Une ligne sans lien (le modèle a rendu moins de lignes que de messages) tombe avec le dernier message de son lot (u).
+export const cutLines = (lines, i) => (lines || []).filter(l => (l.i >= 0 ? l.i : (l.u ?? -1)) < i);
 // Chapitres d'une histoire coupée au message i : ceux qui commencent après disparaissent, celui qui contient i
 // finit en i (son résumé, comme celui de la mémoire, garde la trace de la suite).
 export const cutChapters = (C, i) =>

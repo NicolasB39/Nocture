@@ -1,6 +1,6 @@
 import { S, app, playerName } from './state.js';
 import { LS, plain, uid } from './util.js';
-import { REL_MAX, cutChapters, cutLines } from './memory.js';
+import { cutChapters, cutLines } from './memory.js';
 import { dropDup, looseChoices } from './format.js';
 
 let db;
@@ -13,14 +13,14 @@ const sheet = v => {
   return o;
 };
 // Un message ou une variante : texte, et choix et état déjà mis à part à l'enregistrement (split, format.js).
-const one = m => {
+const one = (m, loose) => {
   const r = { role: m.role, content: m.content },
     c = (Array.isArray(m.choices) ? m.choices : []).filter(x => typeof x == 'string').slice(0, 3),
     t = (Array.isArray(m.state) ? m.state : []).filter(e => Array.isArray(e) && e.length == 2).slice(0, 12);
   // Réponse enregistrée avant ces corrections : choix recopiés dans le récit (dropDup) ou écrits sans balise
   // (looseChoices), corrigée au chargement.
   if (c.length) Object.assign(r, { choices: c, content: m.role == 'assistant' ? dropDup(r.content, c) : r.content });
-  else if (m.role == 'assistant') Object.assign(r, looseChoices(r.content));
+  else if (m.role == 'assistant' && loose) Object.assign(r, looseChoices(r.content));
   if (t.length) r.state = t;
   return r;
 };
@@ -31,10 +31,10 @@ export const clean = x => {
   const messages = x.messages
     .filter(m => m && (m.role == 'user' || m.role == 'assistant') && typeof m.content == 'string')
     .map((m, i, all) => {
-      const r = one(m);
+      const r = one(m, !x.noChoices);
       if (Number.isFinite(+m.t) && +m.t > 0) r.t = +m.t;
       const a = Array.isArray(m.alts) && i == all.length - 1
-        ? m.alts.map(v => (v && typeof v.content == 'string' ? one({ ...v, role: m.role }) : null))
+        ? m.alts.map(v => (v && typeof v.content == 'string' ? one({ ...v, role: m.role }, !x.noChoices) : null))
         : null;
       if (a && a.length > 1 && a.every(Boolean)) {
         r.alts = a.map(({ role, ...rest }) => rest);
@@ -44,8 +44,9 @@ export const clean = x => {
     });
   const mm = x.mem || {};
   const rel = {};
+  // Pas de plafond ici : mergeRel le tient, sans jamais écarter un personnage à fiche.
   if (mm.relations && typeof mm.relations == 'object')
-    for (const k of Object.keys(mm.relations).slice(-REL_MAX))
+    for (const k of Object.keys(mm.relations))
       if (typeof mm.relations[k] == 'string') rel[k] = mm.relations[k];
   return {
     id: x.id,
@@ -75,7 +76,7 @@ export const clean = x => {
       lines: Array.isArray(mm.lines)
         ? mm.lines
             .filter(v => v && typeof v.t == 'string')
-            .map(v => ({ i: 0 | v.i, t: v.t }))
+            .map(v => ({ i: 0 | v.i, ...(Number.isFinite(+v.u) && v.u !== null ? { u: 0 | v.u } : {}), t: v.t }))
             .slice(-24)
         : [],
       relations: rel,

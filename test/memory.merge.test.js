@@ -102,3 +102,23 @@ test('résumé principal : Événements puis Situation, la Situation seule à la
   assert.ok(r.length <= 1400 && r.endsWith('Situation actuelle : Buena attend.'), r.length);
   assert.equal(summaryOf('  ', '  '), '');
 });
+
+test('relecture Fable : noms imbriqués, souvenir plus riche, lignes sans lien', async () => {
+  const { sameName, mergeMem, cutLines } = await import('../js/memory.js');
+  // « La mère de Lena » n'est pas Lena ; un titre sans article reste la même personne.
+  assert.ok(!sameName('Lena', 'La mère de Lena'));
+  assert.ok(sameName('Merteuil', 'Marquise de Merteuil'));
+  assert.ok(sameName('Merteuil', 'La marquise de Merteuil'));
+  assert.deepEqual(mergeRel({ 'La mère de Lena': 'hostile' }, { Lena: 'amoureuse' }), { 'La mère de Lena': 'hostile', Lena: 'amoureuse' });
+  // Un souvenir plus court contenu dans l'ancien ne l'efface pas.
+  const long = 'Alice a quitté la ville avec la carte du trésor volée au joueur.';
+  assert.deepEqual(mergeMem([long], ['Alice a quitté la ville']), [long]);
+  // Une ligne sans lien tombe avec le dernier message de son lot.
+  const L = [{ i: 3, t: 'a' }, { i: -1, u: 9, t: 'b' }, { i: -1, t: 'c' }];
+  assert.deepEqual(cutLines(L, 8).map(l => l.t), ['a', 'c']);
+  assert.deepEqual(cutLines(L, 10).map(l => l.t), ['a', 'b', 'c']);
+  // u survit au rechargement.
+  const { clean } = await import('../js/store.js');
+  const r = clean({ id: 'x', messages: [], mem: { lines: L } });
+  assert.deepEqual(cutLines(r.mem.lines, 8).map(l => l.t), ['a', 'c']);
+});

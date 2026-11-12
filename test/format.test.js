@@ -155,3 +155,16 @@ test('choix recopiés dans le récit en plus du bloc <choix> : la liste du réci
   const c = clean({ id: 'd', messages: [{ role: 'assistant', content: t, choices: ['*Je descends sonder le passage.*', '« On campe ici. »', '*Je demande à Berthe.*'] }] });
   assert.equal(c.messages[0].content, '*Le soir tombe sur la rivière.*');
 });
+
+test('relecture Fable : inscriptions gardées, pas de rattrapage sans choix, demande de jet avec deux-points', async () => {
+  const { split } = await import('../js/format.js');
+  const { isRoll } = await import('../js/util.js');
+  const B = '<choix>\n1. *Je recule.*\n2. « On entre. »\n</choix>';
+  const t = 'Sur le mur, trois inscriptions :\n\n1. « Ne pas entrer »\n2. « Danger »\n3. « Fuyez »';
+  assert.equal(split(t + '\n\n' + B).content, t);
+  const loose = 'Récit.\n\n1. « Je reste. »\n2. « Je pars. »';
+  assert.equal(split(loose).choices?.length, 2);
+  assert.equal(split(loose, false).content, loose);
+  assert.ok(!isRoll('Adresse : difficile'));
+  assert.ok(isRoll('Adresse, difficile (15) : 14 + 2 = 16, réussite'));
+});

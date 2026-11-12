@@ -66,25 +66,29 @@ export const looseChoices = t => {
 // Choix recopiés en fin de récit alors que le bloc <choix> les donne aussi : la liste numérotée qui les répète est
 // retirée du texte, avec sa ligne d'annonce (« Vos options : »), pour ne pas les afficher deux fois. Une ligne de la
 // liste compte si elle reprend le début d'un choix, ou si elle a la forme d'une action du joueur (« Je », « J' »,
-// guillemets) ; il en faut au moins deux, et pas plus que de choix plus un.
+// guillemets) ; il en faut au moins deux, pas plus que de choix plus un, et au moins une qui reprend un choix ou
+// commence par « Je » : une liste d'inscriptions entre guillemets (« 1. « Ne pas entrer » ») reste.
 const ck = t => nz(t).replace(/[^a-z0-9]+/g, '').slice(0, 16);
 export const dropDup = (t, choices) => {
   const ls = t.trimEnd().split('\n'),
     K = choices.map(ck);
   let i = ls.length,
-    n = 0;
+    n = 0,
+    h = 0;
   while (i > 0) {
     const l = ls[i - 1];
     if (!l.trim()) {
       i--;
       continue;
     }
-    const m = l.match(/^\s*[-*]?\s*\**\d[.)]\**\s+(\S.*)$/);
-    if (!m || !(K.includes(ck(m[1])) || /^[*_]*(«|"|je\b|j['’])/i.test(m[1]))) break;
+    const m = l.match(/^\s*[-*]?\s*\**\d[.)]\**\s+(\S.*)$/),
+      hit = m && K.includes(ck(m[1]));
+    if (!m || !(hit || /^[*_]*(«|"|je\b|j['’])/i.test(m[1]))) break;
     n++;
+    h += hit || /^[*_]*(je|j['’])/i.test(m[1]) ? 1 : 0;
     i--;
   }
-  if (n < 2 || n > choices.length + 1) return t;
+  if (n < 2 || !h || n > choices.length + 1) return t;
   if (i > 0 && /:\s*[*_]*$/.test(ls[i - 1]) && ls[i - 1].trim().length < 60) i--;
   return ls.slice(0, i).join('\n').trim();
 };
@@ -95,12 +99,13 @@ export const choiceMark = raw => {
     b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim();
   return c.length ? (dropDup(b, c) != b ? 'recopiés' : 'présents') : looseChoices(b) ? 'rattrapés' : 'absents';
 };
-export const split = raw => {
+// loose : rattraper les choix écrits sans balise (looseChoices), seulement dans une histoire à choix.
+export const split = (raw, loose = true) => {
   const o = { content: raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim() },
     c = choicesOf(raw),
     s = parseEtat(raw);
   if (c.length) Object.assign(o, { choices: c, content: dropDup(o.content, c) });
-  else Object.assign(o, looseChoices(o.content));
+  else if (loose) Object.assign(o, looseChoices(o.content));
   if (s.length) o.state = s;
   return o;
 };

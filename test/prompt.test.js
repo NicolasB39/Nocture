@@ -202,7 +202,7 @@ test('choicesOf retire la numérotation et plafonne à trois', () => {
 });
 
 test('win est l’index absolu du premier message envoyé', () => {
-  const msgs = Array.from({ length: 12 }, (_, i) => ({
+  const msgs = Array.from({ length: 52 }, (_, i) => ({
     role: i % 2 ? 'assistant' : 'user',
     content: 'm' + i
   }));
@@ -213,7 +213,7 @@ test('win est l’index absolu du premier message envoyé', () => {
 });
 
 test('le nombre envoyé tient compte des messages déjà résumés', () => {
-  const msgs = Array.from({ length: 30 }, (_, i) => ({
+  const msgs = Array.from({ length: 60 }, (_, i) => ({
     role: i % 2 ? 'assistant' : 'user',
     content: 'z'.repeat(400) + i
   }));
@@ -221,6 +221,19 @@ test('le nombre envoyé tient compte des messages déjà résumés', () => {
   const r = buildInfo(s);
   assert.equal(r.win, 10, 'les messages partent à partir du point de résumé');
   assert.equal(r.msgs.length - 1, msgs.length - r.win, 'autant de messages que n − win');
+});
+
+test('après une coupe dans la zone résumée, les SUM_KEEP derniers messages partent quand même', () => {
+  const msgs = Array.from({ length: 60 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'm' + i }));
+  const r = buildInfo(sc({ noChoices: true, messages: msgs, mem: { upto: 60 } }));
+  assert.equal(r.win, 20);
+  assert.equal(r.msgs.length - 1, 40);
+  // Le début ne bouge pas à chaque tour : palier de 20.
+  const more = [...msgs, ...msgs.slice(0, 6)];
+  assert.equal(buildInfo(sc({ noChoices: true, messages: more, mem: { upto: 60 } })).win, 20);
+  assert.equal(buildInfo(sc({ noChoices: true, messages: [...more, ...msgs.slice(0, 14)], mem: { upto: 60 } })).win, 40);
+  assert.equal(buildInfo(sc({ noChoices: true, messages: [...more, ...msgs.slice(0, 34)], mem: { upto: 60 } })).win, 60);
+  assert.equal(buildInfo(sc({ noChoices: true, messages: msgs.slice(0, 5), mem: { upto: 5 } })).msgs.length - 1, 5);
 });
 
 test('les relations voyagent avec la mémoire ; celle d’un personnage en scène est aussi sous sa fiche', () => {

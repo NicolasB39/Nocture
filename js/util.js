@@ -134,9 +134,10 @@ export const vt = fn => {
 };
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 // Balise des jets de dés (dice.js) : une demande du narrateur (« Adresse, difficile ») ou un résultat lancé par
-// l'application (« … : 14 + 2 = 16, réussite », reconnu à ses deux-points).
+// l'application (« … : 14 + 2 = 16, réussite », reconnu à ses deux-points suivis d'un nombre ; « Adresse :
+// difficile » reste une demande).
 export const JET = /<jet>([^<]*)<\/jet>/gi;
-export const isRoll = x => x.includes(':');
+export const isRoll = x => /:\s*[-−]?\d/.test(x);
 // Texte enregistré sans images, jets en clair (le résultat entre parenthèses, la demande retirée) : ce que lit le
 // modèle de mémoire, qui garde {{user}}.
 export const bare = t =>
