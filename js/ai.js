@@ -378,7 +378,7 @@ const SUMJ =
   "- evenements : récit condensé et mis à jour du chapitre en cours (toute l'histoire depuis le dernier chapitre clos), 850 caractères maximum, sans intertitre ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
   '- situation : où en est le joueur maintenant, point de départ du prochain tour, 450 caractères maximum, sans intertitre ; nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver).\n' +
   '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
-  "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre.\n" +
+  "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre. Quand l'histoire révèle qu'un personnage connu sous un autre nom est un personnage à fiche, écris « Nom de la fiche (ancien nom) ».\n" +
   "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.\n" +
   "- chapitre (seulement quand il est demandé) : clos vaut true si ces messages terminent un arc ou en ouvrent un nouveau (lieu quitté pour de bon, quête achevée ou nouvelle, ellipse) : un arc fini plus tôt dans le chapitre ne se représentera pas. titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier ; seule la situation ouvre le chapitre suivant. Sinon clos vaut false, titre et resume vides.";
 // Réponse de la mémoire, garantie conforme par l'API (sorties structurées). Le champ chapitre n'existe que si
@@ -503,6 +503,7 @@ async function sumRun(s, start) {
               (Object.entries(s.mem.relations || {})
                 .map(([k, v]) => '- ' + k + ' : ' + v)
                 .join('\n') || '(aucune)') +
+              (keep.length ? '\n\nPersonnages à fiche : ' + keep.join(', ') : '') +
               '\n\nSouvenirs déjà retenus (ne les répète pas) :\n' +
               ((s.mem.memories || []).map(x => '- ' + x).join('\n') || '(aucun)') +
               '\n\nChapitres déjà clos :\n' +

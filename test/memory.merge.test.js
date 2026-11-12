@@ -61,6 +61,22 @@ test('les souvenirs sont plafonnés en gardant les plus récents', () => {
   assert.equal(m.at(-1), 'tout dernier fait');
 });
 
+test('un personnage à fiche révélé sous son vrai nom reprend sa relation', () => {
+  // Personnage à fiche révélé sous son vrai nom : l'entrée de son faux nom disparaît, jamais une autre fiche.
+  assert.deepEqual(
+    mergeRel({ Cendrine: 'méfiante', Berthe: 'loyale' }, { 'Isaure (Cendrine)': 'confiante' }, ['Isaure', 'Berthe']),
+    { Berthe: 'loyale', Isaure: 'confiante' }
+  );
+  assert.deepEqual(mergeRel({ Berthe: 'loyale' }, { 'Isaure (Berthe)': 'x' }, ['Isaure', 'Berthe']), { Berthe: 'loyale', Isaure: 'x' });
+  // Seule l'entrée portant exactement l'ancien nom disparaît.
+  assert.deepEqual(
+    mergeRel({ Cendrine: 'méfiante', 'La sœur de Cendrine': 'amie' }, { 'Isaure (Cendrine)': 'confiante' }, ['Isaure']),
+    { 'La sœur de Cendrine': 'amie', Isaure: 'confiante' }
+  );
+  // Sans fiche, la parenthèse n'est qu'un nom.
+  assert.deepEqual(mergeRel({ Cendrine: 'a' }, { 'Garde (Cendrine)': 'b' }, ['Isaure']), { Cendrine: 'b' });
+});
+
 test('les accents fusionnent et l’orthographe accentuée l’emporte', () => {
   assert.ok(sameName('Zoé', 'Zoe'));
   assert.ok(sameName('Hélène', 'Helene'));

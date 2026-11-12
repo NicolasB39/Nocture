@@ -53,9 +53,17 @@ export const better = (a, b) => (marks(b) > marks(a) || (!a.trim() && b.trim()) 
 export function mergeRel(cur = {}, inc = {}, keep = [], max = REL_MAX) {
   const out = { ...cur };
   for (const [n, v] of Object.entries(inc)) {
-    const name = String(n).trim(),
-      val = String(v).trim();
+    let name = String(n).trim();
+    const val = String(v).trim();
     if (!name || !val || /^aucun/i.test(val)) continue;
+    // « Isaure (Cendrine) » : personnage à fiche connu jusque-là sous un autre nom. La relation passe sous le nom
+    // de la fiche et l'entrée portant exactement l'ancien nom disparaît (jamais celle d'un autre personnage à fiche,
+    // ni « La sœur de Cendrine »).
+    const m = name.match(/^(.+?)\s*\(([^()]+)\)$/);
+    if (m && keep.some(k => sameName(k, m[1]))) {
+      name = m[1].trim();
+      for (const x of Object.keys(out)) if (key(x) === key(m[2]) && !keep.some(k => sameName(k, x))) delete out[x];
+    }
     const hit = Object.keys(out).find(x => sameName(x, name)),
       k = hit ? better(hit, name) : name;
     if (hit) delete out[hit];
