@@ -1,7 +1,7 @@
 import { on } from './bus.js';
 import { raw, setBody, split } from './format.js';
 import { showList } from './list.js';
-import { cutChapters, cutLines } from './memory.js';
+import { cutMem } from './memory.js';
 import { conflicts } from './protocol.js';
 import { passageOff } from './passage.js';
 import { recap } from './recap.js';
@@ -101,9 +101,7 @@ async function delFrom(i) {
     lines = c.mem.lines || [],
     chapters = c.mem.chapters,
     removed = c.messages.splice(i);
-  c.mem.upto = Math.min(upto, i);
-  c.mem.lines = cutLines(lines, i);
-  c.mem.chapters = cutChapters(chapters, i);
+  cutMem(c.mem, i);
   // Histoire GitHub vidée pour recommencer : à synchroniser quand même (syncable, merge.js).
   const r0 = c.reset;
   if (!i && c.remote) c.reset = Date.now();
@@ -138,9 +136,7 @@ async function resendFrom(i, t) {
     n = c.messages.splice(i + 1).length,
     pv = c.messages[i - 1];
   // Le tour modifié doit repartir tel quel : il sort du résumé s'il y était déjà.
-  c.mem.upto = Math.min(upto, i);
-  c.mem.lines = cutLines(c.mem.lines || [], i);
-  c.mem.chapters = cutChapters(c.mem.chapters, i);
+  cutMem(c.mem, i);
   if (pv?.alts) {
     delete pv.alts;
     delete pv.ai;

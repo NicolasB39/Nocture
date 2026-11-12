@@ -24,7 +24,8 @@ export const PRICES = {
 
 // Tarif connu, y compris pour un identifiant daté (claude-haiku-4-5-20251001) ; null pour un modèle inconnu,
 // même voisin d'un modèle connu (claude-sonnet-5-7 n'a pas le tarif de claude-sonnet-5).
-export const priceOf = key => PRICES[key] || PRICES[String(key).replace(/-\d{8}$/, '')] || null;
+export const base = m => String(m || '').replace(/-\d{8}$/, '');
+export const priceOf = key => PRICES[key] || PRICES[base(key)] || null;
 
 // e : entrée des statistiques [entrée, sortie, requêtes, estimées, cache lu, cache écrit 5 min, cache écrit 1 h].
 // Le cache lu et écrit est compris dans l'entrée.

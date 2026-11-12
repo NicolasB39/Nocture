@@ -1,8 +1,8 @@
-import { HAIKU_LONG, LONG } from './cost.js';
+import { HAIKU_LONG, LONG, base } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { choiceMark } from './format.js';
-import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, SUM_MAX, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
+import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { emit } from './bus.js';
@@ -13,7 +13,6 @@ import { $, bare, err, LS } from './util.js';
 // le cache : en jeu, elle n'a lieu qu'au-delà de SUM_PLAY messages en attente ; en début de séance, quand le
 // cache a expiré et sera réécrit de toute façon, elle part dès SUM_START (sessionSum, send.js), avant le premier
 // envoi, qui écrit alors directement le prompt raccourci.
-export { SUM_KEEP };
 export const SUM_PLAY = 120;
 export const SUM_START = 50;
 export const sumGate = (u, go, hi = SUM_PLAY) => u >= hi || (go && u > SUM_KEEP);
@@ -40,7 +39,6 @@ export const effortOk = model => {
   if (f == 'haiku') return maj >= 5;
   return maj > 4 || (maj == 4 && min >= (f == 'opus' ? 5 : 6));
 };
-const base = m => String(m || '').replace(/-\d{8}$/, '');
 // Relais en cas de refus (beta) : la requête refusée est rejouée côté serveur sur le modèle de secours
 // qu'Anthropic choisit selon le motif du refus. Avec Sonnet 5.5, seuls les refus « cyber » et « frontier_llm »
 // sont relayés ; les autres (« general_harms », etc.) reviennent comme refus.

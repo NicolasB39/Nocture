@@ -12,6 +12,5 @@ export const app = {
   actI: null,
   busy: false,
   ctl: null,
-  LIM: 50,
-  stream: null
+  LIM: 50
 };

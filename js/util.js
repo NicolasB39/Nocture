@@ -172,6 +172,11 @@ export const nz = s =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
+// Texte en mots simples, sans accents ni ponctuation : « Jet d'Adresse : difficile » → « jet d adresse difficile ».
+export const wkey = s =>
+  nz(String(s))
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
 export const ikey = s =>
   nz(s)
     .replace(/[\s_.\-]+/g, '_')

@@ -1,15 +1,9 @@
-import { test, beforeEach } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { clean } from '../js/store.js';
-import { buildInfo } from '../js/prompt.js';
 import { cutLines, mergeRel, unnum } from '../js/memory.js';
 import { protocol } from '../js/protocol.js';
 import { settled } from '../js/format.js';
-import { S, ctx } from '../js/state.js';
-
-beforeEach(() => {
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
-});
 
 test('un personnage à fiche reste protégé sous un nom reformulé', () => {
   const inc = { 'Alice, l’herboriste': 'amie' };

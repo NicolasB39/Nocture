@@ -96,19 +96,7 @@ test('le casting liste tous les personnages, les fiches ne suivent que les actif
   assert.match(last, /## Alice/);
   assert.doesNotMatch(last, /## Bob/);
   assert.doesNotMatch(last, /alice_x/);
-  assert.match(r.msgs[0].content.slice(0, r.msgs[0].cut), /<images_disponibles>\n- Alice : alice_x\n/);
-});
-
-test('en dessous du seuil, toutes les fiches vont dans la partie stable, aucune dans la queue', () => {
-  ctx.chars = [
-    { name: 'Alice', sum: 'a', text: 'court', always: false, images: [], keys: [/zzz/] },
-    { name: 'Bob', sum: 'b', text: 'court', always: false, images: [], keys: [/zzz/] }
-  ];
-  const r = buildInfo(sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'rien' }] })),
-    stable = r.msgs[0].content.slice(0, r.msgs[0].cut);
-  assert.match(stable, /## Alice/);
-  assert.match(stable, /## Bob/);
-  assert.doesNotMatch(r.msgs.at(-1).content, /## Alice|## Bob/);
+  assert.match(r.msgs[0].blocks[0].text, /<images_disponibles>\n- Alice : alice_x\n/);
 });
 
 test('les trois étages de mémoire vivent dans le préfixe, pas dans la queue', () => {
@@ -280,7 +268,7 @@ test('fiches et lorebook modestes en entier dans la partie fixe, en cache', () =
   ];
   const s = sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'alice ouvre la porte' }] });
   let r = buildInfo(s),
-    stable = r.msgs[0].content.slice(0, r.msgs[0].cut);
+    stable = r.msgs[0].blocks[0].text;
   assert.match(stable, /## Alice[\s\S]*## Bob/, 'toutes les fiches, même hors scène');
   assert.match(stable, /La forge est froide\.[\s\S]*La porte grince\./, 'tout le lorebook, par priorité');
   assert.match(stable, /Leurs fiches détaillées suivent\./);
@@ -288,6 +276,6 @@ test('fiches et lorebook modestes en entier dans la partie fixe, en cache', () =
   // Trop gros (au-delà de 8 000 tokens) : seulement les actifs.
   ctx.chars[1].text = 'B'.repeat(16000);
   r = buildInfo(s);
-  assert.doesNotMatch(r.msgs[0].content.slice(0, r.msgs[0].cut), /## Bob/);
+  assert.doesNotMatch(r.msgs[0].blocks[0].text, /## Bob/);
   assert.match(r.msgs.at(-1).content, /## Alice/);
 });

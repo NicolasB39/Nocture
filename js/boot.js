@@ -31,18 +31,17 @@
   // Les caches seulement : désinscrire le service worker ne le détacherait pas de la page ouverte, et le
   // réinscrire aussitôt le ranimerait tel quel, caches vides (fresh les fait remplir de nouveau).
   function clear() {
-    var tasks = [];
-    if (window.caches)
-      tasks.push(
-        caches.keys().then(function (ks) {
-          return Promise.all(
-            ks.map(function (k) {
-              return caches.delete(k);
-            })
-          );
-        })
-      );
-    return Promise.all(tasks).catch(function () {});
+    if (!window.caches) return Promise.resolve();
+    return caches
+      .keys()
+      .then(function (ks) {
+        return Promise.all(
+          ks.map(function (k) {
+            return caches.delete(k);
+          })
+        );
+      })
+      .catch(function () {});
   }
   // Installe le service worker et attend qu'il prenne la page en main (20 s au plus). Il télécharge tous les
   // fichiers avec le numéro de version dans l'adresse, sans cache : le rechargement qui suit les sert d'un seul

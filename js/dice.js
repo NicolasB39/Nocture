@@ -4,7 +4,7 @@
 // (s.sheet) et écrit le résultat dans le message du joueur, où l'IA le lit et où la carte du dé l'affiche.
 // La balise elle-même (JET, isRoll) est définie dans util.js, avec sa version en texte simple.
 import { ctx } from './state.js';
-import { ikey, isRoll, JET, nz } from './util.js';
+import { ikey, isRoll, JET, wkey as toks } from './util.js';
 
 // Seuils du d20 : à bonus nul, 75, 55, 40 et 25 % de réussite (un 20 réussit toujours, un 1 échoue toujours).
 const DIFF = { facile: 6, moyen: 10, difficile: 13, 'très difficile': 16 };
@@ -29,8 +29,6 @@ export const sheetOf = s => {
 };
 export const signed = v => (v > 0 ? '+' + v : v < 0 ? '−' + -v : '0');
 
-// Mots d'un texte, sans accents ni ponctuation : « Jet d'Adresse : difficile » → « jet d adresse difficile ».
-const toks = s => nz(String(s)).split(/[^a-z0-9]+/).filter(Boolean).join(' ');
 // Caractéristique de regles.md nommée dans x (mot entier ; la première nommée), et difficulté reconnue en mot
 // entier, « moyenne » comprise (« facilement », « au moyen de » ne comptent pas).
 const at = (x, w) => (' ' + toks(x) + ' ').indexOf(' ' + toks(w) + ' ');

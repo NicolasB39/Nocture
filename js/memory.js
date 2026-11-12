@@ -1,8 +1,8 @@
-import { nz } from './util.js';
+import { wkey as key } from './util.js';
 
 export const REL_MAX = 12;
 export const MEM_MAX = 60;
-// Taille du résumé, gardé et envoyé : la consigne en demande 1200 caractères, un peu de marge en plus.
+// Taille du résumé, gardé et envoyé : summaryOf en assemble 860 + 500 caractères au plus, un peu de marge en plus.
 export const SUM_MAX = 1400;
 // Chapitres : un résumé figé par arc terminé, jamais réécrit ensuite. Un chapitre se clôt entre CH_MIN et
 // CH_MAX messages ; seuls les CH_FULL derniers partent en entier au narrateur, les plus anciens par leur titre.
@@ -16,10 +16,6 @@ export const SUM_KEEP = 40;
 // Premier message du chapitre en cours : la fin du dernier chapitre clos.
 export const chStart = mem => Math.min(mem.chapters?.at(-1)?.upto || 0, mem.upto);
 
-const key = s =>
-  nz(String(s))
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
 const parts = s => key(s).split(' ').filter(Boolean);
 const words = s => new Set(parts(s).filter(w => w.length > 3));
 // Résumé principal, assemblé à partir des deux champs de la mémoire : les Événements du chapitre en cours, puis la
@@ -100,6 +96,9 @@ export function mergeMem(cur = [], inc = [], max = MEM_MAX) {
 }
 
 // Une ligne sans lien (le modèle a rendu moins de lignes que de messages) tombe avec le dernier message de son lot (u).
+// Mémoire d'une histoire coupée au message i (suppression, tour modifié, bifurcation).
+export const cutMem = (mem, i) =>
+  Object.assign(mem, { upto: Math.min(mem.upto, i), lines: cutLines(mem.lines, i), chapters: cutChapters(mem.chapters, i) });
 export const cutLines = (lines, i) => (lines || []).filter(l => (l.i >= 0 ? l.i : (l.u ?? -1)) < i);
 // Chapitres d'une histoire coupée au message i : ceux qui commencent après disparaissent, celui qui contient i
 // finit en i (son résumé, comme celui de la mémoire, garde la trace de la suite).

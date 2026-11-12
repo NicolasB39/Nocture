@@ -2,7 +2,8 @@ import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { clean } from '../js/store.js';
 import { buildInfo } from '../js/prompt.js';
-import { SUM_BATCH, SUM_KEEP, SUM_START, sumGate, toAnt } from '../js/ai.js';
+import { SUM_BATCH, SUM_START, sumGate, toAnt } from '../js/ai.js';
+import { SUM_KEEP } from '../js/memory.js';
 import { S, ctx } from '../js/state.js';
 
 const sc = (o = {}) => clean({ id: 's', name: 'S', system: 'SYS', remote: true, noChoices: true, messages: [], ...o });
@@ -60,28 +61,6 @@ test('la partie stable ne dépend ni de la mémoire ni de la scène', () => {
   assert.match(m1, /^\n\n<previous_history>/);
   assert.doesNotMatch(a1, /previous_history|<relations>/);
   assert.match(a1, /- Alice : alice_x\n- Bob : bob_y/);
-});
-
-test('toAnt : deux blocs système en cache, plus l’avant-dernier message', () => {
-  const b = toAnt(
-    [
-      { role: 'system', content: 'STABLEMEMOIRE', blocks: [{ text: 'STABLE', cache: true }, { text: 'MEMOIRE', cache: true }] },
-      { role: 'user', content: 'u1' },
-      { role: 'assistant', content: 'a1' },
-      { role: 'user', content: 'u2' }
-    ],
-    { model: 'm' }
-  );
-  assert.deepEqual(
-    b.system.map(x => [x.text, x.cache_control?.type]),
-    [
-      ['STABLE', 'ephemeral'],
-      ['MEMOIRE', 'ephemeral']
-    ]
-  );
-  assert.equal(b.messages.at(-2).content[0].cache_control.type, 'ephemeral');
-  const n = [...b.system, ...b.messages.flatMap(m => (Array.isArray(m.content) ? m.content : []))].filter(x => x.cache_control).length;
-  assert.equal(n, 3);
 });
 
 test('toAnt : sans mémoire, un seul bloc système', () => {

@@ -1,4 +1,5 @@
-import { SUM_KEEP, SUM_PLAY, summing } from './ai.js';
+import { SUM_PLAY, summing } from './ai.js';
+import { SUM_KEEP } from './memory.js';
 import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
@@ -586,7 +587,7 @@ function sideView(pr) {
 WIDE.onchange = () => app.cur && !$('#chat').hidden && sideView(inScene(app.cur.messages.slice(-6)));
 $('#tk').onclick = e => {
   const t = $('#tk');
-  if (t.classList.contains('w') || !e.target.closest('.tks, .tkl')) return;
+  if (!e.target.closest('.tks, .tkl')) return;
   const open = t.classList.toggle('open');
   for (const b of t.querySelectorAll('button')) b.setAttribute('aria-expanded', String(open));
   // Le bouton touché disparaît : le focus passe à celui qui le remplace.

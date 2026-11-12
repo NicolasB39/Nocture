@@ -1,6 +1,6 @@
 import { S, app, playerName } from './state.js';
 import { LS, plain, uid } from './util.js';
-import { cutChapters, cutLines } from './memory.js';
+import { cutMem } from './memory.js';
 import { dropDup, looseChoices } from './format.js';
 
 let db;
@@ -95,9 +95,7 @@ export const forkOf = (s, i, name, id) => {
     n = i + 1;
   Object.assign(c, { id, name });
   c.messages = c.messages.slice(0, n);
-  c.mem.lines = cutLines(c.mem.lines, n);
-  c.mem.chapters = cutChapters(c.mem.chapters, n);
-  c.mem.upto = Math.min(c.mem.upto, n);
+  cutMem(c.mem, n);
   return c;
 };
 const pvOf = s => {
@@ -243,7 +241,7 @@ export const put = (o, fromSync = false) =>
     fail(t, rej, () => delete K[o.id]);
   });
 // Clés gardées sur l'appareil pour chaque histoire, suivies de son id : brouillon (send.js), position de lecture
-// (read.js), heure du cache (ai.js). Une nouvelle clé de ce genre s'ajoute ici pour partir avec l'histoire.
+// (pos:, view.js et chat.js), heure du cache (ai.js). Une nouvelle clé de ce genre s'ajoute ici pour partir avec l'histoire.
 const LOCAL = ['draft:', 'pos:', 'hot:'];
 export const del = (id, fromSync = false) => {
   if (!fromSync) LS.set('bkd', Date.now());
@@ -319,7 +317,6 @@ export const loadSet = () =>
   tx('settings', 'readonly', s => s.get('main')).then(r => {
     if (r) Object.assign(S, r.value);
     // Réglages de fonctions retirées (v105) : plus lus, ils ne sont plus réenregistrés.
-    for (const k of ['tts', 'cap', 'follow']) delete S[k];
   });
 export const saveSet = () => tx('settings', 'readwrite', s => s.put({ key: 'main', value: S })).then(told('set'));
 export const loadStats = () => tx('settings', 'readonly', s => s.get('usage')).then(r => r?.value || null);

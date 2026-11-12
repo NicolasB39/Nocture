@@ -1,4 +1,4 @@
-import { IMG, S, app, ctx, playerName } from './state.js';
+import { IMG, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
 import { decorFor, frame, lieuOf, scene } from './scene.js';
 import { el, ic, ikey, JET, nz } from './util.js';

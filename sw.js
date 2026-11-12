@@ -1,4 +1,4 @@
-const C = 'nocturne-baff06a8f6',
+const C = 'nocturne-939ee62d21',
   A = [
     './',
     'index.html',
@@ -61,7 +61,7 @@ const V = C.slice('nocturne-'.length);
 const fill = async () => {
   const xs = await Promise.all(
     A.map(async u => {
-      const x = await fetch(u + (u.includes('?') ? '&' : '?') + 'v=' + V, { cache: 'reload' });
+      const x = await fetch(u + '?v=' + V, { cache: 'reload' });
       if (!x.ok) throw new Error(u + ' : ' + x.status);
       return [u, x];
     })
@@ -91,14 +91,14 @@ const trim = async () => {
   const k = await c.keys();
   for (const r of k.slice(0, Math.max(0, k.length - MAX))) await c.delete(r);
 };
+// Fichiers des scénarios seulement : ceux de l'application passent par shell, jamais par le réseau d'abord.
 const store = (r, x) => {
   if (!x.ok) return;
-  const c = x.clone(),
-    sh = SH.has(r.url);
+  const c = x.clone();
   return caches
-    .open(sh ? C : D)
+    .open(D)
     .then(k => k.put(r, c))
-    .then(() => (sh ? 0 : trim()));
+    .then(trim);
 };
 // Fichiers de l'application : seulement ceux de l'installation, jamais rafraîchis un par un dans ce cache
 // (un rafraîchissement partiel mélangerait deux versions). Une nouvelle version passe par un nouveau worker.

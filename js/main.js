@@ -6,15 +6,13 @@ import './cast.js';
 import { $, LS, toast } from './util.js';
 import { app } from './state.js';
 import { applyFs } from './read.js';
-import './list.js';
 import './chat.js';
 import './nav.js';
 import './settings.js';
-import './backup.js';
 import './journal.js';
 import './statview.js';
 
-const VERSION = 'baff06a8f6';
+const VERSION = '939ee62d21';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(

@@ -28,13 +28,7 @@ export const momentsOf = ms => {
   return ms.map(m => (mo = momentOf(m.state) ?? mo));
 };
 // Moment présent : le dernier donné, en remontant depuis la fin.
-export const momentNow = ms => {
-  for (let i = ms.length - 1; i >= 0; i--) {
-    const mo = momentOf(ms[i].state);
-    if (mo != null) return mo;
-  }
-  return '';
-};
+export const momentNow = ms => momentsOf(ms).at(-1) || '';
 // Scènes du récit, dans l'ordre : la première réponse en ouvre une, puis chaque réponse dont le lieu de l'état
 // change. at : cette réponse (lettrine) ; from / to : les messages de la scène, la première partant du début ;
 // lieu : le premier lieu connu de la scène (vide si l'état n'en donne pas).
@@ -93,12 +87,12 @@ export const decorsOf = ms => {
   return out;
 };
 
-export const decorNow = (ms, extra = '') => {
+export const decorNow = ms => {
   for (let i = ms.length - 1; i >= 0; i--) {
     const l = lieuOf(ms[i].state);
     if (l) return decorFor(l);
   }
-  return decorFor(ms.slice(-2).map(m => m.content).join('\n') + '\n' + extra);
+  return decorFor(ms.slice(-2).map(m => m.content).join('\n'));
 };
 
 export const SA = 16 / 9;
