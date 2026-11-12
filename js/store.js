@@ -16,7 +16,7 @@ const sheet = v => {
 const one = (m, loose) => {
   const r = { role: m.role, content: m.content },
     c = (Array.isArray(m.choices) ? m.choices : []).filter(x => typeof x == 'string').slice(0, 3),
-    t = (Array.isArray(m.state) ? m.state : []).filter(e => Array.isArray(e) && e.length == 2).slice(0, 12);
+    t = (Array.isArray(m.state) ? m.state : []).filter(e => Array.isArray(e) && e.length == 2 && e.every(x => typeof x == 'string')).slice(0, 12);
   // Réponse enregistrée avant ces corrections : choix recopiés dans le récit (dropDup) ou écrits sans balise
   // (looseChoices), corrigée au chargement.
   if (c.length) Object.assign(r, { choices: c, content: m.role == 'assistant' ? dropDup(r.content, c) : r.content });

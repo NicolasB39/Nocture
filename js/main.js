@@ -14,7 +14,7 @@ import './backup.js';
 import './journal.js';
 import './statview.js';
 
-const VERSION = '237f41bbb9';
+const VERSION = '37720ea192';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(

@@ -4,7 +4,7 @@
 // (s.sheet) et écrit le résultat dans le message du joueur, où l'IA le lit et où la carte du dé l'affiche.
 // La balise elle-même (JET, isRoll) est définie dans util.js, avec sa version en texte simple.
 import { ctx } from './state.js';
-import { ikey, isRoll, JET } from './util.js';
+import { ikey, isRoll, JET, nz } from './util.js';
 
 // Seuils du d20 : à bonus nul, 75, 55, 40 et 25 % de réussite (un 20 réussit toujours, un 1 échoue toujours).
 const DIFF = { facile: 6, moyen: 10, difficile: 13, 'très difficile': 16 };
@@ -15,40 +15,72 @@ const DS = Object.keys(DIFF).sort((x, y) => y.length - x.length);
 // Caractéristiques du scénario ouvert (scénarios GitHub seulement), dans l'ordre de regles.md.
 export const rulesOf = s => (s?.remote ? ctx.rules || [] : []);
 // Fiche de l'histoire s : un bonus borné par caractéristique de regles.md.
+// Plus de BONUS.pts points répartis (import, caractéristique à −1 retirée de regles.md) : un point de moins à la
+// plus forte, jusqu'à retomber dans la limite.
+export const spent = sh => Object.values(sh).reduce((a, v) => a + v, 0);
 export const sheetOf = s => {
   const o = {};
   for (const k of rulesOf(s)) o[k] = Math.min(BONUS.max, Math.max(BONUS.min, Math.trunc(+s?.sheet?.[k] || 0)));
+  while (spent(o) > BONUS.pts) {
+    const k = Object.keys(o).reduce((a, b) => (o[b] > o[a] ? b : a));
+    o[k]--;
+  }
   return o;
 };
-export const spent = sh => Object.values(sh).reduce((a, v) => a + v, 0);
 export const signed = v => (v > 0 ? '+' + v : v < 0 ? '−' + -v : '0');
 
+// Mots d'un texte, sans accents ni ponctuation : « Jet d'Adresse : difficile » → « jet d adresse difficile ».
+const toks = s => nz(String(s)).split(/[^a-z0-9]+/).filter(Boolean).join(' ');
+// Caractéristique de regles.md nommée dans x (mot entier ; la première nommée), et difficulté reconnue en mot
+// entier, « moyenne » comprise (« facilement », « au moyen de » ne comptent pas).
+const at = (x, w) => (' ' + toks(x) + ' ').indexOf(' ' + toks(w) + ' ');
+const ruleIn = (x, rules) =>
+  rules
+    .filter(r => at(x, r) >= 0)
+    .sort((a, b) => at(x, a) - at(x, b))[0];
+const diffIn = x => DS.find(d => at(x, d) >= 0 || (d == 'moyen' && at(x, 'moyenne') >= 0));
+// Marque d'action : rien d'autre que la caractéristique, la difficulté, « jet », « de » et un bonus écrit
+// (« Jet d'Adresse, difficile, +2 ») ; une parenthèse du récit ou une note hors jeu n'en est pas une.
+const bare = (x, k, d) =>
+  toks(x)
+    .split(' ')
+    .every(w => toks(k).split(' ').includes(w) || toks(d).split(' ').includes(w) || /^(moyenne|jet|test|d|de|du|\d+)$/.test(w));
 // Action marquée « … (Adresse, difficile) », de préférence en fin de ligne mais acceptée n'importe où (la
 // dernière marque valide) : son texte sans la marque, la caractéristique et la difficulté. Une parenthèse
-// ordinaire n'est pas une marque : il faut une caractéristique de regles.md et une difficulté reconnue, même
-// accordée (« moyenne ») comme dans askOf.
+// ordinaire n'est pas une marque : il faut une caractéristique de regles.md et une difficulté reconnue, dans
+// n'importe quel ordre ou forme (« Adresse : difficile », « Jet d'Adresse, difficile, +2 »).
 export const checkOf = (t, rules) => {
   t = String(t);
   let hit = null;
   if (rules.length)
-    for (const m of t.matchAll(/[ \t]*\(([^(),]+),\s*([^(),]+)\)/g)) {
-      const k = rules.find(r => ikey(r) == ikey(m[1])),
-        d = DS.find(x => ikey(m[2]).includes(ikey(x)));
-      if (k && d) hit = { m, k, d };
+    for (const m of t.matchAll(/[ \t]*\(([^()]+)\)/g)) {
+      const k = ruleIn(m[1], rules),
+        d = diffIn(m[1]);
+      if (k && d && bare(m[1], k, d)) hit = { m, k, d };
     }
   if (!hit) return null;
   const { m, k, d } = hit;
   return { text: (t.slice(0, m.index) + t.slice(m.index + m[0].length)).replace(/[ \t]{2,}/g, ' ').trim(), k, d };
 };
 // Jet demandé par le narrateur en fin de réponse : le dernier <jet> sans résultat. Lecture tolérante, pour qu'une
-// demande ne reste jamais sans bouton : « Adresse (difficile) » ou « Adresse - difficile » passent, une
-// caractéristique absente de regles.md est gardée telle quelle (bonus nul), une difficulté inconnue vaut moyen.
+// demande ne reste jamais sans bouton : une caractéristique de regles.md est cherchée dans toute la balise
+// (« Adresse : difficile », « difficile, Adresse ») ; à défaut, le premier morceau est gardé tel quel (bonus nul) ;
+// une difficulté inconnue vaut moyen. Une balise jamais fermée en fin de réponse compte aussi.
+const JQ = /<jet\s*>(?:([^<]*)<\/jet>|([^<\n]*)\s*$)/gi;
 export const askOf = (t, rules) => {
   let p = null;
   if (rules.length)
-    for (const m of String(t).matchAll(JET)) {
-      if (isRoll(m[1])) continue;
-      const [a = '', ...b] = m[1].split(/[,(;]|\s[-–—]\s/),
+    for (const m of String(t).matchAll(JQ)) {
+      const x = m[1] ?? m[2];
+      if (isRoll(x)) continue;
+      const r = ruleIn(x, rules);
+      // Balise jamais fermée (réponse coupée sur « <jet>Adresse, diff ») : seulement si elle est complète.
+      if (m[1] == null && !(r && diffIn(x))) continue;
+      if (r) {
+        p = { k: r, d: diffIn(x) || 'moyen' };
+        continue;
+      }
+      const [a = '', ...b] = x.split(/[,(;]|\s[-–—]\s/),
         k = a.trim(),
         rest = ikey(b.join(' '));
       if (k && k.length <= 30)

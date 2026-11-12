@@ -267,7 +267,8 @@ $('#dss').onclick = async () => {
   app.cur.noChoices = !$('#sch').checked;
   app.cur.noPre = $('#spre').checked;
   app.cur.choicePrompt = $('#scp').value.trim();
-  app.cur.stat = $('#sst').checked;
+  // Panneau d'état : gardé seulement s'il diffère de celui du scénario (etat.md), qui peut changer ensuite.
+  app.cur.stat = $('#sst').checked === !!(app.cur.remote && ctx.stat) ? undefined : $('#sst').checked;
   app.cur.statFields = $('#sstf').value.trim();
   await save();
   render();

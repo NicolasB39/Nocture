@@ -112,3 +112,31 @@ test('texte simple : résultat en clair, demande retirée', () => {
   assert.equal(plain('Je saute\n\n<jet>Vigueur, moyen (12) : 9 + 1 = 10, échec</jet>'), 'Je saute\n\n(Jet : Vigueur, moyen (12) : 9 + 1 = 10, échec)');
   assert.equal(plain('Il hésite.\n\n<jet>Adresse, difficile</jet>'), 'Il hésite.');
 });
+
+test('relecture Fable : demandes et marques de jet sous d’autres formes, fiche trop chargée, jet dans <choix>, état non fermé', async () => {
+  const { isRoll } = await import('../js/util.js');
+  const { split, parseEtat } = await import('../js/format.js');
+  for (const t of ['Adresse : difficile', "Jet d'Adresse, difficile", 'difficile, Adresse', 'Adresse difficile', 'Adresse, difficile (DD : 13)'])
+    assert.deepEqual(askOf('<jet>' + t + '</jet>', R), { k: 'Adresse', d: 'difficile' }, t);
+  assert.deepEqual(askOf('Il hésite.\n\n<jet>Adresse, difficile', R), { k: 'Adresse', d: 'difficile' }, 'balise jamais fermée');
+  assert.ok(!isRoll('Adresse, difficulté : 13'));
+  assert.ok(isRoll('Adresse, moyen (10) : 9 − 1 = 8, échec'));
+  for (const c of ['Je saute (Adresse : difficile)', 'Je saute (Adresse, difficile, +2)', "Je saute (Jet d'Adresse, difficile)"])
+    assert.deepEqual(checkOf(c, R) && [checkOf(c, R).text, checkOf(c, R).k, checkOf(c, R).d], ['Je saute', 'Adresse', 'difficile'], c);
+  assert.equal(checkOf('Je pars (vers le nord)', R), null);
+  assert.equal(checkOf("Je reste immobile (c'est difficile de garder l'esprit clair)", R), null, 'parenthèse du récit');
+  assert.equal(checkOf('Je pars (Adresse, facilement)', R), null);
+  assert.deepEqual(askOf('<jet>Volonté, difficile (résister à la présence du spectre)</jet>', R), { k: 'Volonté', d: 'difficile' });
+  assert.equal(askOf('Il hésite.\n\n<jet>Adresse, diff', R), null, 'demande coupée');
+  for (const t of ['Adresse, difficile (13) : 15, réussite', 'Adresse : 1d20 + 2 = 15']) assert.ok(isRoll(t), t);
+  assert.deepEqual(sheetOf({ remote: true, sheet: { Vigueur: 2, Adresse: 2 } }), { Vigueur: 1, Adresse: 2, Esprit: 0, Présence: 0, Volonté: 0 });
+  assert.equal(spent(sheetOf({ remote: true, sheet: { Vigueur: 2, Adresse: 2, Esprit: 2 } })), 3);
+  const s = split('Il avance.\n\n<choix>\n<jet>Adresse, difficile</jet>\n</choix>');
+  assert.equal(s.choices, undefined);
+  assert.match(s.content, /<jet>Adresse, difficile<\/jet>$/);
+  const e = split('Il avance.\n\n<etat>\nLieu: Taverne\n\n<jet>Adresse, difficile</jet>');
+  assert.deepEqual(e.state, [['Lieu', 'Taverne']]);
+  assert.match(e.content, /<jet>Adresse, difficile<\/jet>$/);
+  assert.deepEqual(parseEtat('<etat>\nOr: 3\n</etat>'), [['Or', '3']]);
+  assert.equal(clean({ id: 'x', messages: [{ role: 'assistant', content: 'a', state: [[1, 2]] }] }).messages[0].state, undefined);
+});

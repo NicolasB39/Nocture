@@ -99,9 +99,13 @@ const act = (i, m, last) => {
   r.append(b('m', 'Autres actions', 'more'));
   return r;
 };
+// Nombre en tête d'une valeur (« 1 200 or » : 1200) et ce qui le suit (u) : une variation n'est montrée qu'entre
+// deux valeurs de même suite (« 9h » et « 14h30 » ne se comparent pas).
 const numOf = v => {
-  const m = String(v).match(/^(-?\d+(?:[.,]\d+)?)/);
-  return m ? +m[1].replace(',', '.') : null;
+  const m = String(v)
+    .replace(/(\d)[\s\u00a0\u202f](?=\d{3}(?!\d))/g, '$1')
+    .match(/^(-?\d+(?:[.,]\d+)?)(.*)$/);
+  return m ? { n: +m[1].replace(',', '.'), u: m[2].trim() } : null;
 };
 const sig = st => (st || []).map(x => x[0] + '=' + x[1]).join('|');
 // Panneau d'état : une rangée de pastilles (les premières valeurs, avec leur variation), dépliée d'un toucher
@@ -118,7 +122,7 @@ const stRows = (i, m) => {
   return m.state.map(([k, v]) => {
     const a = numOf(v),
       b = pm.has(k) ? numOf(pm.get(k)) : null,
-      d = a != null && b != null && a !== b ? a - b : null;
+      d = a && b && a.u == b.u && a.n !== b.n ? a.n - b.n : null;
     return { k, v, d, c: pm.size > 0 && pm.get(k) !== v, p0: pctOf(pm.get(k)) };
   });
 };

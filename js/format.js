@@ -4,7 +4,8 @@ import { decorFor, frame, lieuOf, scene } from './scene.js';
 import { el, ic, ikey, JET, nz } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
-export const ETX = /<etat>[\s\S]*?(?:<\/etat>|$)/gi;
+// Bloc d'état jamais fermé : il s'arrête au bloc suivant (<choix>, <jet>) au lieu d'emporter la fin de la réponse.
+export const ETX = /<etat>[\s\S]*?(?:<\/etat>|(?=<choix>|<jet>)|$)/gi;
 // Annonce du lieu en tête de réponse (protocol.js) : lue pendant l'affichage progressif, jamais affichée ni
 // gardée. La suppression s'arrête à la fin de la ligne : une balise mal fermée n'emporte pas la narration.
 export const LIX = /<lieu>[^\n]*?(?:<\/lieu>|(?=\n)|$)/gi;
@@ -21,7 +22,7 @@ export const passageLieu = (t, prev, old) => {
 // rendre comme le rendu complet.
 export const liveText = v => v.replace(LIX, '').replace(/^\s*<[a-z]{0,4}$/i, '');
 export const parseEtat = t => {
-  const m = t.match(/<etat>([\s\S]*?)<\/etat>/i);
+  const m = t.match(/<etat>([\s\S]*?)(?:<\/etat>|(?=<choix>|<jet>)|$)/i);
   if (!m) return [];
   return m[1]
     .split('\n')
@@ -39,7 +40,7 @@ export const choicesOf = t => {
     ? m[1]
         .split('\n')
         .map(x => x.replace(/^\s*(\d+[.)]|[-*])\s*/, '').trim())
-        .filter(Boolean)
+        .filter(x => x && !/<\/?jet/i.test(x))
         .slice(0, 3)
     : [];
 };
@@ -101,7 +102,9 @@ export const choiceMark = raw => {
 };
 // loose : rattraper les choix écrits sans balise (looseChoices), seulement dans une histoire à choix.
 export const split = (raw, loose = true) => {
-  const o = { content: raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim() },
+  // Demande de jet écrite dans le bloc <choix> : remise en fin de récit, où elle a son bouton.
+  const inner = (raw.match(CHX) || []).join('').match(JET) || [],
+    o = { content: [raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim(), ...inner].join('\n\n').trim() },
     c = choicesOf(raw),
     s = parseEtat(raw);
   if (c.length) Object.assign(o, { choices: c, content: dropDup(o.content, c) });
