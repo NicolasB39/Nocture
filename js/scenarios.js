@@ -135,7 +135,7 @@ const imgVer = im => {
 };
 export async function loadCtx() {
   const g = ++gen,
-    im = {};
+    im = Object.create(null);
   for (const k in IMG) delete IMG[k];
   Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', rules: [], decors: [], decorDef: '', intro: '', iv: imgVer({}) });
   if (!app.cur.remote) return;
@@ -161,7 +161,8 @@ export async function loadCtx() {
         .filter(Boolean)
     )
   ].slice(0, 8);
-  const ch = {};
+  // Sans prototype : un dossier « __proto__ » ou « constructor » serait sinon pris pour une clé existante.
+  const ch = Object.create(null);
   for (const p of T) {
     if (!p.startsWith(pb)) continue;
     const [n, file, ...rest] = p.slice(pb.length).split('/');

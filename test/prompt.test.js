@@ -14,6 +14,8 @@ beforeEach(() => {
 
 test('clean rejette ce qui n’est pas un scénario', () => {
   assert.equal(clean(null), null);
+  // « index » écraserait l'index de la sauvegarde GitHub.
+  assert.equal(clean({ id: 'index', messages: [] }), null);
   assert.equal(clean({ id: '', messages: [] }), null);
   assert.equal(clean({ id: 'a' }), null);
 });

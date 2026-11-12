@@ -331,11 +331,15 @@ $('#imf').onchange = async e => {
   }
   // Passé la lecture du fichier, une panne vient de l'enregistrement : le message le dit.
   try {
-    const a = (Array.isArray(d?.scenarios) ? d.scenarios : []).map(clean).filter(Boolean);
+    const a = (Array.isArray(d?.scenarios) ? d.scenarios : []).map(clean).filter(Boolean),
+      // Modèle et effort choisis par l'histoire : ils décident du coût de chaque tour, le dire avant d'importer.
+      own = [...new Set(a.flatMap(x => [x.model, x.effort && 'effort ' + x.effort]).filter(Boolean))];
     if (
       !a.length ||
       !(await dlg('Importer ' + a.length + (a.length > 1 ? ' histoires ?' : ' histoire ?'), {
-        m: 'Celles qui ont le même identifiant seront remplacées.',
+        m:
+          'Celles qui ont le même identifiant seront remplacées.' +
+          (own.length ? ' Réglages propres à ces histoires : ' + own.join(', ') + ' (modifiables dans leurs réglages).' : ''),
         ok: 'Importer'
       }))
     )

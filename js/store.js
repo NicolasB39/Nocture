@@ -25,7 +25,8 @@ const one = (m, loose) => {
   return r;
 };
 export const clean = x => {
-  if (!x || typeof x.id != 'string' || !x.id || !Array.isArray(x.messages)) return null;
+  // Identifiant « index » : il écraserait l'index de la sauvegarde GitHub (index.json, backup.js).
+  if (!x || typeof x.id != 'string' || !x.id || x.id == 'index' || !Array.isArray(x.messages)) return null;
   const s = v => (typeof v == 'string' ? v : ''),
     n = v => (Number.isFinite(+v) && +v > 0 ? +v : 0);
   const messages = x.messages
