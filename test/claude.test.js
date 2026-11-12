@@ -264,3 +264,40 @@ test('mémoire : une réponse coupée ou un résumé vide laissent la mémoire i
   }
   app.cur = cur;
 });
+
+test('mémoire en échec : deux échecs de suite, puis plus d’essai avant 40 nouveaux messages ou la séance suivante', async () => {
+  const { app } = await import('../js/state.js');
+  const { summarize } = await import('../js/ai.js');
+  const cur = app.cur,
+    busy = app.busy;
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls++;
+    return new Response(JSON.stringify({ error: { type: 'invalid_request_error', message: 'refusé' } }), {
+      status: 400,
+      headers: { 'content-type': 'application/json' }
+    });
+  };
+  const s = {
+    id: 'echec',
+    messages: Array.from({ length: 130 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'm' + i })),
+    mem: { summary: '', memories: [], relations: {}, lines: [], upto: 0 }
+  };
+  try {
+    Object.assign(app, { cur: s, busy: true });
+    await summarize(s);
+    await summarize(s);
+    const n = calls;
+    assert.ok(n >= 2);
+    await summarize(s);
+    assert.equal(calls, n, 'troisième tour : pas d’essai');
+    await summarize(s, true);
+    assert.ok(calls > n, 'début de séance : nouvel essai');
+    const m = calls;
+    s.messages.push(...Array.from({ length: 40 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'n' + i })));
+    await summarize(s);
+    assert.ok(calls > m, '40 messages de plus : nouvel essai');
+  } finally {
+    Object.assign(app, { cur, busy });
+  }
+});

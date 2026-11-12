@@ -1,4 +1,4 @@
-import { chat, cold, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, waitMsg, WARM_AT } from './ai.js';
+import { chat, cold, keepWarm, lastTurn, lastWarmable, SUM_START, summarize, summing, waitMsg, WARM_AT } from './ai.js';
 import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
@@ -126,7 +126,9 @@ export async function ask(old, cont, hint) {
   }, 1000);
   try {
     const ac = (app.ctl = new AbortController()),
-      sp = sessionSum(s, old);
+      // Mise à jour de la mémoire en cours (lancée au tour précédent) : attendue elle aussi, sinon ce tour
+      // réécrirait le cache avec une mémoire à moitié avancée, et le suivant encore avec la mémoire finale.
+      sp = sessionSum(s, old) || (summing(s.id) ? summarize(s) : null);
     // Début de séance : la mémoire avance d'abord (au plus SUM_WAIT ; Arrêter coupe l'attente).
     if (sp) {
       err('Mise à jour de la mémoire avant l’envoi…');
@@ -296,7 +298,8 @@ function warmArm(s) {
   if (age >= 295000) return;
   warmT = setTimeout(async () => {
     warmT = 0;
-    if (app.busy || app.cur !== s || $('#chat').hidden || document.hidden) return;
+    // Minuteur tiré en retard (mise en veille) : le cache a déjà expiré, la relance l'écrirait au lieu de le relire.
+    if (app.busy || app.cur !== s || $('#chat').hidden || document.hidden || Date.now() - (lastWarmable()?.at || 0) >= 295000) return;
     warmN++;
     if (await keepWarm()) warmArm(s);
   }, Math.max(0, WARM_AT - age));

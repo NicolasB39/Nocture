@@ -22,14 +22,9 @@ export const PRICES = {
   'claude-haiku-4-5': [1, 5, 0.1]
 };
 
-// Tarif connu, y compris pour un identifiant daté (claude-haiku-4-5-20251001) ; null pour un modèle inconnu.
-export const priceOf = key => {
-  if (PRICES[key]) return PRICES[key];
-  const k = Object.keys(PRICES)
-    .filter(p => key.startsWith(p + '-'))
-    .sort((a, b) => b.length - a.length)[0];
-  return k ? PRICES[k] : null;
-};
+// Tarif connu, y compris pour un identifiant daté (claude-haiku-4-5-20251001) ; null pour un modèle inconnu,
+// même voisin d'un modèle connu (claude-sonnet-5-7 n'a pas le tarif de claude-sonnet-5).
+export const priceOf = key => PRICES[key] || PRICES[String(key).replace(/-\d{8}$/, '')] || null;
 
 // e : entrée des statistiques [entrée, sortie, requêtes, estimées, cache lu, cache écrit 5 min, cache écrit 1 h].
 // Le cache lu et écrit est compris dans l'entrée.

@@ -43,6 +43,7 @@ test('usageOf : entrée cache compris, sortie, cache lu et écrit', () => {
   const u = usageOf({ input_tokens: 50, cache_read_input_tokens: 1000, cache_creation_input_tokens: 200, output_tokens: 300 });
   assert.deepEqual(u, { in: 1250, out: 300, read: 1000, write: 200 });
   assert.deepEqual(usageOf({}), { in: 0, out: 0, read: 0, write: 0 });
+  assert.equal(usageOf({ cache_creation_input_tokens: 9, cache_creation: { ephemeral_1h_input_tokens: 9 } }).w1, 9);
   assert.equal(usageOf(null), null);
 });
 

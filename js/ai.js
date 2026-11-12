@@ -90,7 +90,9 @@ export const usageOf = u =>
     in: (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0),
     out: u.output_tokens || 0,
     read: u.cache_read_input_tokens || 0,
-    write: u.cache_creation_input_tokens || 0
+    write: u.cache_creation_input_tokens || 0,
+    // Part écrite pour une heure, quand l'API la détaille (sinon : d'après le réglage, track).
+    ...(u.cache_creation ? { w1: u.cache_creation.ephemeral_1h_input_tokens || 0 } : {})
   };
 // Maintien du cache : le cache de Claude expire 5 minutes après le début de la dernière requête qui l'a
 // lu ou écrit. Pendant une pause, renvoyer la même requête avec max_tokens: 0 (sans streaming, refusé
@@ -110,8 +112,11 @@ export const lastWarmable = () => LAST;
 export async function keepWarm() {
   if (!LAST || !S.key) return false;
   // Sans relais (rien à relayer, et hors du préfixe) ni streaming (refusé avec max_tokens: 0).
+  // Le dernier message (tour du joueur, avec lorebook, fiches, passages et état joints) est hors du cache, qui
+  // s'arrête à l'avant-dernier (toAnt) : un caractère suffit, au lieu de le payer plein tarif à chaque relance.
   const { stream, fallbacks, ...b } = LAST.body,
-    w = { ...b, max_tokens: 0 },
+    ms = b.messages?.at(-1)?.role == 'user' ? [...b.messages.slice(0, -1), { role: 'user', content: '.' }] : b.messages,
+    w = { ...b, messages: ms, max_tokens: 0 },
     key = b.model,
     { sid } = LAST,
     t0 = (LAST.at = Date.now());
@@ -176,7 +181,8 @@ const track = (u, key, primary) => {
   if (!u || !(u.in || u.out)) return;
   // Haiku 5.5 coûte plus cher au-delà de 100 000 tokens de prompt : ces requêtes ont leur propre ligne.
   if (base(key) == 'claude-haiku-5-5' && u.in > HAIKU_LONG) key = base(key) + LONG;
-  const e = [u.in, u.out, 1, u.est ? 1 : 0, u.read, ...(S.c1h ? [0, u.write] : [u.write, 0])];
+  const w1 = Math.min(u.write, u.w1 ?? (S.c1h ? u.write : 0)),
+    e = [u.in, u.out, 1, u.est ? 1 : 0, u.read, u.write - w1, w1];
   if (primary) TURN = { key, e };
   record(key, e);
   return { key, e };
@@ -466,10 +472,15 @@ export const batchGuard = (s, n) => {
 // Histoire quittée : rien, la mémoire repartira à sa prochaine ouverture (ses personnages à fiche, connus
 // seulement histoire ouverte, ne seraient pas protégés). Histoire rouverte pendant une mise à jour (nouvel objet,
 // dont l'ancienne abandonnera le résultat) : la nouvelle part après elle.
+// Deux échecs de suite (FAIL : nombre, et messages au dernier échec) : plus d'essai à chaque tour, seulement en
+// début de séance ou après SUM_BATCH * 2 nouveaux messages, pour que la mémoire ne reste pas figée.
+const FAIL = new Map();
 export function summarize(s, start = false) {
   if (!s || app.cur !== s) return Promise.resolve();
-  const r = SUMS.get(s.id);
+  const r = SUMS.get(s.id),
+    f = FAIL.get(s.id);
   if (r?.s === s) return r.p;
+  if (!start && f?.n >= 2 && s.messages.length - f.at < SUM_BATCH * 2) return Promise.resolve();
   const p = Promise.resolve(r?.p)
     .catch(() => {})
     .then(() => sumRun(s, start))
@@ -570,8 +581,11 @@ async function sumRun(s, start) {
       emit('mem');
     }
     if (said && mine()) err('');
+    FAIL.delete(s.id);
   } catch (e) {
-    say('Mémoire non mise à jour (' + e.message + ') : nouvel essai au prochain tour.');
+    const n = (FAIL.get(s.id)?.n || 0) + 1;
+    FAIL.set(s.id, { n, at: s.messages.length });
+    say('Mémoire non mise à jour (' + e.message + ') : nouvel essai ' + (n < 2 ? 'au prochain tour.' : 'dans quelques tours.'));
   } finally {
     if (RUN.delete(s.id)) emit('mem');
   }

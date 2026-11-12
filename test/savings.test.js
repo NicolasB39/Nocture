@@ -89,7 +89,8 @@ test('keepWarm renvoie la dernière requête de narration avec max_tokens 0, san
   assert.equal(w.max_tokens, 0);
   assert.ok(!('stream' in w));
   assert.deepEqual(w.system, real.system, 'même préfixe système');
-  assert.deepEqual(w.messages, real.messages, 'mêmes messages, mêmes marqueurs de cache');
+  assert.deepEqual(w.messages.slice(0, -1), real.messages.slice(0, -1), 'mêmes messages, mêmes marqueurs de cache');
+  assert.deepEqual(w.messages.at(-1), { role: 'user', content: '.' }, 'dernier tour, hors cache, réduit à un caractère');
   assert.deepEqual(w.output_config, { effort: 'low' }, 'même effort : il fait partie du préfixe');
   assert.equal(SESSION['claude-opus-5-5'][2], 2, 'la relance est comptée dans les statistiques');
   assert.equal(SESSION['claude-opus-5-5'][4], 4000, 'cache lu compté à part');
