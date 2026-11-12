@@ -1,4 +1,4 @@
-const C = 'nocturne-2c5c7a9ff8',
+const C = 'nocturne-237f41bbb9',
   A = [
     './',
     'index.html',
@@ -55,32 +55,34 @@ const SH = new Set(A.map(a => new URL(a, self.registration.scope).href));
 // adresses, ./ étant celle de démarrage) ou les scripts ne portent pas cette version : le navigateur
 // retentera, l'ancienne version reste en place.
 const V = C.slice('nocturne-'.length);
-self.addEventListener('install', e =>
-  e.waitUntil(
-    caches.open(C).then(async c => {
-      await Promise.all(
-        A.map(async u => {
-          const x = await fetch(u + (u.includes('?') ? '&' : '?') + 'v=' + V, { cache: 'reload' });
-          if (!x.ok) throw new Error(u + ' : ' + x.status);
-          await c.put(u, x);
-        })
-      );
-      for (const [u, t] of [['./', 'content="' + V + '"'], ['index.html', 'content="' + V + '"'], ['js/main.js', "VERSION = '" + V + "'"]])
-        if (!(await (await c.match(u))?.text())?.includes(t)) {
-          await caches.delete(C);
-          throw new Error('version mélangée : ' + u);
-        }
+// Remplit le cache de la version : à l'installation, à l'activation s'il a été vidé entre-temps, et à la
+// demande de Réparer (« fill », boot.js), qui vient de vider les caches d'un worker toujours actif. Tout est
+// téléchargé et vérifié avant la première écriture : un échec ne touche pas au cache existant.
+const fill = async () => {
+  const xs = await Promise.all(
+    A.map(async u => {
+      const x = await fetch(u + (u.includes('?') ? '&' : '?') + 'v=' + V, { cache: 'reload' });
+      if (!x.ok) throw new Error(u + ' : ' + x.status);
+      return [u, x];
     })
-  )
-);
+  );
+  const get = u => xs.find(([k]) => k == u)[1].clone().text();
+  for (const [u, t] of [['./', 'content="' + V + '"'], ['index.html', 'content="' + V + '"'], ['js/main.js', "VERSION = '" + V + "'"]])
+    if (!(await get(u)).includes(t)) throw new Error('version mélangée : ' + u);
+  const c = await caches.open(C);
+  await Promise.all(xs.map(([u, x]) => c.put(u, x)));
+};
+self.addEventListener('install', e => e.waitUntil(fill()));
 self.addEventListener('message', e => {
   if (e.data == 'skip') self.skipWaiting();
+  if (e.data == 'fill') e.waitUntil(fill().then(() => 1, () => 0).then(ok => e.ports[0]?.postMessage(ok)));
 });
 self.addEventListener('activate', e =>
   e.waitUntil(
     caches
       .keys()
       .then(k => Promise.all(k.filter(x => x != C && x != D).map(x => caches.delete(x))))
+      .then(async () => (await caches.has(C)) || fill().catch(() => {}))
       .then(() => clients.claim())
   )
 );
@@ -128,5 +130,6 @@ self.addEventListener('fetch', e => {
   const r = e.request,
     u = new URL(r.url);
   if (r.method != 'GET' || u.origin != location.origin) return;
-  e.respondWith(SH.has(u.href) ? shell(r) : r.destination == 'image' ? swr(e, r) : nf(e, r));
+  // Adresse sans ses paramètres (« ?utm_source=… ») : la page reste celle du cache, comme ses scripts.
+  e.respondWith(SH.has(u.origin + u.pathname) ? shell(r) : r.destination == 'image' ? swr(e, r) : nf(e, r));
 });

@@ -1,7 +1,7 @@
 (function () {
   var probs = [];
   var box = null;
-  // Hors ligne, vider les caches et retirer le service worker rendrait l'application inutilisable jusqu'au
+  // Hors ligne, vider les caches rendrait l'application inutilisable jusqu'au
   // retour du réseau : on vérifie d'abord que le serveur répond (le vrai sw.js, pas la page d'un portail
   // Wi-Fi), sinon simple rechargement. then(vidé) : la suite, rechargement par défaut (reparer.js en donne une).
   function repair(then) {
@@ -28,18 +28,10 @@
         }
       );
   }
+  // Les caches seulement : désinscrire le service worker ne le détacherait pas de la page ouverte, et le
+  // réinscrire aussitôt le ranimerait tel quel, caches vides (fresh les fait remplir de nouveau).
   function clear() {
     var tasks = [];
-    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
-      tasks.push(
-        navigator.serviceWorker.getRegistrations().then(function (rs) {
-          return Promise.all(
-            rs.map(function (r) {
-              return r.unregister();
-            })
-          );
-        })
-      );
     if (window.caches)
       tasks.push(
         caches.keys().then(function (ks) {
@@ -56,14 +48,43 @@
   // fichiers avec le numéro de version dans l'adresse, sans cache : le rechargement qui suit les sert d'un seul
   // tenant. Sans lui, la page relirait les fichiers un par un, et l'hébergeur garde parfois jusqu'à 10 minutes
   // après un déploiement une ancienne copie de l'un d'eux (« ne fournit pas l'export… »).
+  // Nouvelle version (ou première visite) : elle remplit son cache en s'installant, puis prend la main. Même
+  // version déjà active (Réparer vient de vider les caches) : elle le remplit de nouveau (« fill », sw.js).
   function fresh() {
     var sw = navigator.serviceWorker;
     if (!sw || !sw.register) return Promise.resolve();
     return Promise.race([
-      new Promise(function (res) {
-        sw.addEventListener('controllerchange', res, { once: true });
-        sw.register('sw.js').catch(res);
-      }),
+      sw
+        .register('sw.js')
+        .then(function (r) {
+          return r
+            .update()
+            .catch(function () {})
+            .then(function () {
+              function fill(a) {
+                return new Promise(function (res) {
+                  var ch = new MessageChannel();
+                  ch.port1.onmessage = res;
+                  a.postMessage('fill', [ch.port2]);
+                });
+              }
+              var w = r.installing || r.waiting;
+              if (w)
+                return new Promise(function (res) {
+                  sw.addEventListener('controllerchange', res, { once: true });
+                  // Installation ratée (« version mélangée » juste après un déploiement) : la version active
+                  // remplit de nouveau son cache.
+                  function go() {
+                    if (w.state == 'installed') w.postMessage('skip');
+                    if (w.state == 'redundant') res(r.active && fill(r.active));
+                  }
+                  w.addEventListener('statechange', go);
+                  go();
+                });
+              if (r.active) return fill(r.active);
+            });
+        })
+        .catch(function () {}),
       new Promise(function (res) {
         setTimeout(res, 20000);
       })
@@ -161,6 +182,7 @@
     },
     repair: repair
   };
+  // Première visite (aucun service worker) : une trentaine de fichiers à télécharger, le délai est plus long.
   setTimeout(function () {
     if (!window.__started) add("Le démarrage n'a pas abouti.");
     else if (window.__missing && window.__missing.size)
@@ -168,5 +190,5 @@
         'Éléments de page introuvables : ' + Array.from(window.__missing).slice(0, 6).join(', '),
         true
       );
-  }, 6000);
+  }, navigator.serviceWorker && navigator.serviceWorker.controller ? 6000 : 20000);
 })();

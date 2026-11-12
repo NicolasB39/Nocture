@@ -3,7 +3,8 @@ import { showList } from './list.js';
 import { STATS, load as loadUsage, shift, watch } from './stats.js';
 import { loadSet, loadStats, onPeer, openDB, saveStats } from './store.js';
 import './cast.js';
-import { LS, toast } from './util.js';
+import { $, LS, toast } from './util.js';
+import { app } from './state.js';
 import { applyFs } from './read.js';
 import './list.js';
 import './chat.js';
@@ -13,7 +14,7 @@ import './backup.js';
 import './journal.js';
 import './statview.js';
 
-const VERSION = '2c5c7a9ff8';
+const VERSION = '237f41bbb9';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(
@@ -23,9 +24,17 @@ window.__started = true;
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   const had = !!navigator.serviceWorker.controller;
-  let going = false;
+  // asked : Recharger touché ici, rechargement sans condition.
+  let going = false,
+    asked = false;
+  // Nouvelle version prise (Recharger, ici ou dans une autre fenêtre) : rechargement, sauf pendant une réponse ou
+  // avec un texte en cours de saisie, qu'il couperait ou perdrait ; la notification le propose alors.
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!had || going) return;
+    if (!asked && (app.busy || $('#inp')?.value.trim())) {
+      toast('Nouvelle version installée', { keep: 1, label: 'Recharger', fn: () => location.reload() });
+      return;
+    }
     going = true;
     location.reload();
   });
@@ -37,10 +46,26 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
         toast('Nouvelle version prête', {
           keep: 1,
           label: 'Recharger',
-          fn: () => w.postMessage('skip')
+          fn: () => {
+            asked = true;
+            w.postMessage('skip');
+          }
         });
       };
       offer(reg.waiting);
+      // Application gardée ouverte (téléphone repris depuis l'arrière-plan, réseau retrouvé) : le navigateur ne
+      // cherche de mise à jour qu'à une navigation ; on la demande, une fois par heure au plus.
+      let upAt = Date.now();
+      const check = () => {
+        if (document.hidden || Date.now() - upAt < 3600e3) return;
+        upAt = Date.now();
+        reg.update().catch(() => {});
+      };
+      document.addEventListener('visibilitychange', check);
+      addEventListener('online', () => {
+        upAt = 0;
+        check();
+      });
       reg.addEventListener('updatefound', () => {
         const w = reg.installing;
         w?.addEventListener('statechange', () => {
