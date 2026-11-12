@@ -145,3 +145,33 @@ test('modifiée des deux côtés : une seule copie « (conflit) », même après
   await pass(d1, t1);
   assert.deepEqual(log, []);
 });
+
+test('passe coupée après la réception : l’histoire reçue puis jouée ici ne fait pas de copie', async () => {
+  const d1 = device(story('a', 10));
+  const s1 = await pass(d1),
+    d2 = device(),
+    s2 = await pass(d2);
+  d1.M.set('a', story('a', 20, 'appareil 1'));
+  await pass(d1, s1);
+  // d2 reçoit a (20) puis la passe coupe pendant l'envoi de c.
+  d2.M.set('c', story('c', 5));
+  cutAt = 'PUT c.json';
+  await assert.rejects(pass(d2, s2));
+  d2.M.set('a', story('a', 30, 'suite sur 2'));
+  await pass(d2, s2);
+  assert.deepEqual([...d2.M.keys()].sort(), ['a', 'c'], 'pas de copie « (conflit) »');
+  assert.equal(remote('a.json').messages[0].content, 'suite sur 2');
+});
+
+test('enregistrée pendant la passe : l’index et le repère suivent la version envoyée', async () => {
+  const d = device(story('a', 20));
+  const ga = d.db.getAll;
+  d.db.getAll = async () => {
+    const r = await ga();
+    d.M.set('a', story('a', 25, 'pendant'));
+    return r;
+  };
+  const st = await pass(d);
+  assert.equal(remote('index.json').items[0].updated, 25);
+  assert.equal(st.seen.a, 25);
+});

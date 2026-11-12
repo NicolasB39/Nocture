@@ -334,8 +334,8 @@ $('#imf').onchange = async e => {
     const a = (Array.isArray(d?.scenarios) ? d.scenarios : []).map(clean).filter(Boolean),
       // Modèle et effort choisis par l'histoire : ils décident du coût de chaque tour, le dire avant d'importer.
       own = [...new Set(a.flatMap(x => [x.model, x.effort && 'effort ' + x.effort]).filter(Boolean))];
+    if (!a.length) return dlg('Aucune histoire dans ce fichier');
     if (
-      !a.length ||
       !(await dlg('Importer ' + a.length + (a.length > 1 ? ' histoires ?' : ' histoire ?'), {
         m:
           'Celles qui ont le même identifiant seront remplacées.' +

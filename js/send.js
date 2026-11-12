@@ -8,7 +8,8 @@ import { passage } from './passage.js';
 import { buildInfo, inScene } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { decorNow, momentNow } from './scene.js';
-import { app, S } from './state.js';
+import { app, ctx, S } from './state.js';
+import { loadCtx } from './scenarios.js';
 import { save } from './store.js';
 import { $, dlg, el, err, fit, LS } from './util.js';
 import { far, liveEnd, liveScene, navView, newShow, render, tail, unseen } from './view.js';
@@ -50,6 +51,17 @@ export async function ask(old, cont, hint) {
     if (old) s.messages.push(old);
     render();
     err("Ajoutez une clé API dans les Réglages de l'application (menu « … » en haut).", 1);
+    return;
+  }
+  // Scénario GitHub dont le prompt n'a pas pu être lu (supprimé, ou GitHub en panne) : rien ne part, le récit
+  // sortirait de son monde. Réessayer relit le scénario.
+  if (s.remote && !ctx.system) {
+    if (old) s.messages.push(old);
+    render();
+    err('Prompt du scénario introuvable (scenarios/' + s.folder + '/systeme.md) : rien n’est envoyé.', 1, {
+      label: 'Réessayer',
+      fn: () => app.cur === s && loadCtx().then(() => app.cur === s && !app.busy && still() && again())
+    });
     return;
   }
   setBusy(true);

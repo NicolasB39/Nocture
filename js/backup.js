@@ -248,17 +248,25 @@ export async function syncOnce(B, gone, { getAll, getOne, put, del } = DB) {
       continue;
     }
     await put(v, true);
-    if (app.cur?.id != x.id) continue;
     // L'histoire ouverte n'a pas pris la version distante (tour lancé, ou autre écriture locale pendant
     // l'écriture) : la version locale l'a écrasée, ce sera un conflit au passage suivant.
-    if (busyOn(x.id) || (await emit('cur:remote', 'updated', v.updated))[0] !== true) hold(x.id);
+    if (app.cur?.id == x.id && (busyOn(x.id) || (await emit('cur:remote', 'updated', v.updated))[0] !== true)) {
+      hold(x.id);
+      continue;
+    }
+    // Version prise : repère « vu » posé aussitôt, pour qu'une passe coupée plus loin ne fasse pas d'une
+    // histoire reçue puis jouée ici une copie « (conflit) » au passage suivant.
+    if (!moved) (S.bkSeen ??= {})[x.id] = v.updated;
   }
   // Même garde pour une suppression venue d'ailleurs : modifiée ici entre-temps, l'histoire est plus récente
   // que la suppression, elle reste et repart au passage suivant.
   for (const id of m.delLocal) {
     if (busyOn(id) || (await getOne(id))?.updated !== U.get(id)) continue;
     await del(id, true);
-    gone.push(id);
+    // Histoire ouverte : fermée tout de suite, un tour envoyé avant la fin de la passe la recréerait. Les autres
+    // sont annoncées en fin de synchronisation (gone).
+    if (app.cur?.id == id) await emit('cur:remote', 'deleted');
+    else gone.push(id);
   }
   let n = 0;
   const lost = new Set();
@@ -274,6 +282,11 @@ export async function syncOnce(B, gone, { getAll, getOne, put, del } = DB) {
     if (!one) {
       lost.add(x.id);
       continue;
+    }
+    // Enregistrée ici depuis l'instantané (tour, mémoire) : l'index et le repère suivent ce qui part vraiment.
+    if (one.updated !== x.updated) {
+      Object.assign(x, stub(one));
+      m.seen[x.id] = one.updated;
     }
     const { cover = '', ...rest } = one,
       h = cvh(cover);

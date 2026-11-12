@@ -6,7 +6,7 @@ import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, SUM_MAX, chStart, clip, mergeMem, mer
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
 import { emit } from './bus.js';
-import { addCall, getOne, save } from './store.js';
+import { addCall, getOne, put } from './store.js';
 import { $, bare, err, LS } from './util.js';
 
 // La mémoire garde SUM_KEEP messages mot pour mot. Chaque mise à jour réécrit tout
@@ -421,17 +421,19 @@ const LINES_MAX = 24;
 // réponse que l'envoi est en train d'enregistrer. Pendant un tour, rien : la mémoire est sur le même objet
 // et la fin du tour l'enregistrera (Régénérer a retiré la réponse en mémoire seulement, l'enregistrer ici
 // la perdrait). Histoire fermée : seulement si la base n'a pas changé depuis (synchronisation). Rend false si
-// rien n'a pu être enregistré : la mise à jour s'arrête au lieu de payer des lots perdus.
+// rien n'a pu être enregistré : la mise à jour s'arrête au lieu de payer des lots perdus. La date de l'histoire ne
+// change pas : une mise à jour de la mémoire seule ne doit pas la faire passer pour modifiée ici, ce qui ferait
+// d'une version jouée sur un autre appareil une copie « (conflit) » ; la mémoire part avec le tour suivant.
 const persist = async s => {
   if (app.cur?.id == s.id) {
     app.cur.mem = s.mem;
-    if (!app.busy) await save(app.cur);
+    if (!app.busy) await put(app.cur);
     return true;
   }
   const f = await getOne(s.id);
   if (!f || f.updated !== s.updated) return false;
   f.mem = s.mem;
-  await save(f);
+  await put(f);
   s.updated = f.updated;
   return true;
 };

@@ -88,6 +88,8 @@ on('cur:remote', async (k, u) => {
   if (app.busy) return false;
   const c = await getOne(id);
   if (!c || c.updated !== u || app.cur?.id != id || app.busy) return false;
+  // Modification en cours : abandonnée, son index viserait un message de la nouvelle version.
+  if ($('#de').open) $('#de').close();
   app.cur = c;
   render();
   toast('Histoire mise à jour depuis un autre appareil');
