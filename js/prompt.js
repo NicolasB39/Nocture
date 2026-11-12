@@ -167,9 +167,10 @@ export function buildInfo(s, cont, hint) {
       '\n</personnages>';
   }
   // Passages anciens : en queue, comme le lorebook déclenché, pour ne rien invalider du cache.
-  // On ne fouille que ce qui n'est plus envoyé tel quel : déjà résumé.
+  // On ne fouille que ce qui n'est plus envoyé tel quel : déjà résumé. Requête : le texte des deux derniers
+  // messages, sans l'état (lieu, objectif…), qui change peu d'un tour à l'autre et ramènerait les mêmes passages.
   add += recallTag(
-    recall(s.messages, start, textOf(s.messages.slice(-2))),
+    recall(s.messages, start, nz(s.messages.slice(-2).map(m => m.content).join('\n'))),
     nm || 'Joueur'
   );
   if (statOn(s)) {

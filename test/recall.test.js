@@ -77,3 +77,22 @@ test('sans rien de résumé ni de sorti de la fenêtre, rien n’est rappelé', 
   const s = clean({ id: 's', name: 'S', system: 'SYS', noChoices: true, messages: ms });
   assert.doesNotMatch(buildInfo(s).msgs.at(-1).content, /passages_anciens/);
 });
+
+test('un personnage présent dans plus d’un passage sur dix ne suffit pas à rappeler un passage', () => {
+  const ms = Array.from({ length: 60 }, (_, i) => ({
+    role: i % 2 ? 'assistant' : 'user',
+    content: i % 3 ? 'La route continue vers le nord, le vent souffle.' : 'Mirelle pose ses doigts sur ton épaule.'
+  }));
+  assert.deepEqual(recall(ms, 60, 'Mirelle pose sa tête contre ton épaule.'), []);
+});
+
+test('l’état du panneau ne sert pas à chercher les passages anciens', () => {
+  const ms = [
+    { role: 'assistant', content: 'Le port de Kervoz s’éveille ; l’auberge du Phare ouvre ses volets.' },
+    ...Array.from({ length: 50 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'Le chemin monte, la pluie tombe ' + i + '.' })),
+    { role: 'assistant', content: 'La chambre est calme.', state: [['Lieu', 'Auberge du Phare, Kervoz']] },
+    { role: 'user', content: 'Je ferme les volets.' }
+  ];
+  const s = clean({ id: 's', name: 'S', system: 'SYS', noChoices: true, messages: ms, mem: { upto: 1 } });
+  assert.doesNotMatch(buildInfo(s).msgs.at(-1).content, /passages_anciens/);
+});

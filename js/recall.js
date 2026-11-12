@@ -58,10 +58,11 @@ export function recall(ms, before, query, n = RECALL_N) {
   const docs = ms.slice(0, before).map(wordsOf);
   const df = new Map();
   for (const d of docs) for (const w of d) if (q.has(w)) df.set(w, (df.get(w) || 0) + 1);
-  // Il faut au moins un mot distinctif : présent dans un passage sur trois au plus (trois passages
-  // au moins tolérés, pour qu'un nom revenu quelques fois dans une courte histoire compte encore).
+  // Il faut au moins un mot distinctif : présent dans un passage sur dix au plus (trois passages au moins
+  // tolérés, pour qu'un nom revenu quelques fois dans une courte histoire compte encore). Un personnage présent
+  // partout ne suffit pas à lui seul.
   const N = docs.length,
-    rare = w => df.get(w) <= Math.max(3, N / 3);
+    rare = w => df.get(w) <= Math.max(3, N / 10);
   const scored = docs
     .map((d, i) => {
       let s = 0,
