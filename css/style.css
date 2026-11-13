@@ -744,6 +744,15 @@ header button:active {
 }
 .m .b {
   font: var(--fs) / var(--lh) var(--rf);
+  /* Taille retenue dès le premier rendu (auto) : un message qui devient ancien garde sa hauteur réelle. */
+  contain-intrinsic-size: auto 300px;
+}
+/* Longue conversation : un ancien message loin de l'écran n'est ni mis en page ni dessiné. Jamais les trois derniers
+   (dont la réponse en cours) : recréés pendant un tour et mesurés aussitôt, ils auraient une hauteur nulle et l'écran
+   sauterait. La marge rend le débord des scènes pleine largeur, que la règle couperait. */
+.m:not(:nth-last-child(-n + 3 of .m)) .b {
+  content-visibility: auto;
+  overflow-clip-margin: 16px;
 }
 .b p {
   margin: 0 0 var(--pg);

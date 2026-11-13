@@ -147,24 +147,10 @@ export async function loadCtx() {
     txt(base + 'systeme.md'),
     txt(base + 'avatar.md')
   ]);
-  // Fichiers facultatifs, lus ensemble (chacun est un aller-retour réseau) : vides s'ils manquent.
+  // Fichiers facultatifs, fiches, lorebook et décors : tous lancés ensemble dès l'arbre connu (chacun est un
+  // aller-retour réseau), puis attendus une seule fois plus bas. Vides s'ils manquent.
   const opt = f => (T.includes(base + f) ? txt(base + f).then(t => t.trim()) : '');
-  const [stat, intro, rl, iv, ln] = await Promise.all([opt('etat.md'), opt('intro.md'), opt('regles.md'), opt('inventaire.md'), opt('liens.md')]);
-  // Modes Inventaire et Liens (modes.js) : liens.md active le mode même vide (échelle par défaut).
-  const inv = parseInv(iv),
-    liens = T.includes(base + 'liens.md') ? parseLiens(ln) : null;
-  // Mode jeu de rôle : les caractéristiques, séparées par des virgules (huit au plus). Les lignes de
-  // commentaire (#) sont retirées avant le découpage : leurs virgules ne créent pas de caractéristiques.
-  const rules = [
-    ...new Set(
-      rl
-        .split('\n')
-        .filter(l => !l.trim().startsWith('#'))
-        .flatMap(l => l.split(','))
-        .map(x => x.trim())
-        .filter(Boolean)
-    )
-  ].slice(0, 8);
+  const optP = Promise.all([opt('etat.md'), opt('intro.md'), opt('regles.md'), opt('inventaire.md'), opt('liens.md')]);
   // Sans prototype : un dossier « __proto__ » ou « constructor » serait sinon pris pour une clé existante.
   const ch = Object.create(null);
   for (const p of T) {
@@ -220,15 +206,11 @@ export async function loadCtx() {
         })
       );
   }
-  const chars = (await Promise.all(fp)).filter(x => x.text || x.images.length);
+  const charsP = Promise.all(fp);
   const lb = base + 'lorebook/';
-  const lore = (
-    await Promise.all(
-      T.filter(p => p.startsWith(lb) && p.endsWith('.md') && !p.slice(lb.length).includes('/')).map(
-        p => txt(p)
-      )
-    )
-  )
+  const loreP = Promise.all(T.filter(p => p.startsWith(lb) && p.endsWith('.md') && !p.slice(lb.length).includes('/')).map(p => txt(p)));
+  const loreOf = ts =>
+    ts
     .map(t => {
       const ls = t.split(/\r?\n/);
       let keys = [],
@@ -254,7 +236,7 @@ export async function loadCtx() {
     .filter(Boolean);
   images.sort((x, y) => x.code.localeCompare(y.code));
   const db = base + 'decors/',
-    all = await Promise.all(
+    allP = Promise.all(
       T.filter(p => p.startsWith(db) && !p.slice(db.length).includes('/') && /\.(webp|png|jpe?g|gif)$/i.test(p)).map(
         async p => {
           const n = p.slice(db.length).replace(/\.[^.]+$/, ''),
@@ -267,10 +249,28 @@ export async function loadCtx() {
           return { name: n, url: encodeURI(p), keys: keys.map(k => kre(nz(k.trim()))).filter(Boolean) };
         }
       )
-    ),
+    );
+  const [[stat, intro, rl, iv, ln], fs, lts, all] = await Promise.all([optP, charsP, loreP, allP]);
+  const chars = fs.filter(x => x.text || x.images.length),
+    lore = loreOf(lts),
     def = all.find(d => nz(d.name) == 'defaut'),
     decors = all.filter(d => d !== def),
     decorDef = def?.url || '';
+  // Modes Inventaire et Liens (modes.js) : liens.md active le mode même vide (échelle par défaut).
+  const inv = parseInv(iv),
+    liens = T.includes(base + 'liens.md') ? parseLiens(ln) : null;
+  // Mode jeu de rôle : les caractéristiques, séparées par des virgules (huit au plus). Les lignes de
+  // commentaire (#) sont retirées avant le découpage : leurs virgules ne créent pas de caractéristiques.
+  const rules = [
+    ...new Set(
+      rl
+        .split('\n')
+        .filter(l => !l.trim().startsWith('#'))
+        .flatMap(l => l.split(','))
+        .map(x => x.trim())
+        .filter(Boolean)
+    )
+  ].slice(0, 8);
   if (g !== gen) return;
   Object.assign(IMG, im);
   Object.assign(ctx, { system, avatar, chars, lore, images, stat, rules, inv, liens, decors, decorDef, intro, iv: imgVer(im) });

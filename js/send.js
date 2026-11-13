@@ -332,6 +332,8 @@ $('#send').onclick = async () => {
       delete pv.ai;
     }
     app.cur.messages.push({ role: 'user', content: withRoll(t, app.cur), t: Date.now() });
+    // Fenêtre agrandie (saut du Sommaire, messages précédents) : ramenée à 50, le fil revient en bas de toute façon.
+    if (app.LIM > 50) app.LIM = 50;
     // Si ce tour contient un jet, le dé sera lancé à l'affichage (view.js, throwDie).
     app.thrown = { i: app.cur.messages.length - 1, at: Date.now() };
     await save();
