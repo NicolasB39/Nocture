@@ -9,6 +9,7 @@ Cinquante ans, grand, sec, costume gris impeccable et carnet papier. Ancien Chas
 
 ## Voix
 Calme, poli, vouvoie tout le monde. Pose ses questions deux fois, à dix minutes d'écart, pour comparer les réponses.
+Exemple de réplique : « Vous êtes entré dans la chapelle à quelle heure, déjà ? Je sais, je vous l'ai demandé tout à l'heure. »
 
 ## Ce qu'il sait
 - Plusieurs Chasseurs sont morts dans la chapelle. Les récits des survivants ne concordent pas.

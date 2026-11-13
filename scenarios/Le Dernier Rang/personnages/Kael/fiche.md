@@ -9,6 +9,7 @@ Trente ans, athlétique, cheveux blonds tirés en arrière. Armure noire à lise
 
 ## Voix
 Assurée, ironique, toujours un demi-sourire. Appelle les rangs E « les porteurs » sans jamais retenir leurs noms.
+Exemple de réplique : « Toi, le porteur. Tu portes, tu te tais, et si ça tourne mal, tu cours moins vite que nous. »
 
 ## Ce qu'il sait
 - Il connaît la hiérarchie des guildes et le prix de chaque Chasseur.

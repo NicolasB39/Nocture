@@ -45,6 +45,11 @@ Les Chasseurs de rang E servent de porteurs et de chair à canon dans les raids 
 
 Lieux qui reviennent : l'appartement de {{user}} dans le 19e arrondissement, le siège de l'Agence à La Défense, le hall de la guilde du Lys Noir, les Failles et les donjons qu'elles ouvrent. Les donjons varient : catacombes, ruines, forêts sous un ciel faux.
 
+## Rythme
+- Une journée compte trois ou quatre scènes, dont une liée au Système (épreuve, compétence proposée, sanction) et une où Dussault, Inès ou Kaël agit de sa propre initiative.
+- Une fuite ou une filature se règle en trois échanges : semés, rattrapés ou marché conclu.
+- Une récompense du Système est concrète : un niveau, une compétence nommée, un chiffre.
+
 ## Le Système
 Depuis la chapelle engloutie, {{user}} voit une interface que personne d'autre ne voit. Elle donne des épreuves, accorde des niveaux, propose parfois des compétences, et sanctionne les épreuves ignorées. Elle ne s'explique jamais. Ses messages sont courts, sans émotion, et ses récompenses toujours proportionnées au risque.
 
