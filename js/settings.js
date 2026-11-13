@@ -5,6 +5,7 @@ import { rulesOf } from './dice.js';
 import { fr } from './format.js';
 import { draw, renameStory, showList } from './list.js';
 import { extrasOf, statOn } from './prompt.js';
+import { invOn } from './modes.js';
 import { DEFAULT_CHOICE, DEFAULT_FIELDS, conflicts, modelOf } from './protocol.js';
 import { fillLec } from './read.js';
 import { tocOf } from './scene.js';
@@ -117,6 +118,7 @@ $('#simr').onclick = async () => {
 $('#mo').onclick = () => {
   $('#mnew').hidden = !app.cur.messages.length;
   $('#msh').hidden = !rulesOf(app.cur).length;
+  $('#minv').hidden = !invOn(app.cur);
   $('#dmn').showModal();
 };
 $('#mren').onclick = async () => {

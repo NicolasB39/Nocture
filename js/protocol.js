@@ -41,25 +41,40 @@ const jetBlock = (rules, choices) =>
   '\n- Quand le joueur tente de lui-même une action risquée, sans <jet>, n’en raconte pas l’issue : montre l’instant d’avant en deux ou trois phrases, puis termine ta réponse par <jet>Caractéristique, difficulté</jet>' +
   (choices ? ' à la place du bloc <choix>.' : '.');
 
+// Mode Inventaire (inventaire.md) : l'application tient les quantités, le narrateur signale les changements.
+const invBlock = () =>
+  "\n\n# Inventaire\nL'application tient l'inventaire de {{user}} : son état exact arrive à chaque tour dans <inventaire_actuel>. {{user}} n'utilise, ne donne ni ne dépense que ce qu'il possède ; s'il tente d'utiliser ce qu'il n'a pas, raconte qu'il ne l'a pas. Après la narration, signale chaque gain ou perte (objet trouvé, acheté, donné, consommé, cassé) par un bloc <inventaire>+1 Corde, −5 Or</inventaire> ; pas de bloc quand rien ne change. Ne recopie l'inventaire ni dans le récit ni dans l'état.";
+// Mode Liens (liens.md) : le lien de chaque personnage à fiche avec le joueur, tenu par l'application.
+const lienBlock = (min, max) =>
+  "\n\n# Liens\nL'application tient le lien de chaque personnage à fiche avec {{user}}, de " +
+  min +
+  ' (hostile) à ' +
+  max +
+  " (dévoué) : les valeurs actuelles et les paliers atteints arrivent dans <liens>. Quand un geste ou une parole de {{user}} compte vraiment pour un personnage, signale-le après la narration par <lien>Nom +1</lien> (ou −1), rarement, jamais à chaque tour. Fais sentir le lien dans la façon dont chacun parle à {{user}} ; un palier atteint ouvre ce qu'il décrit.";
+
 export const DEFAULT_CHOICE =
   'Trois propositions courtes, de registres différents (par exemple une audacieuse, une prudente, une inattendue), écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage.';
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
 // Formats de sortie imposés par l'application (partie fixe du prompt système).
-export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false, rules = [] } = {}) {
+export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false, rules = [], inv = false, liens = null } = {}) {
   return (
     NARRATION +
     STYLE +
     (images ? IMAGES : '') +
     (stat ? stateBlock(fields || DEFAULT_FIELDS, choices) : '') +
     (choices ? choiceBlock(prompt || DEFAULT_CHOICE) : '') +
-    (rules.length ? jetBlock(rules, choices) : '')
+    (rules.length ? jetBlock(rules, choices) : '') +
+    (inv ? invBlock() : '') +
+    (liens ? lienBlock(liens.min, liens.max) : '')
   );
 }
 
 const MARKS = [
   ['<choix>', 'le format des choix'],
   ['<etat>', "le format de l'état"],
+  ['<inventaire>', "le format de l'inventaire"],
+  ['<lien>', 'le format des liens'],
   ['{{img::', 'la syntaxe des images']
 ];
 export const conflicts = t => MARKS.filter(([k]) => (t || '').includes(k)).map(x => x[1]);

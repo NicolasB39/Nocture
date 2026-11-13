@@ -1,11 +1,16 @@
 import { IMG, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
 import { decorFor, frame, lieuOf, scene } from './scene.js';
+import { deltas, invText, linkText } from './modes.js';
 import { el, ic, ikey, JET, nz, wkey } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
 // Bloc d'état jamais fermé : il s'arrête au bloc suivant (<choix>, <jet>) au lieu d'emporter la fin de la réponse.
 export const ETX = /<etat>[\s\S]*?(?:<\/etat>|(?=<choix>|<jet>)|$)/gi;
+// Changements de l'inventaire et des liens (modes.js) : rangés dans la réponse, jamais affichés dans le récit.
+// Une balise jamais fermée s'arrête à la fin de sa ligne : elle n'emporte pas le récit qui suit.
+export const INX = /<inventaire>(?:([\s\S]*?)<\/inventaire>|([^\n]*))/gi;
+export const LNX = /<lien>(?:([\s\S]*?)<\/lien>|([^\n]*))/gi;
 // Annonce du lieu en tête de réponse (protocol.js) : lue pendant l'affichage progressif, jamais affichée ni
 // gardée. La suppression s'arrête à la fin de la ligne : une balise mal fermée n'emporte pas la narration.
 export const LIX = /<lieu>[^\n]*?(?:<\/lieu>|(?=\n)|$)/gi;
@@ -128,7 +133,7 @@ export const dropDup = (t, choices) => {
 // aussi dans le récit, écrits sans balise puis rattrapés, ou absents).
 export const choiceMark = raw => {
   const c = choicesOf(raw),
-    b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim();
+    b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').replace(INX, '').replace(LNX, '').trim();
   return c.length ? (dropDup(b, c) != b ? 'recopiés' : 'présents') : looseChoices(b) ? 'rattrapés' : 'absents';
 };
 // loose : rattraper les choix écrits sans balise (looseChoices), seulement dans une histoire à choix ; fields :
@@ -136,18 +141,24 @@ export const choiceMark = raw => {
 export const split = (raw, loose = true, fields = '') => {
   // Demande de jet écrite dans le bloc <choix> : remise en fin de récit, où elle a son bouton.
   const inner = (raw.match(CHX) || []).join('').match(JET) || [],
-    o = { content: [raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim(), ...inner].join('\n\n').trim() },
+    o = { content: [raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').replace(INX, '').replace(LNX, '').trim(), ...inner].join('\n\n').trim() },
+    inv = [...raw.matchAll(INX)].flatMap(m => deltas(m[1] ?? m[2])),
+    links = [...raw.matchAll(LNX)].flatMap(m => deltas(m[1] ?? m[2])),
     c = choicesOf(raw),
     s = parseEtat(raw);
   if (c.length) Object.assign(o, { choices: c, content: dropDup(o.content, c) });
   else if (loose) Object.assign(o, looseChoices(o.content));
   if (s.length) o.state = s;
   else if (fields) Object.assign(o, looseState(o.content, fields));
+  if (inv.length) o.inv = inv;
+  if (links.length) o.links = links;
   return o;
 };
 export const raw = m =>
   m.content +
   (m.state?.length ? '\n\n<etat>\n' + m.state.map(([k, v]) => k + ': ' + v).join('\n') + '\n</etat>' : '') +
+  (m.inv?.length ? '\n\n<inventaire>' + invText(m.inv) + '</inventaire>' : '') +
+  (m.links?.length ? '\n\n<lien>' + linkText(m.links) + '</lien>' : '') +
   (m.choices?.length
     ? '\n\n<choix>\n' + m.choices.map((c, i) => i + 1 + '. ' + c).join('\n') + '\n</choix>'
     : '');
@@ -174,8 +185,12 @@ export const setBody = (m, p) => {
   m.content = p.content;
   delete m.choices;
   delete m.state;
+  delete m.inv;
+  delete m.links;
   if (p.choices) m.choices = p.choices;
   if (p.state) m.state = p.state;
+  if (p.inv) m.inv = p.inv;
+  if (p.links) m.links = p.links;
 };
 const imgFor = c => {
   c = c.trim();
@@ -265,7 +280,7 @@ export const settled = (v, from = 0) => {
   const j = v.lastIndexOf('\n\n');
   if (j <= from) return from;
   const p = v.slice(from, j);
-  return /<(choix|etat|jet)/i.test(p) || p.split('{{').length !== p.split('}}').length ? from : j;
+  return /<(choix|etat|jet|inventaire|lien)/i.test(p) || p.split('{{').length !== p.split('}}').length ? from : j;
 };
 export const keepImgs = (from, to) => {
   const pool = {};
@@ -324,8 +339,11 @@ export const body = (t, d, user) => {
   t.replace(CHX, '')
     .replace(ETX, '')
     .replace(LIX, '')
+    .replace(INX, '')
+    .replace(LNX, '')
     .replace(/<jet>[^<]*(?:<\/?j?e?t?)?$/i, '')
-    .replace(/<j?e?t?$/i, '')
+    // Début de balise pas encore complet pendant l'écriture (« <inv », « <li », « <je »).
+    .replace(/<\/?[a-z]{0,10}$/i, '')
     .split(JET)
     .forEach((s, j) =>
       j % 2

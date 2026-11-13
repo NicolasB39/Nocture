@@ -1,5 +1,6 @@
 import { SUM_PLAY, summing } from './ai.js';
 import { SUM_KEEP } from './memory.js';
+import { invOf, invOn, invText, linkText, linksOf, linksOn } from './modes.js';
 import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
@@ -248,6 +249,17 @@ const chText = (c, R) => {
     p = k && pct(k);
   return k ? [line(k.text), el('span', { class: 'jt' + (p < 35 ? ' ko' : '') }, ic('dice', 13), k.k + ' · ' + k.d + ' · ' + p + ' %')] : line(c);
 };
+// Changements de l'inventaire et des liens faits par cette réponse (modes.js), en une ligne discrète : ceux
+// que l'application a appliqués, pas une dépense impossible ni un nom sans fiche.
+const modeLine = (i, m) => {
+  const ms = app.cur.messages,
+    inv = m.inv?.length && invOn(app.cur) ? invOf(ms, undefined, i + 1).log.filter(c => c.i == i) : [],
+    ln = m.links?.length && linksOn(app.cur) ? linksOf(ms.slice(0, i + 1)).log.filter(c => c.i == i) : [],
+    t = [inv.length && 'Inventaire : ' + invText(inv.map(c => [c.k, c.d])), ln.length && 'Liens : ' + linkText(ln.map(c => [c.k, c.d]))]
+      .filter(Boolean)
+      .join(' · ');
+  return t ? el('p', { class: 'chg' }, t) : null;
+};
 const msgNode = (i, m, last, d = '') => {
   const t = LT.has(i),
     p = m.role == 'assistant' ? LIEU[i] || '' : '',
@@ -261,6 +273,7 @@ const msgNode = (i, m, last, d = '') => {
     el('span', { class: 'sr', text: (m.role == 'user' ? 'Joueur' : 'Récit') + ' :' }),
     b,
     stCard(i, m),
+    modeLine(i, m),
     act(i, m, last)
   );
   n._k = keyOf(m, last, d, t, p, MOM[i]);
@@ -276,6 +289,7 @@ const keyOf = (m, l, d, t, p, mo) => ({
   l,
   n: m.alts?.length || 0,
   s: sig(m.state),
+  v: JSON.stringify([m.inv, m.links]),
   d,
   t,
   p,

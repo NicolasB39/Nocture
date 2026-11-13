@@ -1,4 +1,6 @@
 import { sameName } from './memory.js';
+import { signed } from './dice.js';
+import { linksOf, linksOn, stepsOf } from './modes.js';
 import { inScene } from './prompt.js';
 import { decorNow, frame, momentNow, scene, zoomScene } from './scene.js';
 import { app, ctx, playerName } from './state.js';
@@ -22,6 +24,20 @@ export const face = c => {
     : el('span', { class: 'pav', style: '--h:' + hue(c.name), 'aria-hidden': 'true', text: initial(c.name) });
 };
 
+// Mode Liens (modes.js) : la jauge du personnage et les paliers atteints.
+const lienRow = c => {
+  if (!linksOn(app.cur)) return null;
+  const L = ctx.liens,
+    x = linksOf(app.cur.messages).v.get(c.name) ?? 0,
+    st = stepsOf(c.name, x);
+  return el(
+    'div',
+    { class: 'pcr' },
+    el('span', { class: 'stl', text: 'Lien : ' + signed(x) + ' (de ' + signed(L.min) + ' à ' + signed(L.max) + ')' }),
+    el('meter', { min: L.min, max: L.max, value: x, 'aria-label': 'Lien avec ' + c.name }),
+    st.length ? el('p', { text: st.map(p => p.text).join(' ; ') }) : null
+  );
+};
 const row = (c, i, on, open) => {
   const id = 'pcp' + i,
     rel = relOf(c.name),
@@ -49,6 +65,7 @@ const row = (c, i, on, open) => {
           )
         )
       : null,
+    lienRow(c),
     el(
       'div',
       { class: 'pcr' },

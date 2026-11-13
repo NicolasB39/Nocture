@@ -175,15 +175,19 @@ export async function ask(old, cont, hint) {
       st0 = JSON.stringify(m.state);
       // Pas d'espace ajoutée au milieu d'une demande de jet coupée (« <jet>Adresse, diff » + « icile</jet> »).
       // Une suite sans état ni choix garde ceux du message.
+      // Changements de l'inventaire et des liens : ceux du début et ceux de la suite.
+      const cat = k => (m[k] || p2[k] ? [...(m[k] || []), ...(p2[k] || [])] : undefined);
       setBody(m, {
         choices: m.choices,
         state: m.state,
         ...p2,
+        inv: cat('inv'),
+        links: cat('links'),
         content: m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) || /<jet>[^<]*$/i.test(m.content) ? '' : ' ') + p2.content
       });
-      if (m.alts) m.alts[m.ai] = { content: m.content, choices: m.choices, state: m.state };
+      if (m.alts) m.alts[m.ai] = { content: m.content, choices: m.choices, state: m.state, inv: m.inv, links: m.links };
     } else {
-      const base = old?.role == 'assistant' ? old.alts || [{ content: old.content, choices: old.choices, state: old.state }] : null,
+      const base = old?.role == 'assistant' ? old.alts || [{ content: old.content, choices: old.choices, state: old.state, inv: old.inv, links: old.links }] : null,
         al = base ? [...base, p2].slice(-10) : null;
       s.messages.push(
         al

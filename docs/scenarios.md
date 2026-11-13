@@ -11,6 +11,8 @@ scenarios/
     cover.webp              couverture (optionnelle)
     etat.md                 champs du panneau d'état (optionnel)
     regles.md               caractéristiques du mode jeu de rôle (optionnel, voir plus bas)
+    inventaire.md           objets et ressources du mode Inventaire (optionnel, voir plus bas)
+    liens.md                échelle et paliers du mode Liens (optionnel, voir plus bas)
     intro.md                accroche et débuts proposés, affichés avant le premier tour (optionnel)
     avatar.md               description du personnage du joueur
     personnages/
@@ -118,6 +120,40 @@ Difficultés : facile (6), moyen (10), difficile (13), très difficile (16), soi
 L'étiquette d'un choix et le bouton « Lancer le dé » affichent la chance de réussite avec la fiche du personnage (« Adresse · difficile · 50 % »), en rouge sous 35 % ; elle suit la fiche dès qu'on la referme.
 
 Le mode est réservé aux scénarios GitHub. Pas besoin de décrire les jets dans `systeme.md` : l'application s'en charge, comme pour les choix et l'état.
+
+## Mode Inventaire (inventaire.md)
+
+Un scénario qui a un fichier `inventaire.md` confie l'inventaire à l'application : le narrateur ne peut plus faire apparaître ou disparaître un objet en oubliant ce qu'il a écrit trois tours plus tôt. Une ligne par objet ou ressource, avec sa quantité de départ ; une borne (`/10`) et une baisse par jour sont facultatives (vingt lignes au plus, `#` pour un commentaire) :
+
+```
+Or: 20
+Corde: 1
+Énergie: 8/10
+Rations: 3, −1 par jour
+```
+
+- À chaque tour, le narrateur reçoit l'inventaire exact (`<inventaire_actuel>`, en fin de requête) avec la règle que {{user}} n'utilise que ce qu'il possède.
+- Il signale chaque gain ou perte par `<inventaire>+1 Corde, −5 Or</inventaire>` après la narration. L'application l'applique : jamais sous zéro ni au-dessus de la borne, une dépense impossible est ignorée, un objet nouveau s'ajoute.
+- La baisse par jour suit le champ « Jour » du panneau d'état (`etat.md`) : quand il passe de 2 à 4, les rations perdent 2. Sans champ Jour, rien ne baisse tout seul.
+- La feuille « Inventaire » (menu « … » de la conversation) montre les quantités et les derniers changements ; une ligne discrète sous chaque réponse dit ce qu'elle a changé.
+
+Chaque réponse garde ses propres changements, et l'inventaire se recalcule depuis le départ (`js/modes.js`) : supprimer, régénérer, modifier une réponse ou bifurquer le corrige de lui-même. L'application ne lit pas le texte du joueur : c'est le narrateur qui refuse un objet qu'on n'a pas, d'après la liste exacte qu'il reçoit.
+
+## Mode Liens (liens.md)
+
+Un scénario qui a un fichier `liens.md`, même vide, donne à chaque personnage à fiche une jauge de lien avec le joueur, de −3 (hostile) à +3 (dévoué) par défaut. Le fichier peut changer l'échelle et décrire des paliers :
+
+```
+Échelle : −3 à 3
+Inès, à +2 : elle vous confie qu'elle a déserté l'Ordre
+Renard, à −2 : il vous dénonce au guet
+```
+
+- Le narrateur reçoit les liens actuels et les paliers atteints (`<liens>`, en fin de requête), et signale un changement par `<lien>Inès +1</lien>`, seulement pour un geste qui compte. Un nom qui ne désigne aucun personnage à fiche est ignoré.
+- La fenêtre Personnages montre la jauge sous chaque personnage, avec les paliers atteints ; la ligne sous la réponse dit qui a changé.
+- Un palier positif est atteint à cette valeur ou au-dessus, un palier négatif à cette valeur ou au-dessous.
+
+Comme l'inventaire, les liens se recalculent depuis le départ. Les deux modes sont réservés aux scénarios GitHub ; leurs consignes partent dans la partie fixe du prompt, en cache, et seuls l'inventaire et les liens actuels (quelques lignes) partent à chaque tour.
 
 ## Protocole et préambule
 

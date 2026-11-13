@@ -145,8 +145,10 @@ js/
   format.js         mise en forme du texte (Markdown léger, images, choix, état, carte des jets)
   dice.js           mode jeu de rôle : marques de jet, lancer du d20, résultat, fiche (sans DOM, testé unitairement)
   sheet.js          fiche du personnage : répartition des points, derniers jets
+  modes.js          modes Inventaire et Liens : balises, fichiers, comptes recalculés depuis le départ (sans DOM, testé unitairement)
+  inv.js            feuille Inventaire : quantités et derniers changements
   scene.js          scènes : choix du décor, moment de la journée, détection de la transparence, placement du personnage
-  passage.js        écran de passage au changement de lieu ou de jour
+  passage.js        écran de passage au changement de lieu annoncé par <lieu>
   recap.js          encart « Précédemment » à la reprise d'une histoire
   read.js           réglages de lecture (taille, police, interlignage, cadrage)
   cast.js           fenêtre Personnages

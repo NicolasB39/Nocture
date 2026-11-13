@@ -1,4 +1,5 @@
 import { IMG, S, app, ctx } from './state.js';
+import { parseInv, parseLiens } from './modes.js';
 import { LS, ikey, nz } from './util.js';
 
 let TREE = null;
@@ -137,7 +138,7 @@ export async function loadCtx() {
   const g = ++gen,
     im = Object.create(null);
   for (const k in IMG) delete IMG[k];
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', rules: [], decors: [], decorDef: '', intro: '', iv: imgVer({}) });
+  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', rules: [], inv: [], liens: null, decors: [], decorDef: '', intro: '', iv: imgVer({}) });
   if (!app.cur.remote) return;
   const base = 'scenarios/' + app.cur.folder + '/',
     pb = base + 'personnages/';
@@ -148,7 +149,10 @@ export async function loadCtx() {
   ]);
   // Fichiers facultatifs, lus ensemble (chacun est un aller-retour réseau) : vides s'ils manquent.
   const opt = f => (T.includes(base + f) ? txt(base + f).then(t => t.trim()) : '');
-  const [stat, intro, rl] = await Promise.all([opt('etat.md'), opt('intro.md'), opt('regles.md')]);
+  const [stat, intro, rl, iv, ln] = await Promise.all([opt('etat.md'), opt('intro.md'), opt('regles.md'), opt('inventaire.md'), opt('liens.md')]);
+  // Modes Inventaire et Liens (modes.js) : liens.md active le mode même vide (échelle par défaut).
+  const inv = parseInv(iv),
+    liens = T.includes(base + 'liens.md') ? parseLiens(ln) : null;
   // Mode jeu de rôle : les caractéristiques, séparées par des virgules (huit au plus). Les lignes de
   // commentaire (#) sont retirées avant le découpage : leurs virgules ne créent pas de caractéristiques.
   const rules = [
@@ -269,5 +273,5 @@ export async function loadCtx() {
     decorDef = def?.url || '';
   if (g !== gen) return;
   Object.assign(IMG, im);
-  Object.assign(ctx, { system, avatar, chars, lore, images, stat, rules, decors, decorDef, intro, iv: imgVer(im) });
+  Object.assign(ctx, { system, avatar, chars, lore, images, stat, rules, inv, liens, decors, decorDef, intro, iv: imgVer(im) });
 }

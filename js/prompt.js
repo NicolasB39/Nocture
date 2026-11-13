@@ -2,6 +2,7 @@ import { rulesOf } from './dice.js';
 import { lastEtat } from './format.js';
 import { CH_FULL, SUM_KEEP, SUM_MAX, clip, sameName } from './memory.js';
 import { DEFAULT_FIELDS, protocol } from './protocol.js';
+import { invOn, linksOn, modesTail } from './modes.js';
 import { recall, recallTag } from './recall.js';
 import { S, ctx, playerName } from './state.js';
 import { nz } from './util.js';
@@ -134,7 +135,9 @@ export function buildInfo(s, cont, hint) {
     choices: !s.noChoices,
     prompt: s.choicePrompt?.trim(),
     images: (ctx.images || []).length > 0,
-    rules: rulesOf(s)
+    rules: rulesOf(s),
+    inv: invOn(s),
+    liens: linksOn(s) ? ctx.liens : null
   });
   if (av.trim()) sys += '\n\n# Avatar du joueur\n' + av;
   // Blocs du système : partie fixe et mémoire, chacun avec son marqueur de cache (avec celui de l'historique,
@@ -185,6 +188,8 @@ export function buildInfo(s, cont, hint) {
         : 'Aucun. Invente des valeurs de départ cohérentes avec le scénario.') +
       '\n</etat_precedent>';
   }
+  // Inventaire et liens (modes.js) : l'état exact, recalculé à chaque tour.
+  add += modesTail(s);
   // Indication de régénération : valable pour cette réponse seulement, jamais enregistrée dans l'histoire.
   if (hint?.trim())
     add +=

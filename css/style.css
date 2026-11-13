@@ -3015,7 +3015,19 @@ dialog h2,
 .intro .shb {
   margin: 0 0 12px;
 }
-#shl .shr {
+/* Changements de l'inventaire et des liens sous une réponse (modes.js). */
+.m .chg {
+  margin: 6px 0 0;
+  color: var(--mu2);
+  font: 13px/1.4 var(--sans);
+}
+.pcr meter {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+}
+#shl .shr,
+#invl .shr {
   display: flex;
   justify-content: space-between;
   align-items: center;
