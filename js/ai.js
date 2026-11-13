@@ -20,6 +20,8 @@ export const sumGate = (u, go, hi = SUM_PLAY) => u >= hi || (go && u > SUM_KEEP)
 // résumé, les relations et les souvenirs ne repartent que deux fois. Pas plus de 20 : le modèle doit rendre
 // une ligne par message, et un compte faux fait perdre le lien des lignes à leur message.
 export const SUM_BATCH = 20;
+// Lot le plus petit : en dessous, il réécrirait tout le résumé pour presque rien ; les messages attendent le suivant.
+const SUM_MIN = 10;
 export const authH = k => ({ 'x-api-key': k, 'anthropic-version': ANT_VERSION, 'anthropic-dangerous-direct-browser-access': 'true' });
 // Version de l'API Claude. Depuis 2026-10-21, temperature, top_p et top_k sont refusés (erreur 400) sur tous
 // les modèles : toAnt ne les envoie jamais.
@@ -378,11 +380,11 @@ export const waitMsg = (w, why) =>
   w +
   ' s…';
 const SUMJ =
-  "Tu mets à jour la mémoire d'une histoire interactive. Écris en français.\n" +
-  "- evenements : récit condensé et mis à jour du chapitre en cours (toute l'histoire depuis le dernier chapitre clos), 850 caractères maximum, sans intertitre ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
+  "Tu mets à jour la mémoire d'une histoire interactive. Écris en français. Ne mentionne jamais les jets de dés ni leurs chiffres, seulement ce qui s'est passé.\n" +
+  "- evenements : les Événements du résumé actuel, condensés, puis ceux des nouveaux messages : toute l'histoire depuis le dernier chapitre clos, sans jamais retirer un tournant (rencontre, pacte, révélation, blessure grave), 850 caractères maximum, sans intertitre ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
   '- situation : où en est le joueur maintenant, point de départ du prochain tour, 450 caractères maximum, sans intertitre ; nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver).\n' +
-  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Liste vide si rien de neuf.\n' +
-  "- relations : état de la relation avec le joueur, une phrase, pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre. Quand l'histoire révèle qu'un personnage connu sous un autre nom est un personnage à fiche, écris « Nom de la fiche (ancien nom) ».\n" +
+  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Date-les en « Jour N » quand l’histoire compte les jours, jamais « demain », « ce soir » ou « ce matin » ; pas de chiffre du panneau (santé, niveau) ni de simple péripétie. Liste vide si rien de neuf.\n' +
+  "- relations : ce que le personnage est pour le joueur et ce qu'il sait de lui (lien, dette, promesse, secret partagé), une phrase, pas ce qu'il fait en ce moment ; pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre. Quand l'histoire révèle qu'un personnage connu sous un autre nom est un personnage à fiche, écris « Nom de la fiche (ancien nom) ».\n" +
   "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.\n" +
   "- chapitre (seulement quand il est demandé) : clos vaut true si ces messages terminent un arc ou en ouvrent un nouveau (lieu quitté pour de bon, quête achevée ou nouvelle, ellipse) : un arc fini plus tôt dans le chapitre ne se représentera pas. titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier ; seule la situation ouvre le chapitre suivant. Sinon clos vaut false, titre et resume vides.";
 // Réponse de la mémoire, garantie conforme par l'API (sorties structurées). Le champ chapitre n'existe que si
@@ -498,6 +500,7 @@ async function sumRun(s, start) {
   try {
     let go = false;
     while ((go = sumGate(s.messages.length - s.mem.upto, go, start ? SUM_START : SUM_PLAY))) {
+      if (s.messages.length - s.mem.upto - SUM_KEEP < SUM_MIN) break;
       say('Mise à jour de la mémoire…');
       if (!RUN.has(s.id)) {
         RUN.add(s.id);
@@ -536,7 +539,7 @@ async function sumRun(s, start) {
                 ? 'Trop court pour être clos.'
                 : k >= CH_MAX
                   ? 'Il est temps de le clore : clos = true.'
-                  : 'Clos-le si ces messages terminent un arc ou en ouvrent un nouveau.') +
+                  : 'Clos-le si ces messages terminent un arc ou en ouvrent un nouveau ; une nuit passée ou un changement de jour le clôt toujours.') +
               '\n\nMessages à intégrer (' +
               parts.length +
               ') :\n' +

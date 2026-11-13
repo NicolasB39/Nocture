@@ -36,7 +36,13 @@ const wordsOf = m => {
 
 // Le paragraphe qui contient le plus de mots de la requête, élargi au suivant s'il est court.
 const excerpt = (t, q) => {
-  const ps = clean(t).split(/\n\s*\n/).filter(p => p.trim());
+  // Un paragraphe de deux lignes « Champ: valeur » ou plus est un état écrit sans balise : jamais rappelé.
+  const ps = clean(t)
+    .split(/\n\s*\n/)
+    .filter(p => {
+      const ls = p.trim().split('\n');
+      return p.trim() && !(ls.length > 1 && ls.every(l => /^\s*[-*•]?\s*\[?[^:\n\]]{1,30}:\s*\S/.test(l)));
+    });
   let b = 0,
     best = -1;
   ps.forEach((p, i) => {
@@ -80,7 +86,7 @@ export function recall(ms, before, query, n = RECALL_N) {
     .sort((a, b) => b.s - a.s || b.i - a.i)
     .slice(0, n)
     .sort((a, b) => a.i - b.i);
-  return scored.map(({ i }) => ({ i, role: ms[i].role, text: excerpt(ms[i].content, q) }));
+  return scored.map(({ i }) => ({ i, role: ms[i].role, text: excerpt(ms[i].content, q) })).filter(p => p.text);
 }
 
 export const recallTag = (ps, nm = 'Joueur') =>

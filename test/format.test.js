@@ -168,3 +168,18 @@ test('relecture Fable : inscriptions gardées, pas de rattrapage sans choix, dem
   assert.ok(!isRoll('Adresse : difficile'));
   assert.ok(isRoll('Adresse, difficile (15) : 14 + 2 = 16, réussite'));
 });
+
+test('état écrit sans balise : rattrapé sur les champs du panneau, jamais une réplique', async () => {
+  const { split } = await import('../js/format.js');
+  const F = 'Lieu, Jour, Santé (sur 100)';
+  const s = split('Il avance.\n\nLieu: Boulangerie\nJour: 2\n[Santé : 64/100]', true, F);
+  assert.equal(s.content, 'Il avance.');
+  assert.deepEqual(s.state, [['Lieu', 'Boulangerie'], ['Jour', '2'], ['Santé', '64/100']]);
+  assert.equal(split('Il avance.\n\nInès : Viens.\nRenard : Non.', true, F).content, 'Il avance.\n\nInès : Viens.\nRenard : Non.');
+  assert.equal(split('Il avance.\n\nLieu: Boulangerie\nJour: 2', true, '').state, undefined, 'sans panneau, rien');
+  assert.deepEqual(split('Il avance.\n\n<etat>\nLieu: Quai\n</etat>', true, F).state, [['Lieu', 'Quai']]);
+  const L = 'Date, Lieu, Rang et stats, Condition, Objets';
+  assert.equal(split('Il avance.\n\nDate: lundi\nLieu: Hall\nRang: C\nStats: 3\nCondition: bonne\nObjets: aucun', true, L).state.length, 6, 'champ en plusieurs mots');
+  assert.equal(split('Il avance.\n\nHumeur: calme\nLieu: Hall\nCondition: bonne', true, L).state, undefined, 'à moitié reconnu : rien');
+  assert.equal(split('Il avance.\n\nSanté (0/100): 64/100\nLieu: Hall', true, 'Lieu, Santé (0/100)').state.length, 2);
+});

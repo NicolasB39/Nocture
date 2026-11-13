@@ -96,3 +96,13 @@ test('l’état du panneau ne sert pas à chercher les passages anciens', () => 
   const s = clean({ id: 's', name: 'S', system: 'SYS', noChoices: true, messages: ms, mem: { upto: 1 } });
   assert.doesNotMatch(buildInfo(s).msgs.at(-1).content, /passages_anciens/);
 });
+
+test('un paragraphe d’état écrit sans balise n’est jamais l’extrait rappelé', () => {
+  const ms = [
+    { role: 'assistant', content: 'Le pendentif d’argent brille au cou de Mirelle.\n\nLieu: Kervoz\nSanté: 70/100' },
+    ...Array.from({ length: 12 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: 'suite ' + i }))
+  ];
+  const r = recall(ms, 1, 'Je montre le pendentif d’argent à Mirelle à Kervoz');
+  assert.equal(r.length, 1);
+  assert.doesNotMatch(r[0].text, /Santé/);
+});

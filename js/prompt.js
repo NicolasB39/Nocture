@@ -178,8 +178,10 @@ export function buildInfo(s, cont, hint) {
     add +=
       '\n\n<etat_precedent>\n' +
       (prev
-        ? prev.map(([k, v]) => k + ': ' + v).join('\n') +
-          '\nNe modifie que ce que les événements de la scène changent.'
+        ? // Entre ses balises : c'est le seul état que le modèle voit (l'historique n'a que le récit), il en imite la forme.
+          '<etat>\n' +
+          prev.map(([k, v]) => k + ': ' + v).join('\n') +
+          '\n</etat>\nNe modifie que ce que les événements de la scène changent.'
         : 'Aucun. Invente des valeurs de départ cohérentes avec le scénario.') +
       '\n</etat_precedent>';
   }

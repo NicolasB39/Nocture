@@ -1,7 +1,7 @@
 import { IMG, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
 import { decorFor, frame, lieuOf, scene } from './scene.js';
-import { el, ic, ikey, JET, nz } from './util.js';
+import { el, ic, ikey, JET, nz, wkey } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
 // Bloc d'état jamais fermé : il s'arrête au bloc suivant (<choix>, <jet>) au lieu d'emporter la fin de la réponse.
@@ -64,6 +64,37 @@ export const looseChoices = t => {
   if (before.length && before.at(-1).trim()) return null;
   return { content: before.join('\n').trim(), choices: c };
 };
+// État écrit sans sa balise (oubli du modèle) : deux lignes « Champ: valeur » au moins tout à la fin du récit
+// (« [Champ : valeur] » aussi), dont chaque nom reprend les mots d'un champ du panneau (fields, séparés par des
+// virgules ou des retours à la ligne : « Rang » et « Stats » pour « Rang et stats »). Rend le récit sans ces lignes
+// et l'état, ou null : une réplique « Inès : viens » n'a pas un nom de champ, et un état à moitié reconnu (la
+// remontée bute sur une autre ligne « X: y ») n'est pas coupé en deux.
+const SLINE = /^\s*[-*•]?\s*\[?\s*([^:[\]\n]{1,30}?)\s*:\s*(.+?)\s*\]?\s*$/;
+export const looseState = (t, fields) => {
+  const names = String(fields || '')
+    .split(/[,\n]/)
+    .map(f => wkey(f.replace(/\(.*$/, '')).split(' ').filter(Boolean))
+    .filter(n => n.length);
+  const isField = l => {
+    const w = wkey(l.replace(/\(.*$/, '')).split(' ').filter(Boolean);
+    return w.length && names.some(n => w.every(x => n.includes(x)));
+  };
+  const ls = t.trimEnd().split('\n'),
+    st = [];
+  let i = ls.length;
+  while (i > 0 && names.length) {
+    if (!ls[i - 1].trim()) {
+      i--;
+      continue;
+    }
+    const m = ls[i - 1].match(SLINE);
+    if (!m || !isField(m[1])) break;
+    st.unshift([m[1].trim(), m[2].trim()]);
+    i--;
+  }
+  if (st.length < 2 || (i > 0 && SLINE.test(ls[i - 1]))) return null;
+  return { content: ls.slice(0, i).join('\n').trim(), state: st.slice(0, 12) };
+};
 // Choix recopiés en fin de récit alors que le bloc <choix> les donne aussi : la liste numérotée qui les répète est
 // retirée du texte, avec sa ligne d'annonce (« Vos options : »), pour ne pas les afficher deux fois. Une ligne de la
 // liste compte si elle reprend le début d'un choix, ou si elle a la forme d'une action du joueur (« Je », « J' »,
@@ -100,8 +131,9 @@ export const choiceMark = raw => {
     b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim();
   return c.length ? (dropDup(b, c) != b ? 'recopiés' : 'présents') : looseChoices(b) ? 'rattrapés' : 'absents';
 };
-// loose : rattraper les choix écrits sans balise (looseChoices), seulement dans une histoire à choix.
-export const split = (raw, loose = true) => {
+// loose : rattraper les choix écrits sans balise (looseChoices), seulement dans une histoire à choix ; fields :
+// champs du panneau d'état, pour rattraper un état écrit sans balise (looseState).
+export const split = (raw, loose = true, fields = '') => {
   // Demande de jet écrite dans le bloc <choix> : remise en fin de récit, où elle a son bouton.
   const inner = (raw.match(CHX) || []).join('').match(JET) || [],
     o = { content: [raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').trim(), ...inner].join('\n\n').trim() },
@@ -110,6 +142,7 @@ export const split = (raw, loose = true) => {
   if (c.length) Object.assign(o, { choices: c, content: dropDup(o.content, c) });
   else if (loose) Object.assign(o, looseChoices(o.content));
   if (s.length) o.state = s;
+  else if (fields) Object.assign(o, looseState(o.content, fields));
   return o;
 };
 export const raw = m =>

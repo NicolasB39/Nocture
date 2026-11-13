@@ -11,6 +11,7 @@ import { openSheet } from './sheet.js';
 import { noRolls, roll, sheetOf, withRoll } from './dice.js';
 import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx, playerName } from './state.js';
+import { statFields, statOn } from './prompt.js';
 import { forkOf, getOne, save } from './store.js';
 import { $, dlg, err, fit, LS, plain, smooth, toast, uid, vt } from './util.js';
 import { readPos, render } from './view.js';
@@ -302,7 +303,7 @@ $('#des').onclick = async () => {
     m = c.messages[i],
     // Seule l'application lance les dés : un résultat ajouté à une réponse du narrateur est retiré, comme à la réception.
     // Un tour du joueur reste tel quel (ni choix ni état à mettre à part).
-    p = m.role == 'assistant' ? split(noRolls($('#et').value), !c.noChoices) : { content: $('#et').value },
+    p = m.role == 'assistant' ? split(noRolls($('#et').value), !c.noChoices, statOn(c) && statFields(c)) : { content: $('#et').value },
     old = m.content !== p.content && i < c.mem.upto;
   setBody(m, p);
   if (m.alts) m.alts[m.ai] = p;

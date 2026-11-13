@@ -89,6 +89,7 @@ test('mémoire : paquets de 20, sans descendre sous 40 messages gardés', () => 
     let go = false,
       calls = 0;
     while ((go = sumGate(u, go, hi))) {
+      if (u - SUM_KEEP < 10) break;
       u -= Math.min(SUM_BATCH, u - SUM_KEEP);
       calls++;
     }
@@ -97,4 +98,5 @@ test('mémoire : paquets de 20, sans descendre sous 40 messages gardés', () => 
   assert.deepEqual(drain(120), [4, 40]);
   assert.deepEqual(drain(75, SUM_START), [2, 40], 'début de séance : 20 puis 15');
   assert.deepEqual(drain(45, SUM_START), [0, 45], 'moins de 50 en attente : rien');
+  assert.deepEqual(drain(65, SUM_START), [1, 45], 'reste de 5 : attend le lot suivant');
 });

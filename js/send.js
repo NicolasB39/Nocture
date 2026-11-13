@@ -5,7 +5,7 @@ import { costOf, priceOf } from './cost.js';
 import { noRolls, withRoll } from './dice.js';
 import { fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, passageLieu, setBody, split } from './format.js';
 import { passage } from './passage.js';
-import { buildInfo, inScene } from './prompt.js';
+import { buildInfo, inScene, statFields, statOn } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { decorNow, momentNow } from './scene.js';
 import { app, ctx, S } from './state.js';
@@ -164,7 +164,7 @@ export async function ask(old, cont, hint) {
     const out = r.t;
     cut = r.cut;
     part = !!r.partial;
-    const p2 = split(out, !s.noChoices);
+    const p2 = split(out, !s.noChoices, statOn(s) && statFields(s));
     p2.content = noRolls(p2.content);
     // Rien à raconter (réponse arrêtée juste après l'annonce du lieu, ou réduite à l'état) : un message vide
     // ferait refuser les tours suivants. Échec, avec Réessayer, et l'ancienne réponse remise en place.
