@@ -78,7 +78,6 @@ $('#mnew').onclick = async () => {
 };
 $('#sw').onclick = openSwitch;
 $('#ct').onclick = () => WIDE.matches && openSwitch();
-$('#swc').onclick = () => $('#dsw').close();
 // Souris : le nom d'un bouton en bulle d'aide quand l'écran ne le montre pas déjà (icône, initiales, « A+ »),
 // repris de son aria-label à chaque survol (il change parfois, comme celui d'Envoyer). Un title écrit par le
 // code est gardé.
@@ -114,6 +113,24 @@ document.addEventListener(
     }),
   true
 );
+// Menus et feuilles de lecture (closedby="any") : un toucher sur le fond assombri les ferme, comme sur le
+// téléphone. Le navigateur le fait lui-même quand il connaît closedby ; ce repli sert aux autres (Safari). Appui et
+// relâcher hors de la feuille tous les deux, pour qu'un glissement commencé dedans ne la ferme pas. Jamais une
+// feuille où l'on écrit (réglages, modification d'un message…) : un toucher maladroit ferait perdre la saisie.
+const outside = (d, e) => {
+  const r = d.getBoundingClientRect();
+  return e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom;
+};
+let downOut = null;
+document.addEventListener('pointerdown', e => {
+  const d = e.target;
+  downOut = d instanceof HTMLDialogElement && d.open && d.hasAttribute('closedby') && outside(d, e) ? d : null;
+});
+document.addEventListener('pointerup', e => {
+  const d = downOut;
+  downOut = null;
+  if (d?.open && e.target === d && outside(d, e)) d.close();
+});
 // Feuilles : tirer leur haut (poignée, titre) vers le bas les ferme ; un geste vif suffit, sans aller jusqu'en bas.
 // Au doigt seulement : à la souris, les feuilles n'ont pas de poignée. Vers le haut, la feuille résiste. Pas sur
 // grand écran, où la fenêtre est centrée (elle se ferme en fondu, pas en glissant), ni depuis le fond assombri.

@@ -166,7 +166,6 @@ export async function newGame(id) {
   await put(c);
   return c.id;
 }
-$('#mc').onclick = () => $('#mn').close();
 $('#mng').onclick = async () => {
   $('#mn').close();
   emit('open', await newGame(app.menuId));

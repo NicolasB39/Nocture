@@ -405,7 +405,6 @@ $('#bko').onclick = () => {
   $('#dc').close();
   openBk();
 };
-$('#bkc').onclick = () => $('#dbk').close();
 async function syncNow() {
   await sync(true);
   const e = S.bk?.err;

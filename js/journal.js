@@ -160,7 +160,6 @@ export async function openJournal() {
   if (!$('#djr').open) $('#djr').showModal();
 }
 $('#usj').onclick = openJournal;
-$('#jrc').onclick = () => $('#djr').close();
 // Export : les requêtes complètes sont relues une à une, dans l'ordre d'envoi.
 const exportText = async () => {
   const all = [];

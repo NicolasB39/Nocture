@@ -291,7 +291,6 @@ $('#msgs').addEventListener('contextmenu', e => {
   lpFired = e.pointerType == 'touch' || lpFired;
   regenHint();
 });
-$('#dec').onclick = () => $('#de').close();
 $('#des').onclick = async () => {
   if (app.editRe) {
     $('#de').close();
@@ -319,7 +318,6 @@ $('#dpic').addEventListener('close', () => {
   $('#dpic').querySelector('.scn')?.remove();
   $('#dpici').hidden = false;
 });
-$('#damc').onclick = () => $('#dma').close();
 $('#mac').onclick = () => {
   $('#dma').close();
   navigator.clipboard

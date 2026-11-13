@@ -138,7 +138,7 @@ const monthRows = () =>
   );
 export function view() {
   for (const b of $('#ust').querySelectorAll('button'))
-    b.setAttribute('aria-checked', b.dataset.m == mode);
+    b.setAttribute('aria-pressed', b.dataset.m == mode);
   const nav = mode == 'day' || mode == 'month';
   $('#usn').hidden = !nav;
   $('#usx').disabled = nav && atNow();
@@ -264,7 +264,6 @@ $('#usx').onclick = () => {
   step(1);
   view();
 };
-$('#usc').onclick = () => $('#dus').close();
 $('#usf').onclick = async () => {
   const v = await dlg('Afficher en euros', {
     m: 'Les tarifs sont publiés en dollars. Combien d’euros pour un dollar (exemple : 0,92) ? Vide : afficher en dollars.',

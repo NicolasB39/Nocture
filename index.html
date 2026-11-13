@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="3e2edea48b">
+<meta name="app-version" content="87507cb6b3">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -98,22 +98,22 @@
 <div id="mw"><div id="msgs"><div id="mhead"></div><div id="mfoot"></div></div><div id="nav"><button id="nvp" aria-label="Tour précédent"><svg class="i rot"><use href="#i-down"/></svg></button><button id="nvn" aria-label="Tour suivant"><svg class="i"><use href="#i-down"/></svg></button></div><div id="err" role="status"></div><button id="newm" hidden></button></div>
 <p id="gst" class="sr" role="status"></p>
 <div id="tk"></div>
-<footer><div class="inb"><textarea id="inp" rows="1" placeholder="Votre tour"></textarea><button id="ast" aria-label="Mettre en action">✱</button><button id="stop" hidden aria-label="Annuler"><svg class="i f"><use href="#i-stop"/></svg></button><button id="send" class="primary" aria-label="Envoyer"><svg class="i" style="stroke-width:2.6"><use href="#i-send"/></svg></button></div></footer>
+<footer><div class="inb"><textarea id="inp" rows="1" placeholder="Votre tour" aria-label="Votre tour"></textarea><button id="ast" aria-label="Mettre en action">✱</button><button id="stop" hidden aria-label="Annuler"><svg class="i f"><use href="#i-stop"/></svg></button><button id="send" class="primary" aria-label="Envoyer"><svg class="i" style="stroke-width:2.6"><use href="#i-send"/></svg></button></div></footer>
 <aside id="side" aria-label="Scène en cours"></aside>
 </main>
 
-<dialog id="mn" aria-labelledby="mnt">
+<dialog id="mn" closedby="any" aria-labelledby="mnt">
 <h2 id="mnt"></h2>
 <div class="col">
 <button id="mng">Nouvelle partie</button>
 <button id="mr">Renommer</button>
 <button id="md">Dupliquer</button>
 <button id="mx" class="danger">Supprimer</button>
-<button id="mc">Fermer</button>
+<form method="dialog" class="fd"><button id="mc">Fermer</button></form>
 </div>
 </dialog>
 
-<dialog id="dmn" aria-labelledby="hdmn">
+<dialog id="dmn" closedby="any" aria-labelledby="hdmn">
 <h2 id="hdmn">Options de l'histoire</h2>
 <div class="tiles">
 <button id="msm"><svg class="i"><use href="#i-list"/></svg>Sommaire</button>
@@ -129,17 +129,17 @@
 <button id="mnew"><svg class="i"><use href="#i-plus"/></svg>Nouvelle partie</button>
 <button id="mren"><svg class="i"><use href="#i-edit"/></svg>Renommer</button>
 <button id="cfg2"><svg class="i"><use href="#i-gear"/></svg>Réglages de l'application</button>
-<button id="dmnc">Fermer</button>
+<form method="dialog" class="fd"><button id="dmnc">Fermer</button></form>
 </div>
 </dialog>
 
-<dialog id="dsh" aria-labelledby="hdsh">
+<dialog id="dsh" closedby="any" aria-labelledby="hdsh">
 <h2 id="hdsh">Fiche du personnage</h2>
 <p id="shp" class="note"></p>
 <div id="shl"></div>
 <p class="sdh">Derniers jets</p>
 <div id="shr" class="chips"></div>
-<div class="col"><button id="dshc">Fermer</button></div>
+<form method="dialog" class="col"><button id="dshc">Fermer</button></form>
 </dialog>
 
 <dialog id="ds" aria-labelledby="hds">
@@ -190,7 +190,7 @@
 <div id="simg"></div>
 <div class="row l"><button id="simr">Recharger l'index</button></div>
 </details>
-<div class="row"><button id="dsc">Annuler</button><button id="dss" class="primary">Enregistrer</button></div>
+<form method="dialog" class="row"><button id="dsc">Annuler</button><button id="dss" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 
 <dialog id="dm" aria-labelledby="hdm">
@@ -204,59 +204,59 @@
 <textarea id="msu"></textarea>
 <label>Souvenirs</label>
 <div id="mml" class="chips"></div>
-<div class="row l"><input id="mmi" placeholder="Ajouter un souvenir" enterkeyhint="done"><button id="mma">Ajouter</button></div>
-<div class="row"><button id="dmc">Annuler</button><button id="dms" class="primary">Enregistrer</button></div>
+<div class="row l"><input id="mmi" placeholder="Ajouter un souvenir" aria-label="Ajouter un souvenir" enterkeyhint="done"><button id="mma">Ajouter</button></div>
+<form method="dialog" class="row"><button id="dmc">Annuler</button><button id="dms" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 
-<dialog id="dsr" aria-labelledby="hdsr">
+<dialog id="dsr" closedby="any" aria-labelledby="hdsr">
 <h2 id="hdsr">Rechercher dans l'histoire</h2>
 <label class="sb"><svg class="i"><use href="#i-search"/></svg><input id="sri" type="search" placeholder="Mot ou phrase" aria-label="Rechercher"></label>
 <p id="srn" class="note"></p>
 <div id="srl" class="hits"></div>
-<div class="row"><button id="dsrc" class="primary">Fermer</button></div>
+<form method="dialog" class="row"><button id="dsrc" class="primary">Fermer</button></form>
 </dialog>
 
-<dialog id="dpe" aria-labelledby="hdpe">
+<dialog id="dpe" closedby="any" aria-labelledby="hdpe">
 <h2 id="hdpe">Personnages</h2>
 <p id="pes" class="note"></p>
 <div id="pel"></div>
-<div class="row"><button id="pec" class="primary">Fermer</button></div>
+<form method="dialog" class="row"><button id="pec" class="primary">Fermer</button></form>
 </dialog>
 
-<dialog id="dus" aria-labelledby="hdus">
+<dialog id="dus" closedby="any" aria-labelledby="hdus">
 <h2 id="hdus">Statistiques</h2>
 <p class="note">Tokens consommés, par modèle. Enregistrés sur cet appareil seulement : ils ne font pas partie des sauvegardes.</p>
-<div id="ust" role="radiogroup" aria-label="Période"><button role="radio" data-m="session" aria-checked="true">Session</button><button role="radio" data-m="day" aria-checked="false">Jour</button><button role="radio" data-m="month" aria-checked="false">Mois</button><button role="radio" data-m="all" aria-checked="false">Total</button></div>
+<div id="ust" role="group" aria-label="Période"><button data-m="session" aria-pressed="true">Session</button><button data-m="day" aria-pressed="false">Jour</button><button data-m="month" aria-pressed="false">Mois</button><button data-m="all" aria-pressed="false">Total</button></div>
 <div id="usn"><button id="usp" aria-label="Période précédente"><svg class="i"><use href="#i-chevl"/></svg></button><span id="usl" aria-live="polite" tabindex="-1"></span><button id="usx" aria-label="Période suivante"><svg class="i"><use href="#i-chevr"/></svg></button></div>
 <div id="usv"></div>
 <div class="row l"><button id="usf">Devise</button><button id="usj">Journal des appels</button></div>
-<div class="row"><button id="usr">Effacer</button><button id="usc" class="primary">Fermer</button></div>
+<form method="dialog" class="row"><button id="usr" type="button">Effacer</button><button id="usc" class="primary">Fermer</button></form>
 </dialog>
 
-<dialog id="djr" aria-labelledby="hdjr">
+<dialog id="djr" closedby="any" aria-labelledby="hdjr">
 <h2 id="hdjr">Journal des appels</h2>
 <p id="jrn" class="note"></p>
 <div id="jrl"></div>
 <div class="row l"><button id="jre">Exporter</button><button id="jrg" hidden>Envoyer sur GitHub</button><button id="jrx">Vider</button></div>
-<div class="row"><button id="jrc" class="primary">Fermer</button></div>
+<form method="dialog" class="row"><button id="jrc" class="primary">Fermer</button></form>
 </dialog>
 
-<dialog id="dsw" aria-labelledby="hdsw">
+<dialog id="dsw" closedby="any" aria-labelledby="hdsw">
 <h2 id="hdsw">Changer d'histoire</h2>
 <div id="swl"></div>
-<div class="row"><button id="swc">Fermer</button></div>
+<form method="dialog" class="row"><button id="swc">Fermer</button></form>
 </dialog>
 
-<dialog id="dsm" aria-labelledby="hdsm">
+<dialog id="dsm" closedby="any" aria-labelledby="hdsm">
 <h2 id="hdsm">Sommaire</h2>
 <p id="smn" class="note">Une ligne par message déjà résumé. Touchez pour y aller.</p>
 <div id="sml" class="hits"></div>
-<div class="row"><button id="dsmc" class="primary">Fermer</button></div>
+<form method="dialog" class="row"><button id="dsmc" class="primary">Fermer</button></form>
 </dialog>
 
 <dialog id="dpic" aria-label="Image en plein écran"><img id="dpici" alt=""><button class="pclose" aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button></dialog>
 
-<dialog id="dma" aria-labelledby="hdma">
+<dialog id="dma" closedby="any" aria-labelledby="hdma">
 <h2 id="hdma">Message</h2>
 <div class="col">
 <button id="mac"><svg class="i"><use href="#i-copy"/></svg>Copier</button>
@@ -265,14 +265,14 @@
 <button id="mae"><svg class="i"><use href="#i-edit"/></svg>Modifier</button>
 <button id="mab"><svg class="i"><use href="#i-branch"/></svg>Bifurquer d'ici</button>
 <button id="mad" class="danger"><svg class="i"><use href="#i-trash"/></svg>Supprimer à partir d'ici</button>
-<button id="damc">Fermer</button>
+<form method="dialog" class="fd"><button id="damc">Fermer</button></form>
 </div>
 </dialog>
 
 <dialog id="dq" aria-labelledby="dqt">
 <h2 id="dqt"></h2>
 <p id="dqm" style="margin:0 0 8px;color:var(--mu)"></p>
-<input id="dqi" enterkeyhint="done">
+<input id="dqi" aria-labelledby="dqt" enterkeyhint="done">
 <div class="row"><button id="dqc">Annuler</button><button id="dqo" class="primary">OK</button></div>
 </dialog>
 
@@ -338,14 +338,14 @@
 <p id="sto" class="note"></p>
 </details>
 
-<div class="row"><button id="dcc">Annuler</button><button id="dcs" class="primary">Enregistrer</button></div>
+<form method="dialog" class="row"><button id="dcc">Annuler</button><button id="dcs" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 
 <dialog id="de" aria-labelledby="hde">
 <h2 id="hde">Modifier le message</h2>
 <p id="den" class="note" hidden></p>
 <textarea id="et"></textarea>
-<div class="row"><button id="dec">Annuler</button><button id="des" class="primary">Enregistrer</button></div>
+<form method="dialog" class="row"><button id="dec">Annuler</button><button id="des" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 
 
@@ -363,7 +363,7 @@
 </div>
 <p id="bks" class="note"></p>
 <div class="row l"><button id="bkn" hidden>Synchroniser maintenant</button><button id="bkx">Effacer la configuration</button></div>
-<div class="row"><button id="bkc">Fermer</button><button id="bkv" class="primary">Enregistrer</button></div>
+<form method="dialog" class="row"><button id="bkc">Fermer</button><button id="bkv" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 <script type="module" src="js/main.js"></script>
 </body>

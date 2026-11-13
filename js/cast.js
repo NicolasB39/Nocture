@@ -120,4 +120,3 @@ $('#pe').onclick = () => {
   $('#dpe').dataset.mo = momentNow(app.cur.messages);
   $('#dpe').showModal();
 };
-$('#pec').onclick = () => $('#dpe').close();

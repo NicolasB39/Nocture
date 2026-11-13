@@ -59,7 +59,6 @@ $('#shl').onclick = async e => {
     same = row.find(x => x.classList.contains(up ? 'shp' : 'shm'));
   (same && !same.disabled ? same : row.find(x => !x.disabled))?.focus();
 };
-$('#dshc').onclick = () => $('#dsh').close();
 // Fiche refermée : les chances affichées sur les choix suivent les nouveaux bonus.
 $('#dsh').addEventListener('close', () => app.cur && render());
 $('#msh').onclick = () => {

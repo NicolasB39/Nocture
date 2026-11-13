@@ -119,7 +119,6 @@ $('#mo').onclick = () => {
   $('#msh').hidden = !rulesOf(app.cur).length;
   $('#dmn').showModal();
 };
-$('#dmnc').onclick = () => $('#dmn').close();
 $('#mren').onclick = async () => {
   $('#dmn').close();
   if (await renameStory(app.cur.id)) render();
@@ -213,7 +212,6 @@ $('#mma').onclick = () => {
   $('#mmi').value = '';
   memView();
 };
-$('#dmc').onclick = () => $('#dm').close();
 $('#dms').onclick = async () => {
   const m = app.cur.mem,
     nt = $('#nti').value,
@@ -253,7 +251,6 @@ $('#dms').onclick = async () => {
   render();
   $('#dm').close();
 };
-$('#dsc').onclick = () => $('#ds').close();
 $('#dss').onclick = async () => {
   if (!app.cur.remote) {
     app.cur.system = $('#ssys').value;
@@ -365,7 +362,6 @@ $('#imf').onchange = async e => {
     dlg('Import interrompu', { m: x?.message || String(x) });
   }
 };
-$('#dcc').onclick = () => $('#dc').close();
 $('#dcs').onclick = async () => {
   S.key = $('#ck').value.trim();
   S.model = $('#cm').value.trim();
@@ -439,7 +435,6 @@ $('#sri').oninput = () => {
   clearTimeout(srT);
   srT = setTimeout(srRun, 180);
 };
-$('#dsrc').onclick = () => $('#dsr').close();
 // Sommaire : une frise des scènes du récit (lieu, tours) sous le titre de leur chapitre ; toucher une scène y
 // mène. Un chapitre clos montre la première ligne de son résumé, en entier avec « Lire ». Sans lieu dans l'état,
 // la liste des lignes récentes de la mémoire.
@@ -504,7 +499,6 @@ $('#msm').onclick = () => {
   $('#dsm').showModal();
   $('#sml .tln.cur')?.scrollIntoView({ block: 'nearest' });
 };
-$('#dsmc').onclick = () => $('#dsm').close();
 
 const shrink = f =>
   new Promise(res => {

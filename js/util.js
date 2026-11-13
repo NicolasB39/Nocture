@@ -147,9 +147,14 @@ export const plain = (t, nm) =>
   bare(t)
     .replace(/\{\{user\}\}/gi, nm?.trim() || 'Joueur')
     .trim();
+// Compte à rebours (« … dans 14 s… ») : les secondes vont dans un élément ignoré du lecteur d'écran, seul mis à
+// jour ensuite, pour que la cause soit annoncée une fois et pas à chaque seconde.
 export const err = (t, bad, a) => {
-  const e = $('#err');
-  e.textContent = t;
+  const e = $('#err'),
+    m = !a && t.match(/^([\s\S]* dans )(\d+ s…)$/);
+  if (m && e.firstChild?.nodeValue === m[1] && e.lastChild?.tagName == 'SPAN') e.lastChild.textContent = m[2];
+  else if (m) e.replaceChildren(m[1], el('span', { 'aria-hidden': 'true', text: m[2] }));
+  else e.textContent = t;
   e.className = t && bad ? 'e' : '';
   if (t && a)
     e.append(
@@ -162,7 +167,11 @@ export const err = (t, bad, a) => {
       })
     );
 };
+// Hauteur de la zone de saisie : par le CSS (field-sizing: content) quand le navigateur le sait, sans forcer une
+// mise en page à chaque frappe ; sinon calculée ici.
+const SIZED = typeof CSS != 'undefined' && CSS.supports?.('field-sizing', 'content');
 export const fit = () => {
+  if (SIZED) return;
   const i = $('#inp');
   i.style.height = 'auto';
   i.style.height = Math.min(i.scrollHeight, 140) + 'px';
