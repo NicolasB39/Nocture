@@ -122,3 +122,8 @@ test('relecture Fable : noms imbriqués, souvenir plus riche, lignes sans lien',
   const r = clean({ id: 'x', messages: [], mem: { lines: L } });
   assert.deepEqual(cutLines(r.mem.lines, 8).map(l => l.t), ['a', 'c']);
 });
+
+test('souvenirs datés : le préfixe « Jour N : » ne les fait pas passer pour des doublons', () => {
+  assert.ok(!near("Jour 2 : Hugo vole l'épée de Marc.", 'Jour 4 : Hugo trahit Marc devant la guilde.'));
+  assert.equal(mergeMem(["Jour 2 : Hugo vole l'épée de Marc."], ['Jour 4 : Hugo trahit Marc devant la guilde.']).length, 2);
+});

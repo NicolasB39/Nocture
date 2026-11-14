@@ -17,7 +17,8 @@ export const SUM_KEEP = 40;
 export const chStart = mem => Math.min(mem.chapters?.at(-1)?.upto || 0, mem.upto);
 
 const parts = s => key(s).split(' ').filter(Boolean);
-const words = s => new Set(parts(s).filter(w => w.length > 3));
+// « jour » écarté : deux souvenirs datés (« Jour 2 : … », « Jour 4 : … ») ne se ressemblent pas pour autant.
+const words = s => new Set(parts(s).filter(w => w.length > 3 && w != 'jour'));
 // Résumé principal, assemblé à partir des deux champs de la mémoire : les Événements du chapitre en cours, puis la
 // Situation actuelle (fils en suspens compris). Un chapitre qui se clôt emporte ses Événements dans son propre
 // résumé : il ne reste que la Situation. Chaque partie a sa place réservée, pour qu'une coupe ne mange jamais la

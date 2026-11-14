@@ -38,7 +38,7 @@ Tant qu'aucune clé API Claude n'est enregistrée, un bandeau le signale en haut
 
 ### Options de l'histoire
 
-Le menu « … » d'une conversation range ses entrées par usage : en haut, deux tuiles pour les outils de lecture (Sommaire, Rechercher) ; puis « Mémoire et note » (chapitres, résumé, souvenirs et la note pour l'IA, une consigne envoyée avec la mémoire à chaque tour) et « Réglages de l'histoire » ; enfin, sous « Histoire », Nouvelle partie et Renommer, comme depuis la carte de la bibliothèque, et les Réglages de l'application.
+Le menu « … » d'une conversation range ses entrées par usage : en haut, deux tuiles pour les outils de lecture (Sommaire, Rechercher) ; puis « Mémoire et note » (chapitres, résumé, souvenirs et la note pour l'IA, une consigne envoyée avec la mémoire à chaque tour et présentée au narrateur comme prioritaire : videz-la une fois suivie) et « Réglages de l'histoire » ; enfin, sous « Histoire », Nouvelle partie et Renommer, comme depuis la carte de la bibliothèque, et les Réglages de l'application.
 
 ### Actions d'un message
 

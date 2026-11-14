@@ -182,4 +182,11 @@ test('état écrit sans balise : rattrapé sur les champs du panneau, jamais une
   assert.equal(split('Il avance.\n\nDate: lundi\nLieu: Hall\nRang: C\nStats: 3\nCondition: bonne\nObjets: aucun', true, L).state.length, 6, 'champ en plusieurs mots');
   assert.equal(split('Il avance.\n\nHumeur: calme\nLieu: Hall\nCondition: bonne', true, L).state, undefined, 'à moitié reconnu : rien');
   assert.equal(split('Il avance.\n\nSanté (0/100): 64/100\nLieu: Hall', true, 'Lieu, Santé (0/100)').state.length, 2);
+  const d = split('Il avance.\n\nLieu: Quai\nJour: 2\n\n<etat>\nLieu: Hall\nJour: 2\n</etat>', true, F);
+  assert.equal(d.content, 'Il avance.', 'état recopié en plus du bloc : lignes retirées');
+  assert.deepEqual(d.state, [['Lieu', 'Hall'], ['Jour', '2']], 'le bloc fait foi');
+  const e = split('Il avance.\n\n1. *Je pars.*\n2. *Je reste.*\n\nLieu: Quai\nJour: 2\n\n<etat>\nLieu: Hall\nJour: 2\n</etat>\n\n<choix>\n1. *Je pars.*\n2. *Je reste.*\n</choix>', true, F);
+  assert.equal(e.content, 'Il avance.', 'liste recopiée puis état en clair : les deux retirés');
+  const g = split('Il avance.\n\n1. *Je pars.*\n2. *Je reste.*\n\nLieu: Quai\nJour: 2', true, F);
+  assert.deepEqual([g.content, g.choices, g.state.length], ['Il avance.', ['*Je pars.*', '*Je reste.*'], 2], 'sans balises : choix et état rattrapés');
 });

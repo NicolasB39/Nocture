@@ -64,7 +64,7 @@ export const invOn = s => !!(s?.remote && ctx.inv?.length);
 export const linksOn = s => !!(s?.remote && ctx.liens && ctx.chars?.length);
 
 // Jour de l'état (champ « Jour… » du panneau), pour la baisse quotidienne des ressources.
-const dayOf = st => {
+export const dayOf = st => {
   const e = (st || []).find(([k]) => /^jour\b/.test(wkey(k))),
     n = e && parseInt(e[1].match(/\d+/)?.[0]);
   return Number.isFinite(n) ? n : null;

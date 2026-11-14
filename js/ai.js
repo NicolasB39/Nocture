@@ -1,7 +1,8 @@
 import { HAIKU_LONG, LONG, base } from './cost.js';
 import { estTok } from './prompt.js';
 import { modelOf } from './protocol.js';
-import { choiceMark } from './format.js';
+import { choiceMark, lastEtat } from './format.js';
+import { dayOf } from './modes.js';
 import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx } from './state.js';
@@ -382,8 +383,8 @@ export const waitMsg = (w, why) =>
 const SUMJ =
   "Tu mets à jour la mémoire d'une histoire interactive. Écris en français. Ne mentionne jamais les jets de dés ni leurs chiffres, seulement ce qui s'est passé.\n" +
   "- evenements : les Événements du résumé actuel, condensés, puis ceux des nouveaux messages : toute l'histoire depuis le dernier chapitre clos, sans jamais retirer un tournant (rencontre, pacte, révélation, blessure grave), 850 caractères maximum, sans intertitre ; ni souvenirs, ni relations, ni objectif : ils ont leurs propres champs.\n" +
-  '- situation : où en est le joueur maintenant, point de départ du prochain tour, 450 caractères maximum, sans intertitre ; nomme aussi les fils en suspens (promesses, dettes, menaces, secrets, objets à retrouver).\n' +
-  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Date-les en « Jour N » quand l’histoire compte les jours, jamais « demain », « ce soir » ou « ce matin » ; pas de chiffre du panneau (santé, niveau) ni de simple péripétie. Liste vide si rien de neuf.\n' +
+  '- situation : d’abord les fils en suspens encore ouverts (promesses, dettes, menaces, rendez-vous, objets à retrouver), cinq au plus, chacun avec son échéance en « Jour N » quand le jour en cours est donné, sans ceux qui sont réglés ; puis où en est le joueur, point de départ du prochain tour, en une phrase. 350 caractères maximum, sans intertitre.\n' +
+  '- souvenirs : faits durables NOUVEAUX seulement, une phrase chacun, en priorité ce qui pourra revenir plus tard (promesses, dettes, menaces, secrets, objets donnés ou perdus) ; ne répète pas ceux déjà connus. Quand le jour en cours est donné, chaque souvenir commence par « Jour N : » et un rendez-vous s’écrit avec son jour (« Jour 3 à 21h30 ») ; jamais « demain », « ce soir » ou « ce matin » ; pas de chiffre du panneau (santé, niveau) ni de simple péripétie. Liste vide si rien de neuf.\n' +
   "- relations : ce que le personnage est pour le joueur et ce qu'il sait de lui (lien, dette, promesse, secret partagé), une phrase, pas ce qu'il fait en ce moment ; pour les personnages récurrents seulement, jamais les figurants de passage. Reprends EXACTEMENT les noms déjà connus, sans les reformuler ni y ajouter de titre. Quand l'histoire révèle qu'un personnage connu sous un autre nom est un personnage à fiche, écris « Nom de la fiche (ancien nom) ».\n" +
   "- lignes : une entrée par message fourni, dans l'ordre, une phrase courte et factuelle.\n" +
   "- chapitre (seulement quand il est demandé) : clos vaut true si ces messages terminent un arc ou en ouvrent un nouveau (lieu quitté pour de bon, quête achevée ou nouvelle, ellipse) : un arc fini plus tôt dans le chapitre ne se représentera pas. titre (quelques mots) et resume (700 caractères maximum) décrivent alors le chapitre entier ; seule la situation ouvre le chapitre suivant. Sinon clos vaut false, titre et resume vides.";
@@ -514,7 +515,9 @@ async function sumRun(s, start) {
       const stale = batchGuard(s, parts.length),
         // Messages du chapitre en cours une fois ce lot résumé : dit au modèle s'il peut, ou doit, le clore.
         k = s.mem.upto + parts.length - chStart(s.mem),
-        chs = s.mem.chapters || [];
+        chs = s.mem.chapters || [],
+        // Jour du panneau à la fin du lot : les messages résumés n'ont pas l'état, le modèle ne saurait pas dater.
+        day = dayOf(lastEtat(s.messages, s.mem.upto + parts.length));
       const { t, cut } = await chat(
         [
           { role: 'system', content: SUMJ },
@@ -540,6 +543,7 @@ async function sumRun(s, start) {
                 : k >= CH_MAX
                   ? 'Il est temps de le clore : clos = true.'
                   : 'Clos-le si ces messages terminent un arc ou en ouvrent un nouveau ; une nuit passée ou un changement de jour le clôt toujours.') +
+              (day != null ? '\n\nJour en cours à la fin de ces messages : Jour ' + day + '.' : '') +
               '\n\nMessages à intégrer (' +
               parts.length +
               ') :\n' +

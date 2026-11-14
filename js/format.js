@@ -146,10 +146,19 @@ export const split = (raw, loose = true, fields = '') => {
     links = [...raw.matchAll(LNX)].flatMap(m => deltas(m[1] ?? m[2])),
     c = choicesOf(raw),
     s = parseEtat(raw);
+  // État écrit en lignes nues à la fin du récit, avant ou après une liste de choix recopiée : rattrapé sans bloc
+  // <etat>, seulement retiré du récit avec un bloc (le bloc fait foi).
+  if (s.length) o.state = s;
+  const loose1 = () => {
+    const l = fields && looseState(o.content, fields);
+    if (!l) return;
+    o.content = l.content;
+    o.state ??= l.state;
+  };
+  loose1();
   if (c.length) Object.assign(o, { choices: c, content: dropDup(o.content, c) });
   else if (loose) Object.assign(o, looseChoices(o.content));
-  if (s.length) o.state = s;
-  else if (fields) Object.assign(o, looseState(o.content, fields));
+  loose1();
   if (inv.length) o.inv = inv;
   if (links.length) o.links = links;
   return o;

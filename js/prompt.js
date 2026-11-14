@@ -112,7 +112,12 @@ const memBlock = s => {
       '\n\n<relations>\n(États enregistrés, ils peuvent dater : les événements récents priment.)\n' +
       rl.map(([k, v]) => '- ' + k + ' : ' + v).join('\n') +
       '\n</relations>';
-  if (s.note?.trim()) t += '\n\n<system_note>\n' + s.note.trim() + '\n</system_note>';
+  // Note pour l'IA : dite prioritaire, sinon le narrateur la laisse céder au résumé et à l'élan de la scène.
+  if (s.note?.trim())
+    t +=
+      "\n\n<system_note>\n(Consigne du joueur : elle prime sur le résumé, les relations et l'élan de la scène en cours ; applique-la dès ta prochaine réponse.)\n" +
+      s.note.trim() +
+      '\n</system_note>';
   return t;
 };
 const relOf = (mem, name) => {
