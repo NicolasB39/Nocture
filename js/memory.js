@@ -16,9 +16,11 @@ export const SUM_KEEP = 40;
 // Premier message du chapitre en cours : la fin du dernier chapitre clos.
 export const chStart = mem => Math.min(mem.chapters?.at(-1)?.upto || 0, mem.upto);
 
-const parts = s => key(s).split(' ').filter(Boolean);
-// « jour » écarté : deux souvenirs datés (« Jour 2 : … », « Jour 4 : … ») ne se ressemblent pas pour autant.
-const words = s => new Set(parts(s).filter(w => w.length > 3 && w != 'jour'));
+// Fait sans son préfixe de date (« Jour 2 : … ») : deux souvenirs datés ne se ressemblent pas par leur date, et un
+// même fait daté autrement se reconnaît.
+const fact = s => key(s).replace(/^jour \d+ /, '');
+const parts = s => fact(s).split(' ').filter(Boolean);
+const words = s => new Set(parts(s).filter(w => w.length > 3));
 // Résumé principal, assemblé à partir des deux champs de la mémoire : les Événements du chapitre en cours, puis la
 // Situation actuelle (fils en suspens compris). Un chapitre qui se clôt emporte ses Événements dans son propre
 // résumé : il ne reste que la Situation. Chaque partie a sa place réservée, pour qu'une coupe ne mange jamais la
@@ -89,7 +91,7 @@ export function mergeMem(cur = [], inc = [], max = MEM_MAX) {
     if (!t) continue;
     const i = out.findIndex(x => near(x, t));
     // « Alice a quitté la ville. » n'efface pas « Alice a quitté la ville avec la carte volée. » qui le contient.
-    const v = i >= 0 && key(out[i]) !== key(t) && key(out[i]).includes(key(t)) ? out[i] : t;
+    const v = i >= 0 && fact(out[i]) !== fact(t) && fact(out[i]).includes(fact(t)) ? out[i] : t;
     if (i >= 0) out.splice(i, 1);
     out.push(v);
   }

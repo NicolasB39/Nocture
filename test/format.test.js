@@ -132,6 +132,9 @@ test('marque du journal : choix présents, recopiés, rattrapés ou absents', as
   assert.equal(choiceMark('Récit.\n\n1. *Je pars.*\n2. *Je reste.*' + B), 'recopiés');
   assert.equal(choiceMark('Récit.\n\n1. *Je pars.*\n2. *Je reste.*'), 'rattrapés');
   assert.equal(choiceMark('Récit.\n\n<etat>\nLieu: ici\n</etat>'), 'absents');
+  const S = '\n\nLieu: Quai\nJour: 2';
+  assert.equal(choiceMark('Récit.\n\n1. *Je pars.*\n2. *Je reste.*' + S + B, 'Lieu, Jour'), 'recopiés', 'état en clair après la liste');
+  assert.equal(choiceMark('Récit.\n\n1. *Je pars.*\n2. *Je reste.*' + S, 'Lieu, Jour'), 'rattrapés');
 });
 
 test('choix recopiés dans le récit en plus du bloc <choix> : la liste du récit est retirée', async () => {
