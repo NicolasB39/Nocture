@@ -192,4 +192,6 @@ test('état écrit sans balise : rattrapé sur les champs du panneau, jamais une
   assert.equal(e.content, 'Il avance.', 'liste recopiée puis état en clair : les deux retirés');
   const g = split('Il avance.\n\n1. *Je pars.*\n2. *Je reste.*\n\nLieu: Quai\nJour: 2', true, F);
   assert.deepEqual([g.content, g.choices, g.state.length], ['Il avance.', ['*Je pars.*', '*Je reste.*'], 2], 'sans balises : choix et état rattrapés');
+  const j = split('Il avance.\n\nLieu: Quai\nJour: 2\n\n<jet>Adresse, difficile</jet>', true, F);
+  assert.deepEqual([j.content, j.state.length], ['Il avance.\n\n<jet>Adresse, difficile</jet>', 2], 'état en clair avant une demande de jet : rattrapé, le jet reste');
 });

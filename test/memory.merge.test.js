@@ -127,4 +127,6 @@ test('souvenirs datés : le préfixe « Jour N : » ne les fait pas passer pour 
   assert.ok(!near("Jour 2 : Hugo vole l'épée de Marc.", 'Jour 4 : Hugo trahit Marc devant la guilde.'));
   assert.equal(mergeMem(["Jour 2 : Hugo vole l'épée de Marc."], ['Jour 4 : Hugo trahit Marc devant la guilde.']).length, 2);
   assert.deepEqual(mergeMem(['Jour 2 : Alice a quitté la ville avec la carte volée.'], ['Jour 3 : Alice a quitté la ville.']), ['Jour 2 : Alice a quitté la ville avec la carte volée.'], 'même fait daté autrement : la version riche reste');
+  assert.equal(mergeMem(['J+3 : Sera a promis de l’aider pour le tournoi contre Valk.'], ['J+4 : Sera a promis de l’aider pour le tournoi.'])[0], 'J+3 : Sera a promis de l’aider pour le tournoi contre Valk.', 'date « J+3 » aussi');
+  assert.ok(sameName('Inès', 'Inès Varga'), 'les noms ne passent pas par la date');
 });

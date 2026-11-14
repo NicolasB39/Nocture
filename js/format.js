@@ -129,13 +129,21 @@ export const dropDup = (t, choices) => {
   if (i > 0 && /:\s*[*_]*$/.test(ls[i - 1]) && ls[i - 1].trim().length < 60) i--;
   return ls.slice(0, i).join('\n').trim();
 };
+// État écrit en lignes nues à la fin du récit (looseState), une demande <jet> finale mise de côté puis remise en
+// fin de récit, où elle a son bouton. null sans champs ou sans état reconnu.
+const tailState = (t, fields) => {
+  if (!fields) return null;
+  const j = t.match(/(?:\s*<jet>[^<]*<\/jet>)+\s*$/i)?.[0] || '',
+    l = looseState(t.slice(0, t.length - j.length), fields);
+  return l && { ...l, content: [l.content, j.trim()].filter(Boolean).join('\n\n') };
+};
 // Marque du journal des appels : ce que la réponse du narrateur a fait de ses choix (bloc <choix> seul, recopiés
 // aussi dans le récit, écrits sans balise puis rattrapés, ou absents).
-// fields : champs du panneau, pour écarter d'abord un état écrit en clair après les choix recopiés (comme split).
+// fields : champs du panneau, pour écarter d'abord un état écrit en clair après les choix (comme split).
 export const choiceMark = (raw, fields = '') => {
   const c = choicesOf(raw);
   let b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').replace(INX, '').replace(LNX, '').trim();
-  b = (fields && looseState(b, fields)?.content) || b;
+  b = tailState(b, fields)?.content ?? b;
   return c.length ? (dropDup(b, c) != b ? 'recopiés' : 'présents') : looseChoices(b) ? 'rattrapés' : 'absents';
 };
 // loose : rattraper les choix écrits sans balise (looseChoices), seulement dans une histoire à choix ; fields :
@@ -152,7 +160,7 @@ export const split = (raw, loose = true, fields = '') => {
   // <etat>, seulement retiré du récit avec un bloc (le bloc fait foi).
   if (s.length) o.state = s;
   const dropState = () => {
-    const l = fields && looseState(o.content, fields);
+    const l = tailState(o.content, fields);
     if (!l) return;
     o.content = l.content;
     o.state ??= l.state;

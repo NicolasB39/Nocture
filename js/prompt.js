@@ -115,7 +115,7 @@ const memBlock = s => {
   // Note pour l'IA : dite prioritaire, sinon le narrateur la laisse céder au résumé et à l'élan de la scène.
   if (s.note?.trim())
     t +=
-      "\n\n<system_note>\n(Consigne du joueur : elle prime sur le résumé, les relations et l'élan de la scène en cours ; applique-la dès ta prochaine réponse.)\n" +
+      "\n\n<system_note>\n(Consigne du joueur : elle prime sur le résumé, les relations et l'élan de la scène en cours ; applique-la dès ta prochaine réponse, sauf ce que le récit a déjà accompli.)\n" +
       s.note.trim() +
       '\n</system_note>';
   return t;

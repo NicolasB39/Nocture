@@ -509,11 +509,12 @@ async function sumRun(s, start) {
       }
       // Jamais en dessous de SUM_KEEP messages gardés mot pour mot.
       const end = s.mem.upto + Math.min(SUM_BATCH, s.messages.length - s.mem.upto - SUM_KEEP);
-      // Jour du panneau (champ Jour ou Date, avant toute virgule) sur chaque réponse où il change : les messages
-      // résumés n'ont pas l'état, la mémoire ne saurait pas dater souvenirs et échéances.
+      // Jour du panneau (champ Jour ou Date, sans heure ni moment : ce qui suit une virgule, une parenthèse ou un
+      // tiret est retiré) sur chaque réponse où il change : les messages résumés n'ont pas l'état, la mémoire ne
+      // saurait pas dater souvenirs et échéances.
       let shown = '';
       const parts = s.messages.slice(s.mem.upto, end).map(m => {
-        const d = m.role == 'assistant' && jourLabel(jourOf(m.state).split(',')[0]),
+        const d = m.role == 'assistant' && jourLabel(jourOf(m.state).split(/[,(—–]/)[0]),
           tag = d && d != shown ? ' (' + (shown = d) + ')' : '';
         return (m.role == 'user' ? 'Joueur : ' : 'Narrateur' + tag + ' : ') + bare(m.content).trim();
       });

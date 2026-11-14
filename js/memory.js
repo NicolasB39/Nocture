@@ -16,11 +16,11 @@ export const SUM_KEEP = 40;
 // Premier message du chapitre en cours : la fin du dernier chapitre clos.
 export const chStart = mem => Math.min(mem.chapters?.at(-1)?.upto || 0, mem.upto);
 
-// Fait sans son préfixe de date (« Jour 2 : … ») : deux souvenirs datés ne se ressemblent pas par leur date, et un
-// même fait daté autrement se reconnaît.
-const fact = s => key(s).replace(/^jour \d+ /, '');
-const parts = s => fact(s).split(' ').filter(Boolean);
-const words = s => new Set(parts(s).filter(w => w.length > 3));
+const parts = s => key(s).split(' ').filter(Boolean);
+// Fait sans son préfixe de date (« Jour 2 : », « J+3 : », « 3 mai : ») : deux souvenirs datés ne se ressemblent pas
+// par leur date, et un même fait daté autrement se reconnaît.
+const fact = s => key(String(s).replace(/^\s*(?:jour\s*|j\s*\+\s*)?\d+[^:\n]{0,12}:\s*/i, ''));
+const words = s => new Set(fact(s).split(' ').filter(w => w.length > 3));
 // Résumé principal, assemblé à partir des deux champs de la mémoire : les Événements du chapitre en cours, puis la
 // Situation actuelle (fils en suspens compris). Un chapitre qui se clôt emporte ses Événements dans son propre
 // résumé : il ne reste que la Situation. Chaque partie a sa place réservée, pour qu'une coupe ne mange jamais la
