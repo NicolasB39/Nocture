@@ -54,14 +54,16 @@ Export : **PNG ou WebP avec transparence**. Un JPG ne peut pas être transparent
 
 ### Expressions : une seule planche par personnage
 
-Toutes les expressions d'un personnage se génèrent **en une seule image** : le même personnage répété côte à côte, une expression par silhouette, de gauche à droite. Une seule génération garde le visage, la coiffure, la tenue et la lumière identiques ; des générations séparées dérivent toujours un peu. Quand l'IA passe de `maren_neutre` à `maren_sourire`, seul le visage doit bouger.
+Toutes les expressions d'un personnage se génèrent **en une seule image** : le même personnage répété côte à côte, une expression par silhouette, de gauche à droite. Une seule génération garde le visage, la coiffure, la tenue et la lumière identiques ; des générations séparées dérivent toujours un peu. La posture, elle, change avec l'émotion (tête inclinée, épaules, bras, mains) : l'émotion se lit sur tout le buste, pas seulement sur le visage. Les bras restent près du corps, pour que les silhouettes ne se mêlent pas.
 
 Gabarit de la planche :
 
 ```
 [BLOC DE STYLE].
 Character expression sheet: the same character shown [N] times side by side in a single row,
-identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: [EXPRESSION 1], [EXPRESSION 2], [EXPRESSION 3].
 [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
@@ -187,7 +189,9 @@ Planche de Maren, découpée en `personnages/Maren/neutre.png`, `sourire.png` et
 ```
 [BLOC DE STYLE].
 Character expression sheet: the same character shown 3 times side by side in a single row,
-identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: calm neutral expression, warm genuine smile with softened eyes, closed guarded expression with jaw set.
 A 60-year-old Breton herbalist woman, short and sturdy,
 grey hair tied back, sap-stained hands, thick wool cardigan over a dark work dress,

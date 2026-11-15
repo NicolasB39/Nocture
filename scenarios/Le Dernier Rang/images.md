@@ -26,7 +26,9 @@ Gabarit, à la suite du bloc de style :
 
 ```
 [STYLE]. Character expression sheet: the same character shown 3 times side by side in a single row,
-identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: calm neutral expression, [SOURIRE], closed guarded expression with jaw set and eyes narrowed.
 [DESCRIPTION],
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,

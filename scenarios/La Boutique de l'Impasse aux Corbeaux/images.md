@@ -26,7 +26,9 @@ Gabarit, `[DESCRIPTION]` pris dans la liste ci-dessous :
 
 ```
 [STYLE]. Character expression sheet: the same character shown 3 times side by side in a single row,
-identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: [les trois expressions du tableau, dans l'ordre].
 [DESCRIPTION],
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
@@ -60,7 +62,7 @@ Codes obtenus : `corvin_neutre`, `aelis_sourire`, `gaudry_ferme`, etc.
 
 ```
 [STYLE]. Character expression sheet: the same thin grey cat shown 3 times side by side in a single row,
-rough fur, a notched left ear and amber eyes, identical pose and lighting, only the expression changes,
+rough fur, a notched left ear and amber eyes, identical lighting, a different posture for each mood (head, ears, tail),
 from left to right: calm unblinking stare, eyes half-closed relaxed and content, ears flattened tail puffed and wary,
 sitting upright, facing the viewer at a slight three-quarter angle,
 every animal fully visible from ears to tail, evenly spaced with a wide empty gap between them,
