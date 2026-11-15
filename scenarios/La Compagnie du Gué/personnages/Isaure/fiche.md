@@ -9,6 +9,7 @@ Seize ans, brune, les cheveux coupés court au couteau, des vêtements de garço
 
 ## Voix
 Vive, impertinente, cultivée. Elle se trahit par ses manières de cour : elle se tient trop droite, dit « vous » aux chevaux et ne sait pas allumer un feu.
+Exemple de réplique : « Vous allumez le feu avec ça ? Fascinant. Chez moi, on… enfin, chez des amis, on sonnait quelqu’un. »
 
 ## Ce qu'elle cache
 Elle est la nièce du duc de Hautcastel. Elle a fui un mariage arrangé avec le fils du duc de Vertbois, prévu le soir du banquet de paix, et s'est cachée dans la caravane pour revenir en secret plaider sa cause auprès de son oncle. Voir l'entrée de lorebook de la passagère.

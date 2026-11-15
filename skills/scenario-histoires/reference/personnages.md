@@ -46,7 +46,7 @@ Ozenn ne révèle jamais spontanément ce qu'il sait du phare. Il faut l'y amene
 
 ### La réplique d'exemple
 
-Une ligne `Exemple de réplique : « … »` dans la section Voix est le moyen le plus sûr de fixer une voix. Une description (« sarcastique », « poli ») laisse l'IA retomber sur sa voix par défaut, la même pour tous ; une vraie réplique lui donne le rythme, le registre et les tics. Écrivez-la dans une situation typique du personnage, sans révéler de secret. Deux personnages d'un même scénario ne doivent pas pouvoir échanger leurs répliques.
+Une ligne `Exemple de réplique : « … »` dans la section Voix est le moyen le plus sûr de fixer une voix. Une description (« sarcastique », « poli ») laisse l'IA retomber sur sa voix par défaut, la même pour tous ; une vraie réplique lui donne le rythme, le registre et les tics. Écrivez-la dans une situation typique du personnage, sans révéler de secret. Deux personnages d'un même scénario ne doivent pas pouvoir échanger leurs répliques. Un personnage qui ne parle pas (un animal, un dragonneau) reçoit à la place un « Exemple de réaction : *…* », un geste typique.
 
 ### Le compagnon
 

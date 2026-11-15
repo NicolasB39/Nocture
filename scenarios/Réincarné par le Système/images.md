@@ -12,21 +12,34 @@ vivid adventure fantasy palette, warm golden daylight, deep blue skies, rich gre
 
 Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border`
 
-## Personnages (fond vert uni, puis détourage ; PNG ou WebP transparent, vertical 2:3)
+## Personnages (une planche par personnage sur fond vert, puis découpe)
 
-Partie commune, à la suite de chaque description :
+Une seule planche par personnage : ses expressions côte à côte, dans l'ordre du tableau ci-dessous, en une génération (même visage, même tenue). Format paysage 3:2 (1536 × 1024), fond vert d'incrustation uni. Puis :
+
+1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+2. la découper avec le script du skill, qui retire aussi le fond, les noms dans l'ordre de gauche à droite :
+   `node skills/scenario-histoires/scripts/decouper.mjs planche-misa.png "scenarios/Réincarné par le Système/personnages/Misa" misa_neutre misa_sourire misa_ferme`
+3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
+
+Gabarit, `[DESCRIPTION]` pris dans la liste ci-dessous :
 
 ```
-standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
-entire figure visible from head to feet, centered in the frame with a small margin on every side,
+[STYLE]. Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+from left to right: [les trois expressions du tableau, dans l'ordre].
+[DESCRIPTION],
+standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
+every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
-soft even lighting from the left, vertical 2:3 format.
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
 ```
 
-- `Misa` : `[STYLE]. Full-body portrait of a young adult woman, 163 cm, long blonde hair, green eyes, long red cape, brown trousers, black boots, [PARTIE COMMUNE]`
-- `Jasmine` : `[STYLE]. Full-body portrait of a young adult woman, 173 cm, lean agile build, medium-length black hair with bangs, red eyes, fitted discreet all-black outfit, [PARTIE COMMUNE]`
-- `Amane` : `[STYLE]. Full-body portrait of a young adult woman, 160 cm, long red hair with bangs, blue eyes, black witch cape and black witch hat, black trousers, white shirt underneath, [PARTIE COMMUNE]`
-- `Biro` : `[STYLE]. Full-body portrait of a young adult man, 185 cm, tall and strongly built, short brown hair, blue eyes, white tank top, black trousers, [PARTIE COMMUNE]`
+- `Misa` : `a young adult woman, 163 cm, long blonde hair, green eyes, long red cape, brown trousers, black boots`
+- `Jasmine` : `a young adult woman, 173 cm, lean agile build, medium-length black hair with bangs, red eyes, fitted discreet all-black outfit`
+- `Amane` : `a young adult woman, 160 cm, long red hair with bangs, blue eyes, black witch cape and black witch hat, black trousers, white shirt underneath`
+- `Biro` : `a young adult man, 185 cm, tall and strongly built, short brown hair, blue eyes, white tank top, black trousers`
 
 | Fichier | `[EXPRESSION]` |
 |---|---|
@@ -34,7 +47,7 @@ soft even lighting from the left, vertical 2:3 format.
 | `sourire` | warm, genuine smile, softened eyes |
 | `ferme` | closed, guarded expression, jaw set, eyes narrowed |
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, multiple characters`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
 Deimos n'a pas d'image : voix intérieure, et dragon trop grand pour un portrait en pied.
 
@@ -52,13 +65,13 @@ light coming from the left, widescreen cinematic 16:9 format.
 
 Chaque décor est un fichier `decors/<nom>.webp` avec son `decors/<nom>.md` ; créez le `.md` en même temps que l'image (un `.md` sans image est ignoré).
 
-- `vallee` — `Mots-clés : vallée, plaine, campement` : `[STYLE]. Environment background, a wide green valley between steep hills, grass and scattered boulders, a dirt track winding into the distance, clear morning, [PARTIE COMMUNE]`
-- `route` — `Mots-clés : route, chemin, sentier, calèche` : `[STYLE]. Environment background, a dirt road crossing open countryside, low stone walls, a few trees, afternoon, [PARTIE COMMUNE]`
-- `ville` — `Mots-clés : ville, ville marchande, marché, rue, place, château` : `[STYLE]. Environment background, a busy fantasy merchant town street, timber and stone houses, market stalls on the left, a large castle on a hill in the distance, sunny day, [PARTIE COMMUNE]`
-- `guilde` — `Mots-clés : guilde, hall de la guilde, comptoir, salle des quêtes` : `[STYLE]. Environment background, the main hall of an adventurers' guild, wooden counter, quest board covered with papers on the left, stone floor, warm lamplight, [PARTIE COMMUNE]`
-- `auberge` — `Mots-clés : auberge, taverne, salle commune, chambre` : `[STYLE]. Environment background, the common room of a cozy fantasy inn, long wooden tables, stone fireplace on the left, hanging lanterns, evening, [PARTIE COMMUNE]`
-- `ruines` — `Mots-clés : ruines, ruine*, donjon, caverne` : `[STYLE]. Environment background, ancient overgrown stone ruins with broken arches, faint glowing runes on the left, dusk light, [PARTIE COMMUNE]`
-- `defaut` : `[STYLE]. Environment background, fantasy countryside with hills and a distant forest under a soft sky, quiet and neutral, [PARTIE COMMUNE]`
+- `vallee` — `Mots-clés : vallée, plaine, campement` : `[STYLE]. Environment background, a wide green valley between steep hills, grass and scattered boulders, a dirt track winding into the distance, clear morning`
+- `route` — `Mots-clés : route, chemin, sentier, calèche` : `[STYLE]. Environment background, a dirt road crossing open countryside, low stone walls, a few trees, afternoon`
+- `ville` — `Mots-clés : ville, ville marchande, marché, rue, place, château` : `[STYLE]. Environment background, a busy fantasy merchant town street, timber and stone houses, market stalls on the left, a large castle on a hill in the distance, sunny day`
+- `guilde` — `Mots-clés : guilde, hall de la guilde, comptoir, salle des quêtes` : `[STYLE]. Environment background, the main hall of an adventurers' guild, wooden counter, quest board covered with papers on the left, stone floor, warm lamplight`
+- `auberge` — `Mots-clés : auberge, taverne, salle commune, chambre` : `[STYLE]. Environment background, the common room of a cozy fantasy inn, long wooden tables, stone fireplace on the left, hanging lanterns, evening`
+- `ruines` — `Mots-clés : ruines, ruine*, donjon, caverne` : `[STYLE]. Environment background, ancient overgrown stone ruins with broken arches, faint glowing runes on the left, dusk light`
+- `defaut` : `[STYLE]. Environment background, fantasy countryside with hills and a distant forest under a soft sky, quiet and neutral`
 
 Négatif en plus : `people, person, character, figure, silhouette, crowd`
 

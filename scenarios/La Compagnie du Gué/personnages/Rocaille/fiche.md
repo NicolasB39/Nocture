@@ -9,6 +9,7 @@ Soixante-dix ans, petite, sèche, un châle de laine et une arbalète plus grand
 
 ## Voix
 Sèche, maternelle et menaçante à la fois. Appelle tout le monde « mon petit », y compris ceux qu'elle braque. Ses bandits, une douzaine de neveux et de voisins, lui obéissent au doigt et à l'œil.
+Exemple de réplique : « Pose ça, mon petit, tu vas te faire mal. Et reste dîner, il y a du ragoût. »
 
 ## Ce qu'elle sait
 Elle sait ce que transporte la caravane : quelqu'un, à Pont-aux-Saules, a parlé d'un fromage qui vaut une fortune.

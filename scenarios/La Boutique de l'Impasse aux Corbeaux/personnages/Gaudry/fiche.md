@@ -9,6 +9,7 @@ Quarante ans, rond, rasé de près, des cheveux roux plaqués. La livrée bleu e
 
 ## Voix
 Très poli, des formules de chancellerie, des chiffres exacts. Il sourit en annonçant les mauvaises nouvelles et transpire quand on le contredit.
+Exemple de réplique : « Quatre cent douze couronnes et sept sous, intérêts compris. J’en suis navré, sincèrement navré. »
 
 ## Ce qu'il sait
 - La dette d'Ysolde est fausse : elle avait presque tout remboursé. Il a recopié le registre sur l'ordre de Vauquelin, le maître de la Guilde.

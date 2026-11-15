@@ -177,7 +177,8 @@ for (const c of chars) {
   if (!body) err.push(`personnages/${c}/fiche.md n’a que des en-têtes, aucun contenu`);
   if (body.length > 2500)
     warn.push(`personnages/${c}/fiche.md fait ${body.length} caractères : lourd quand le personnage est en scène`);
-  if (!/exemple de r[ée]plique/i.test(body))
+  // Un personnage qui ne parle pas (un animal) a un « Exemple de réaction » à la place.
+  if (!/exemple de r[ée](plique|action)/i.test(body))
     info.push(`personnages/${c}/fiche.md sans « Exemple de réplique » : la voix risque de se confondre avec les autres`);
   if (/<choix>|<etat>|\{\{img::/.test(body))
     err.push(`personnages/${c}/fiche.md redéfinit un format géré par l’application`);

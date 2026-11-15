@@ -12,25 +12,38 @@ bright adventurous medieval palette, golden daylight, meadow greens, warm ochre 
 
 Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border`
 
-## Personnages (fond vert uni, puis détourage ; PNG ou WebP transparent, vertical 2:3)
+## Personnages (une planche par personnage sur fond vert, puis découpe)
 
-Partie commune, à la suite de chaque description :
+Une seule planche par personnage : ses expressions côte à côte, dans l'ordre du tableau ci-dessous, en une génération (même visage, même tenue). Format paysage 3:2 (1536 × 1024), fond vert d'incrustation uni. Puis :
+
+1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+2. la découper avec le script du skill, qui retire aussi le fond, les noms dans l'ordre de gauche à droite :
+   `node skills/scenario-histoires/scripts/decouper.mjs planche-berthe.png "scenarios/La Compagnie du Gué/personnages/Berthe" berthe_neutre berthe_joie berthe_surprise`
+3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
+
+Gabarit, `[DESCRIPTION]` pris dans la liste ci-dessous :
 
 ```
-standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
-entire figure visible from head to feet, centered in the frame with a small margin on every side,
+[STYLE]. Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+from left to right: [les trois expressions du tableau, dans l'ordre].
+[DESCRIPTION],
+standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
+every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
-soft even lighting from the left, vertical 2:3 format.
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
 ```
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, multiple characters`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
-- `Berthe` : `[STYLE]. Full-body portrait of a 40-year-old very tall and broad woman, former blacksmith, muscular arms, blond braid coiled on her head, gentle face, chainmail patched with pink thread over a leather apron, a large blacksmith hammer hanging at her belt, sturdy boots, [PARTIE COMMUNE]`
-- `Fenouil` : `[STYLE]. Full-body portrait of a halfling man, about 1.1 metres tall, curly red hair, mischievous grin, oversized feathered hat, green waistcoat with many bulging pockets, short cloak, bare hairy feet, [PARTIE COMMUNE]`
-- `Anselme` : `[STYLE]. Full-body portrait of a 19-year-old thin young monk, crooked tonsure, brown hooded robe slightly too long, rope belt, a satchel of remedies across the body, a small prayer book in hand, earnest worried face, sandals, [PARTIE COMMUNE]`
-- `Gontran` : `[STYLE]. Full-body portrait of a 55-year-old round rosy-cheeked merchant, waxed moustache, felt hat, fur-lined coat too warm for the season, a big ring of keys at his belt, polished shoes, [PARTIE COMMUNE]`
-- `Isaure` : `[STYLE]. Full-body portrait of a 16-year-old girl, short brown hair roughly cut, bright clever eyes, stable boy clothes that look too clean, very straight noble posture, a hidden ring on a cord, [PARTIE COMMUNE]`
-- `Rocaille` : `[STYLE]. Full-body portrait of a 70-year-old small wiry grandmother bandit leader, grey bun, wool shawl, clay pipe in her mouth, a crossbow taller than her slung on her back, sharp knowing eyes, [PARTIE COMMUNE]`
+- `Berthe` : `a 40-year-old very tall and broad woman, former blacksmith, muscular arms, blond braid coiled on her head, gentle face, chainmail patched with pink thread over a leather apron, a large blacksmith hammer hanging at her belt, sturdy boots`
+- `Fenouil` : `a halfling man, about 1.1 metres tall, curly red hair, mischievous grin, oversized feathered hat, green waistcoat with many bulging pockets, short cloak, bare hairy feet` (gilet vert : planche sur fond magenta, `bright magenta background (#FF00FF)` à la place du vert)
+- `Anselme` : `a 19-year-old thin young monk, crooked tonsure, brown hooded robe slightly too long, rope belt, a satchel of remedies across the body, a small prayer book in hand, earnest worried face, sandals`
+- `Gontran` : `a 55-year-old round rosy-cheeked merchant, waxed moustache, felt hat, fur-lined coat too warm for the season, a big ring of keys at his belt, polished shoes`
+- `Isaure` : `a 16-year-old girl, short brown hair roughly cut, bright clever eyes, stable boy clothes that look too clean, very straight noble posture, a hidden ring on a cord`
+- `Rocaille` : `a 70-year-old small wiry grandmother bandit leader, grey bun, wool shawl, clay pipe in her mouth, a crossbow taller than her slung on her back, sharp knowing eyes`
 
 | Fichier | `[EXPRESSION]` |
 |---|---|
@@ -54,15 +67,15 @@ light coming from the left, widescreen cinematic 16:9 format.
 
 Négatif en plus : `people, person, character, figure, silhouette, crowd, animals in the foreground`
 
-- `auberge` : `[STYLE]. Environment background, courtyard of a cosy medieval riverside inn, timber frame building with a painted sign, two covered wagons and wooden crates on the left, morning light, [PARTIE COMMUNE]`
-- `route` : `[STYLE]. Environment background, a dirt road winding through rolling green borderland hills, a milestone on the left, distant castles on both horizons, sunny afternoon, [PARTIE COMMUNE]`
-- `bac` : `[STYLE]. Environment background, a wide fast river with a wooden ferry raft tied to a rope crossing, a ferryman hut on the left bank, reeds, bright day, [PARTIE COMMUNE]`
-- `peage` : `[STYLE]. Environment background, a small shabby castle gatehouse with a toll barrier across the road, faded banners, a wooden toll booth on the left, afternoon, [PARTIE COMMUNE]`
-- `foret` : `[STYLE]. Environment background, a narrow road through a dense old forest, mossy trunks, a fallen tree across the path on the left, shafts of sunlight, [PARTIE COMMUNE]`
-- `col` : `[STYLE]. Environment background, a mountain pass road with switchbacks along a cliff edge, scattered rocks and scree on the left, a small shepherd hut, white city towers far away, clear sky, [PARTIE COMMUNE]`
-- `campement` : `[STYLE]. Environment background, a roadside camp at dusk, a crackling campfire, two wagons and tethered horses on the left, first stars, warm firelight, [PARTIE COMMUNE]`
-- `hautcastel` : `[STYLE]. Environment background, the bright courtyard of a white medieval palace on a hill, banners, flower beds, a grand staircase on the left, festive afternoon, [PARTIE COMMUNE]`
-- `defaut` : `[STYLE]. Environment background, open medieval countryside road at golden hour, fields and a lone tree, [PARTIE COMMUNE]`
+- `auberge` : `[STYLE]. Environment background, courtyard of a cosy medieval riverside inn, timber frame building with a painted sign, two covered wagons and wooden crates on the left, morning light`
+- `route` : `[STYLE]. Environment background, a dirt road winding through rolling green borderland hills, a milestone on the left, distant castles on both horizons, sunny afternoon`
+- `bac` : `[STYLE]. Environment background, a wide fast river with a wooden ferry raft tied to a rope crossing, a ferryman hut on the left bank, reeds, bright day`
+- `peage` : `[STYLE]. Environment background, a small shabby castle gatehouse with a toll barrier across the road, faded banners, a wooden toll booth on the left, afternoon`
+- `foret` : `[STYLE]. Environment background, a narrow road through a dense old forest, mossy trunks, a fallen tree across the path on the left, shafts of sunlight`
+- `col` : `[STYLE]. Environment background, a mountain pass road with switchbacks along a cliff edge, scattered rocks and scree on the left, a small shepherd hut, white city towers far away, clear sky`
+- `campement` : `[STYLE]. Environment background, a roadside camp at dusk, a crackling campfire, two wagons and tethered horses on the left, first stars, warm firelight`
+- `hautcastel` : `[STYLE]. Environment background, the bright courtyard of a white medieval palace on a hill, banners, flower beds, a grand staircase on the left, festive afternoon`
+- `defaut` : `[STYLE]. Environment background, open medieval countryside road at golden hour, fields and a lone tree`
 
 ## Couverture (3/4, sujet centré, 600 × 800)
 

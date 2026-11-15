@@ -9,6 +9,7 @@ Elle n'apparaît que dans les échos, les souvenirs des habitués et ses notes. 
 
 ## Voix
 Sèche et drôle, des phrases courtes. Parlait aux objets comme à des clients difficiles. Ses étiquettes sont pleines de conseils bougons : « Ne pas forcer. Elle boude. »
+Exemple de réplique : (sur une étiquette) « Huiler le mardi. Pas le lundi : elle déteste le lundi. »
 
 ## Ce qu'on sait d'elle à Port-Brume
 - La meilleure réparatrice de la ville, chère et lente. On disait qu'elle « avait la main ».

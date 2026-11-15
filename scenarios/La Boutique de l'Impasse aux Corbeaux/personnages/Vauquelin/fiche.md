@@ -9,6 +9,7 @@ Cinquante-cinq ans, large d'épaules, cheveux argent coupés court, une voix de 
 
 ## Voix
 Chaleureux, paternel, une main sur l'épaule. Il tutoie les petites gens, cite des proverbes du port, offre toujours quelque chose. Quand on lui résiste, il ne hausse jamais le ton : il cite un chiffre ou un nom.
+Exemple de réplique : « Allons, petite, au port on dit qu’une barque seule ne fait pas la marée. Prends ce panier, ma femme en a fait trop. »
 
 ## Ce que tout le monde sait
 Il a pris la tête de la Guilde il y a trente ans, après la mort subite de l'ancien maître, Anselme Valcourt. Il a enrichi les quais, financé l'hospice et rebâti le temple après l'incendie.

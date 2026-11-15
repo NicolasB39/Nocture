@@ -9,6 +9,7 @@ Cinquante-cinq ans, rond et rose, une moustache cirée, un chapeau de feutre et 
 
 ## Voix
 Pressée, inquiète, des chiffres partout. Il parle du Grand Vieux-Gué comme d'un enfant fragile. Il négocie tout, même les remerciements.
+Exemple de réplique : « Pas sur le chariot de gauche ! Il penche de deux doigts, le Grand Vieux-Gué le sent, je vous assure qu’il le sent. »
 
 ## Ce qu'il sait
 - Le contrat paie 60 pièces d'or à l'arrivée, moins 5 par jour de retard et 20 si la meule est abîmée. Il l'a écrit lui-même et en est très fier.
