@@ -16,10 +16,11 @@ Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark,
 
 Une seule planche par personnage : ses expressions côte à côte, dans l'ordre du tableau ci-dessous, en une génération (même visage, même tenue). Format paysage 3:2 (1536 × 1024), fond vert d'incrustation uni. Puis :
 
-1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
-2. la découper avec le script du skill, qui retire aussi le fond, les noms dans l'ordre de gauche à droite :
+1. vérifier la planche : chaque personnage en buste, coupé à la taille par le bas de l'image, une marge de fond à gauche et à droite (rien de coupé par les bords), les têtes séparées par du fond, des expressions bien distinctes ; sinon, régénérer ;
+2. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+3. la découper avec le script du skill, qui retire aussi le fond, les noms dans l'ordre de gauche à droite :
    `node skills/scenario-histoires/scripts/decouper.mjs planche-corvin.png "scenarios/La Boutique de l'Impasse aux Corbeaux/personnages/Corvin" corvin_neutre corvin_sourire corvin_ferme`
-3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
+4. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
 Gabarit, `[DESCRIPTION]` pris dans la liste ci-dessous :
 

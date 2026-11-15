@@ -14,13 +14,14 @@ warm cozy palette, honey, brick red, worn leather browns, candlelight accents, c
 
 Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border`
 
-## Personnages (planches sur fond uni, puis découpe)
+## Personnages (planches en buste sur fond uni, puis découpe)
 
 Une planche par série d'expressions, en une génération (même visage, même tenue). Trois expressions par planche au plus en 3:2 (1536 × 1024), quatre en 2:1 (2048 × 1024) ; au-delà, deux planches avec la première en image de référence. Puis :
 
-1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
-2. la découper avec le script du skill, les noms dans l'ordre de gauche à droite (les noms existants, pour garder les codes) ;
-3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
+1. vérifier la planche : chaque personnage en buste, coupé à la taille par le bas de l'image, une marge de fond à gauche et à droite (rien de coupé par les bords), les têtes séparées par du fond, des expressions bien distinctes ; sinon, régénérer ;
+2. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+3. la découper avec le script du skill, les noms dans l'ordre de gauche à droite (les noms existants, pour garder les codes) ;
+4. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
 Gabarit :
 

@@ -16,10 +16,11 @@ Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark,
 
 Les trois expressions d'un personnage se génèrent en une seule image, côte à côte : même visage, même tenue, même lumière. Format paysage 3:2 (1536 × 1024), fond vert d'incrustation uni (#00FF00). Puis :
 
-1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
-2. la découper avec le script du skill, qui retire aussi le fond vert, les noms dans l'ordre de gauche à droite :
+1. vérifier la planche : chaque personnage en buste, coupé à la taille par le bas de l'image, une marge de fond à gauche et à droite (rien de coupé par les bords), les têtes séparées par du fond, des expressions bien distinctes ; sinon, régénérer ;
+2. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+3. la découper avec le script du skill, qui retire aussi le fond vert, les noms dans l'ordre de gauche à droite :
    `node skills/scenario-histoires/scripts/decouper.mjs planche-ines.png "scenarios/Le Dernier Rang/personnages/Ines" Ines_neutre Ines_sourire Ines_ferme`
-3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
+4. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
 Gabarit, à la suite du bloc de style :
 
