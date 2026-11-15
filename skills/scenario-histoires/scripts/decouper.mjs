@@ -107,8 +107,8 @@ const writePng = (w, h, px, rgba = true) => {
 
 // --- Détourage d'un fond uni ---
 // 1. Fond : médiane des pixels du bord ; remplissage depuis les bords sur les pixels proches de cette couleur.
-// 2. Trous : zones de fond enfermées (entre un bras et le corps, entre deux mèches), reconnues à leur uniformité ;
-//    un objet clair (trousse, col) a de la texture et reste.
+// 2. Trous : zones de fond enfermées (entre un bras et le corps, entre deux mèches), reconnues à leur couleur,
+//    celle du fond à quelques niveaux près et sans teinte ; un col de chemise ou une trousse claire restent.
 // 3. Bord : chaque pixel à 2 pixels au plus du fond est un mélange du fond et du personnage ; sa transparence est
 //    sa part de personnage, mesurée par rapport au pixel voisin le plus éloigné du gris (une mèche noire), et il
 //    prend la couleur de ce pixel. Un pixel qui n'est pas un tel mélange (bord de peau claire) reste opaque.
@@ -139,7 +139,11 @@ const detour = (w, h, px, t1 = 16) => {
       q = [s];
     seen[s] = 1;
     while (q.length) for (const j of nb(q.pop())) if (!seen[j] && !out[j] && diff(j) <= t1) (seen[j] = 1), q.push(j), comp.push(j);
-    if (comp.length >= 12 && comp.reduce((m, i) => m + diff(i), 0) / comp.length <= 11) for (const i of comp) out[i] = 1;
+    // Un vrai trou a la couleur du fond : écart moyen faible sur chaque canal, et pas de teinte propre (un col de
+    // chemise blanc cassé, même proche du gris, tire vers le chaud ou le froid).
+    const m = [0, 1, 2].map(k => comp.reduce((a, i) => a + orig[i * 4 + k], 0) / comp.length - bg[k]);
+    const tint = Math.max(Math.abs(m[0] - m[1]), Math.abs(m[1] - m[2]), Math.abs(m[0] - m[2]));
+    if (comp.length >= 12 && Math.max(...m.map(Math.abs)) <= 5.5 && tint <= 4) for (const i of comp) out[i] = 1;
   }
   const dist = new Uint8Array(N).fill(255);
   let front = [];
@@ -180,6 +184,18 @@ const detour = (w, h, px, t1 = 16) => {
     if (res > 18) a = 1;
     if (a < 1) for (let k = 0; k < 3; k++) px[i * 4 + k] = orig[F * 4 + k];
     px[i * 4 + 3] = a < 0.05 ? 0 : Math.round(a * 255);
+  }
+  // Poussières : îlots visibles de moins de 10 pixels, séparés du personnage (restes de compression du fond).
+  const lab = new Uint8Array(N);
+  for (let s = 0; s < N; s++) {
+    if (lab[s] || !px[s * 4 + 3]) continue;
+    const comp = [s],
+      q = [s];
+    lab[s] = 1;
+    while (q.length && comp.length < 10)
+      for (const j of nb(q.pop())) if (!lab[j] && px[j * 4 + 3]) (lab[j] = 1), q.push(j), comp.push(j);
+    if (comp.length < 10) for (const i of comp) px[i * 4 + 3] = 0;
+    else while (q.length) for (const j of nb(q.pop())) if (!lab[j] && px[j * 4 + 3]) (lab[j] = 1), q.push(j);
   }
   return n / N;
 };

@@ -42,7 +42,7 @@ wide horizontal format 3:2.
 
 Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, captions, labels, grid lines, panels`
 
-Inès a ses trois expressions (planche du 15 novembre 2026). Dussault a seulement son image `neutre` : générez sa planche avec cette image en référence, ou refaites les trois pour qu'elles concordent. Kaël n'a encore aucune image.
+Inès, Dussault et Kaël ont leurs trois expressions (planches du 15 novembre 2026).
 
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 
