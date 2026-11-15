@@ -92,7 +92,7 @@ Au-delà de quatre, les silhouettes deviennent trop petites : faites deux planch
 
 Puis, dans l'ordre :
 
-1. **Vérifier la planche** : même visage et même tenue partout, chaque buste coupé par le bas de l’image, expressions bien distinctes, silhouettes séparées par un vrai vide. Sinon, régénérer.
+1. **Vérifier la planche** : même visage et même tenue partout, chaque buste coupé par le bas de l’image, expressions bien distinctes, têtes séparées par du fond. Des bustes qui se touchent par les épaules passent : le script les sépare là où le fond descend le plus bas ; des visages ou des bras qui se chevauchent, non. Sinon, régénérer.
 2. **Garder le PNG d'origine**, téléchargé depuis le générateur, plutôt qu'une capture ou une image recollée dans une conversation : chaque recompression laisse un halo autour des silhouettes. Le script ne lit que le PNG ; exportez en PNG un WebP ou un JPG. Inutile de détourer : le script s'en charge.
 3. **Découper et détourer** :
 

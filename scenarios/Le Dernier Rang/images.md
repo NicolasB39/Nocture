@@ -44,7 +44,7 @@ wide horizontal format 3:2.
 
 Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
-Inès a ses trois expressions en buste (planche du 15 novembre 2026). Dussault et Kaël sont encore en pied : planches à refaire en buste.
+Inès et Dussault ont leurs trois expressions en buste (planches du 15 novembre 2026). Kaël est encore en pied : planche à refaire en buste.
 
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 

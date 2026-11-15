@@ -297,11 +297,12 @@ if (!alpha && keep < 0) {
 }
 const fig = i =>
   alpha ? px[i * 4 + 3] > 24 : Math.max(...[0, 1, 2].map(k => Math.abs(px[i * 4 + k] - bg[k]))) > 32;
-const col = Array.from({ length: w }, (_, x) => {
+const occ = Array.from({ length: w }, (_, x) => {
   let n = 0;
   for (let y = 0; y < h; y++) n += fig(y * w + x);
-  return n > h * 0.004;
+  return n;
 });
+const col = occ.map(n => n > h * 0.004);
 // Bandes verticales occupées ; un petit vide (bras écarté) ne coupe pas une silhouette, une bande trop
 // étroite (poussière, liseré) est ignorée.
 let runs = [];
@@ -314,10 +315,19 @@ for (let x = 0; x < w; x++) {
 runs = runs.filter(([a, b]) => b - a >= w * 0.02);
 if (runs.length !== names.length) {
   console.warn(
-    `${runs.length} silhouette(s) trouvée(s) pour ${names.length} nom(s) : découpe en ${names.length} parts égales. ` +
-      'Vérifiez le résultat, ou régénérez la planche avec plus d’espace entre les silhouettes.'
+    `${runs.length} silhouette(s) trouvée(s) pour ${names.length} nom(s) : silhouettes jointives (des bustes qui se ` +
+      'touchent par les épaules), coupées à la colonne la moins occupée près de chaque frontière. Vérifiez le résultat.'
   );
-  runs = names.map((_, i) => [Math.round((i * w) / names.length), Math.round(((i + 1) * w) / names.length) - 1]);
+  // Près de chaque frontière égale (à 6 % de la largeur), la colonne où il y a le moins de personnage : là où
+  // le fond descend le plus bas entre deux épaules.
+  const seam = names.slice(1).map((_, i) => {
+    const c = Math.round(((i + 1) * w) / names.length),
+      r = Math.round(w * 0.06);
+    let b = c;
+    for (let x = c - r; x <= c + r; x++) if (occ[x] < occ[b]) b = x;
+    return b;
+  });
+  runs = names.map((_, i) => [i ? seam[i - 1] : 0, i < seam.length ? seam[i] - 1 : w - 1]);
 }
 // Limites de chaque case : le milieu des vides entre silhouettes.
 const cuts = runs.map(([a, b], i) => [
