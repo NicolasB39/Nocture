@@ -80,7 +80,7 @@ Un champ « Moment » dans `etat.md` (ou « Heure », « Période ») teinte les
 
 Chaque message garde le décor de son moment : celui de son propre bloc d'état, sinon le dernier lieu connu avant lui. Relire une ancienne scène montre donc l'ancien décor. Pendant l'écriture, la scène prend le lieu précédent, puis bascule si la réponse annonce un nouveau lieu.
 
-Dans la conversation, le personnage, en buste, est placé sur la ligne des 2/3 à droite, la taille au bas de la scène et la tête près du haut : l'application mesure la silhouette elle-même, donc une image centrée ou avec plus de marge d'un côté donne le même résultat, et un personnage large est décalé juste assez pour rester entier. Dans la fenêtre Personnages, la pastille et la galerie montrent le personnage centré sur le décor du lieu actuel. Toucher une scène l'agrandit en plein écran. Chaque scène a des proportions fixes (16/9, un plan large qui prend peu de place dans le fil), ce qui évite aussi les sauts de mise en page au chargement des images.
+Dans la conversation, le personnage, en buste, est centré aux trois quarts de la largeur, à droite, la taille au bas de la scène et la tête près du haut : l'application mesure la silhouette elle-même, donc une image centrée ou avec plus de marge d'un côté donne le même résultat, et un personnage large est décalé juste assez pour rester entier. Dans la fenêtre Personnages, la pastille et la galerie montrent le personnage centré sur le décor du lieu actuel. Toucher une scène l'agrandit en plein écran. Chaque scène a des proportions fixes (16/9, un plan large qui prend peu de place dans le fil), ce qui évite aussi les sauts de mise en page au chargement des images.
 
 ### Lorebook
 

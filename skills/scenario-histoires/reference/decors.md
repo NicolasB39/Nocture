@@ -59,4 +59,4 @@ Un par lieu où l'histoire revient souvent, plus `defaut`. Les lieux de passage 
 
 ## Un plan large, pas un tableau
 
-Le décor s'affiche en 16/9, un plan large qui prend peu de place entre deux paragraphes. Composez-le comme un plan de cinéma : le sol descend jusqu'au bord bas, l'horizon est vers le milieu, le tiers droit est calme. Le personnage, qui fait presque toute la hauteur, s'y tient sur la ligne des 2/3 à droite.
+Le décor s'affiche en 16/9, un plan large qui prend peu de place entre deux paragraphes. Composez-le comme un plan de cinéma : le sol descend jusqu'au bord bas, l'horizon est vers le milieu, le tiers droit est calme. Le personnage, en buste sur presque toute la hauteur, s'y tient à droite, centré aux trois quarts de la largeur.

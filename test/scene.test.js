@@ -49,11 +49,11 @@ test('sans panneau d’état, le décor vient du texte des messages', () => {
   assert.equal(decorNow(ms), 'd/taverne.webp');
 });
 
-test('place : buste centré aux 2/3, taille au bas de la scène, tête près du haut', () => {
+test('place : buste centré aux trois quarts, taille au bas de la scène, tête près du haut', () => {
   const a = { r: 0.5, b: [0.4, 0.6, 0.1, 1] },
     p = place(a),
     cx = p.left + ((0.4 + 0.6) / 2) * p.width;
-  assert.ok(Math.abs(cx - 200 / 3) < 1e-9);
+  assert.ok(Math.abs(cx - 75) < 1e-9);
   assert.ok(Math.abs(p.bottom) < 1e-9);
   const hp = 0.94 / 0.9;
   assert.ok(Math.abs(1 - (1 - 0.1) * hp - 0.06) < 1e-9, 'haut de la tête à 6 %');

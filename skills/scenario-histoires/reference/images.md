@@ -22,7 +22,7 @@ Gardez le bloc de style et les prompts du scénario dans un fichier `images.md` 
 
 ## Personnages : détourés, en buste
 
-L'application pose chaque personnage sur le décor du lieu courant. Dans la conversation, elle le place elle-même sur la ligne des 2/3 à droite, la taille au bas de la scène, le buste sur presque toute sa hauteur ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette sur l'image : l'image doit donc contenir **le personnage seul, centré, sur fond transparent**, et rien d'autre.
+L'application pose chaque personnage sur le décor du lieu courant. Dans la conversation, elle le place elle-même à droite, centré aux trois quarts de la largeur, la taille au bas de la scène, le buste sur presque toute sa hauteur ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette sur l'image : l'image doit donc contenir **le personnage seul, centré, sur fond transparent**, et rien d'autre.
 
 ### Gabarit
 
@@ -67,10 +67,11 @@ arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: [EXPRESSION 1], [EXPRESSION 2], [EXPRESSION 3].
 [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
-facing the viewer at a slight three-quarter angle, large detailed face,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
-every figure the same size, evenly spaced with a wide empty gap between figures,
-a green margin on the left and right edges of the image, no figure cut by the side edges,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -80,7 +81,7 @@ wide horizontal format [FORMAT].
 Négatif, en plus du négatif commun :
 
 ```
-different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, full body, legs, cropped head, captions, labels, grid lines, panels
+different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels
 ```
 
 Format selon le nombre d'expressions, pour que chaque silhouette garde assez de hauteur :
@@ -197,10 +198,11 @@ A 60-year-old Breton herbalist woman, short and sturdy,
 grey hair tied back, sap-stained hands, thick wool cardigan over a dark work dress,
 canvas apron with pockets, rubber boots,
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
-facing the viewer at a slight three-quarter angle, large detailed face,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
-every figure the same size, evenly spaced with a wide empty gap between figures,
-a green margin on the left and right edges of the image, no figure cut by the side edges,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,

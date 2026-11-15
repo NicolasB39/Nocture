@@ -32,10 +32,11 @@ arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: calm neutral expression, [SOURIRE], closed guarded expression with jaw set and eyes narrowed.
 [DESCRIPTION],
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
-facing the viewer at a slight three-quarter angle, large detailed face,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
-every figure the same size, evenly spaced with a wide empty gap between figures,
-a green margin on the left and right edges of the image, no figure cut by the side edges,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -46,7 +47,7 @@ wide horizontal format 3:2.
 - `Dussault` : `a 50-year-old tall lean French man, short grey hair, sharp features, immaculate grey three-piece suit, thin white scar across the back of his right hand, small paper notebook in breast pocket, polished black shoes` · `[SOURIRE]` : `polite faint smile that does not reach the eyes`
 - `Kael` : `a 30-year-old athletic French man, blond hair slicked back, sleek matte black armor with silver trim and a small lily emblem on the chest, curved sword sheathed on his back, black boots` · `[SOURIRE]` : `confident smirk, one corner of the mouth raised`
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, captions, labels, grid lines, panels`
 
 Inès, Dussault et Kaël ont leurs trois expressions en buste (planches du 15 novembre 2026).
 

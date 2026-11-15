@@ -600,7 +600,7 @@ try {
     assert.ok(GH.has(k));
   });
 
-  await step('décors : scène aux 2/3, décor du moment, repli et fenêtre Personnages', async () => {
+  await step('décors : scène aux trois quarts, décor du moment, repli et fenêtre Personnages', async () => {
     const c3 = await browser.newContext({ viewport: { width: 390, height: 800 }, serviceWorkers: 'block' }),
       p3 = await c3.newPage();
     watch(p3);
@@ -717,7 +717,7 @@ try {
     // Cadrage en buste : silhouette à 94 % de la hauteur, bas de la silhouette au bas de la scène.
     assert.ok(Math.abs(g.hfrac - 0.94) < 0.03, 'hauteur du personnage : ' + g.hfrac);
     assert.ok(Math.abs(g.feet) < 2, 'bas de la silhouette à ' + g.feet + ' px du bas');
-    assert.ok(Math.abs(g.cx - 2 / 3) < 0.02, 'centre à ' + g.cx);
+    assert.ok(Math.abs(g.cx - 0.75) < 0.02, 'centre à ' + g.cx);
 
     await say('Qui est là ?', 'Bob arrive.\n\n{{img::bob_bob}}');
     g = await last('flat');
