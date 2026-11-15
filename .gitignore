@@ -3,3 +3,5 @@ node_modules/
 package-lock.json
 # Capture laissée par un échec du test de bout en bout.
 e2e-echec.png
+# Archive du skill à téléverser sur claude.ai (npm run skill), refaite depuis skills/.
+scenario-histoires.zip

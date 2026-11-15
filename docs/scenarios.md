@@ -171,3 +171,12 @@ Conséquences :
 Le **préambule commun** (Réglages) est votre texte à vous (la case « Ignorer le préambule commun » des réglages de l'histoire n'apparaît que s'il en existe un), ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
 
 Ce qui reste au scénario : tout ce qui touche à la voix. Ce qui passe à l'application : tout ce qui touche à la forme des blocs.
+
+## Skill de création de scénarios
+
+`skills/scenario-histoires/` est le skill Claude qui aide à écrire un scénario : arborescence, prompt système et section Rythme, fiches avec réplique d'exemple, modes, prompts d'images (une planche d'expressions par personnage), et deux scripts sans dépendance :
+
+- `node skills/scenario-histoires/scripts/verifier.mjs "scenarios/<Nom>"` relit un scénario et signale ce qui cloche ;
+- `node skills/scenario-histoires/scripts/decouper.mjs planche.png "scenarios/<Nom>/personnages/<Perso>" neutre sourire ferme` découpe une planche d'expressions détourée en une image par expression.
+
+Pour l'installer ou le mettre à jour sur claude.ai : `npm run skill` crée `scenario-histoires.zip` (ignoré par git), à téléverser dans les réglages des skills à la place de l'ancien. Après une modification de l'application qui touche aux scénarios, mettre aussi le skill à jour.

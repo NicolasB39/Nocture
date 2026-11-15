@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "test:e2e": "node test/e2e.mjs",
-    "build": "node tools/build.mjs"
+    "build": "node tools/build.mjs",
+    "skill": "tar -a -c -f scenario-histoires.zip -C skills scenario-histoires"
   },
   "devDependencies": {
     "playwright": "1.49.1"
