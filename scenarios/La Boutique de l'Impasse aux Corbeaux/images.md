@@ -12,14 +12,14 @@ warm muted medieval palette, ochre, rust and weathered wood, indigo dye accents,
 
 Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border`
 
-## Personnages (fond gris uni, puis détourage ; PNG ou WebP transparent, vertical 2:3)
+## Personnages (fond vert uni, puis détourage ; PNG ou WebP transparent, vertical 2:3)
 
 Partie commune, à la suite de chaque description :
 
 ```
 standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
 entire figure visible from head to feet, centered in the frame with a small margin on every side,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
 
@@ -45,7 +45,7 @@ Codes obtenus : `corvin_neutre`, `aelis_sourire`, `gaudry_ferme`, etc.
 [STYLE]. Full-body portrait of a thin grey cat with rough fur, a notched left ear and amber eyes,
 sitting upright, facing the viewer at a slight three-quarter angle, [EXPRESSION],
 entire animal visible from ears to tail, centered in the frame with a small margin on every side,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
 

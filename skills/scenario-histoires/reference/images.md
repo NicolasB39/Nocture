@@ -31,7 +31,7 @@ L'application pose chaque personnage sur le décor du lieu courant. Dans la conv
 Full-body portrait of [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
 standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
 entire figure visible from head to feet, centered in the frame with a small margin on every side,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
 
@@ -44,7 +44,7 @@ background scenery, ground, cast shadow, cropped head, cropped feet, multiple ch
 Les points qui comptent :
 
 - **En pied, de la tête aux pieds.** L'application aligne le bas de la silhouette sur le bas de la scène : des pieds coupés donnent un personnage qui flotte coupé à mi-jambe.
-- **Fond uni, puis détourage.** La plupart des générateurs ne savent pas produire de transparence : demandez un fond gris clair uni. Pour une planche, `scripts/decouper.mjs` le retire lui-même ; pour une image isolée, retirez-le avec un outil de détourage (remove.bg, `rembg`, l'éditeur). Si votre générateur propose une sortie transparente, utilisez-la directement. Pour un personnage vêtu de blanc ou de gris clair (chemise, armure argentée, cheveux blancs), demandez plutôt un fond uni d’une couleur qu’il ne porte pas (« plain flat uniform pale green background ») : le script détoure n’importe quel fond uni, et un vêtement trop proche du fond risquerait d’être percé.
+- **Fond uni, puis détourage.** La plupart des générateurs ne savent pas produire de transparence : demandez un fond **vert d'incrustation** uni (#00FF00), comme au cinéma. Aucun personnage n'a cette couleur : rien ne se confond avec le fond, ni une chemise blanche, ni des cheveux gris, ni une armure argentée, ce qui arrivait avec un fond gris. Pour une planche, `scripts/decouper.mjs` retire le vert lui-même, reflet vert des bords compris ; pour une image isolée, retirez-le avec un outil de détourage (remove.bg, `rembg`, l'éditeur). Si le personnage porte du vert vif (un esprit de la forêt, une robe émeraude), demandez un fond magenta (`#FF00FF`) : le script détoure n'importe quel fond uni vif. Si votre générateur propose une sortie transparente, utilisez-la directement.
 - **Pas d'ombre portée au sol** : détourée, elle devient une tache flottante sur le décor.
 - **Lumière venant de la gauche**, comme dans le gabarit des décors : un personnage éclairé de l'autre côté que son décor se voit tout de suite.
 - **Format vertical 2:3**, par exemple 1024 × 1536. L'application s'adapte à d'autres proportions puisqu'elle mesure la silhouette, mais un même format pour tout le scénario garde les personnages à la même échelle.
@@ -66,7 +66,7 @@ from left to right: [EXPRESSION 1], [EXPRESSION 2], [EXPRESSION 3].
 standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
 every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format [FORMAT].
 ```
@@ -74,7 +74,7 @@ wide horizontal format [FORMAT].
 Négatif, en plus du négatif commun :
 
 ```
-different outfits, different characters, overlapping figures, cropped feet, cropped head, captions, labels, grid lines, panels
+different outfits, different characters, overlapping figures, green rim light, green reflections on the character, cropped feet, cropped head, captions, labels, grid lines, panels
 ```
 
 Format selon le nombre d'expressions, pour que chaque silhouette garde assez de hauteur :
@@ -90,14 +90,14 @@ Au-delà de quatre, les silhouettes deviennent trop petites : faites deux planch
 Puis, dans l'ordre :
 
 1. **Vérifier la planche** : même visage et même tenue partout, pieds visibles, silhouettes séparées par un vrai vide. Sinon, régénérer.
-2. **L'exporter en PNG** si le générateur a donné un WebP ou un JPG (le script ne lit que le PNG). Inutile de la détourer : le script s'en charge.
+2. **Garder le PNG d'origine**, téléchargé depuis le générateur, plutôt qu'une capture ou une image recollée dans une conversation : chaque recompression laisse un halo autour des silhouettes. Le script ne lit que le PNG ; exportez en PNG un WebP ou un JPG. Inutile de détourer : le script s'en charge.
 3. **Découper et détourer** :
 
    ```
    node scripts/decouper.mjs planche-maren.png "scenarios/<Nom>/personnages/Maren" neutre sourire ferme
    ```
 
-   Les noms suivent l'ordre des silhouettes, de gauche à droite. Le script écrit une image par nom, PNG vertical 2:3, personnage centré avec une petite marge, et rend le fond transparent. Le détourage part des bords sur le gris uni, retire aussi le gris enfermé (entre un bras et le corps, entre deux mèches) adoucit le contour et rogne le halo clair que la compression laisse autour des silhouettes, pour éviter les points blancs sur un décor sombre ; un objet clair texturé (une trousse, un col) reste. Une planche déjà détourée garde sa transparence ; `--garder-fond` découpe sans détourer. S'il ne trouve pas autant de silhouettes que de noms (deux personnages qui se touchent), il coupe en parts égales et le signale : vérifiez, ou régénérez avec plus d'espace. S'il retire peu de fond, le fond n'était sans doute pas uni : il le signale.
+   Les noms suivent l'ordre des silhouettes, de gauche à droite. Le script écrit une image par nom, PNG vertical 2:3, personnage centré avec une petite marge, et rend le fond transparent. Le détourage part des bords sur la couleur du fond, retire aussi le fond enfermé (entre un bras et le corps, entre deux mèches) et adoucit le contour. Sur un fond vert, il retire en plus le reflet vert des bords ; sur un fond gris (anciennes planches), il rogne le halo clair que la compression laisse autour des silhouettes, sans toucher une chemise ou une trousse claires. Une planche déjà détourée garde sa transparence ; `--garder-fond` découpe sans détourer. S'il ne trouve pas autant de silhouettes que de noms (deux personnages qui se touchent), il coupe en parts égales et le signale : vérifiez, ou régénérez avec plus d'espace. S'il retire peu de fond, le fond n'était sans doute pas uni : il le signale.
 4. **Vérifier chaque image** sur fond sombre (liseré clair autour des cheveux), puis convertir en WebP si possible : un PNG détouré pèse souvent plus d'un mégaoctet.
 5. **Ranger la planche hors du dossier du personnage** : toute image de `personnages/<Nom>/` devient une expression. Gardez-la hors du scénario, ou dans `planches/` à la racine du scénario, que l'application ignore.
 
@@ -191,7 +191,7 @@ canvas apron with pockets, rubber boots,
 standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
 every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
 ```

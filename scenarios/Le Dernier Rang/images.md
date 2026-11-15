@@ -14,10 +14,10 @@ Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark,
 
 ## Personnages (une planche par personnage, puis découpe)
 
-Les trois expressions d'un personnage se génèrent en une seule image, côte à côte : même visage, même tenue, même lumière. Format paysage 3:2 (1536 × 1024), fond gris uni. Puis :
+Les trois expressions d'un personnage se génèrent en une seule image, côte à côte : même visage, même tenue, même lumière. Format paysage 3:2 (1536 × 1024), fond vert d'incrustation uni (#00FF00). Puis :
 
-1. l'exporter en PNG (inutile de la détourer) ;
-2. la découper avec le script du skill, qui retire aussi le fond gris, les noms dans l'ordre de gauche à droite :
+1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+2. la découper avec le script du skill, qui retire aussi le fond vert, les noms dans l'ordre de gauche à droite :
    `node skills/scenario-histoires/scripts/decouper.mjs planche-ines.png "scenarios/Le Dernier Rang/personnages/Ines" Ines_neutre Ines_sourire Ines_ferme`
 3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
@@ -31,7 +31,7 @@ from left to right: calm neutral expression, [SOURIRE], closed guarded expressio
 standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
 every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
 ```
@@ -40,7 +40,7 @@ wide horizontal format 3:2.
 - `Dussault` : `a 50-year-old tall lean French man, short grey hair, sharp features, immaculate grey three-piece suit, thin white scar across the back of his right hand, small paper notebook in breast pocket, polished black shoes` · `[SOURIRE]` : `polite faint smile that does not reach the eyes`
 - `Kael` : `a 30-year-old athletic French man, blond hair slicked back, sleek matte black armor with silver trim and a small lily emblem on the chest, curved sword sheathed on his back, black boots` · `[SOURIRE]` : `confident smirk, one corner of the mouth raised`
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
 Inès, Dussault et Kaël ont leurs trois expressions (planches du 15 novembre 2026).
 

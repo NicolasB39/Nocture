@@ -86,7 +86,7 @@ Vous n'écrivez ces codes nulle part : l'application injecte la liste de ceux do
 
 Trois expressions suffisent pour commencer : une neutre, une positive, une fermée. Nommez-les de façon prévisible et homogène d'un personnage à l'autre (`neutre`, `sourire`, `ferme`…), et gardez **la même pose et le même cadrage** d'une expression à l'autre : seul le visage doit changer quand l'IA passe de l'une à l'autre.
 
-**Une seule planche par personnage.** Générez toutes les expressions d'un personnage en une image : le même personnage répété côte à côte, une expression par silhouette. Une seule génération garde le visage, la tenue et la lumière identiques, ce que des générations séparées ne garantissent pas. Générez-la sur fond gris uni, puis découpez-la :
+**Une seule planche par personnage.** Générez toutes les expressions d'un personnage en une image : le même personnage répété côte à côte, une expression par silhouette. Une seule génération garde le visage, la tenue et la lumière identiques, ce que des générations séparées ne garantissent pas. Générez-la sur fond vert d'incrustation uni (#00FF00), gardez le PNG d'origine, puis découpez-la :
 
 ```
 node scripts/decouper.mjs planche-maren.png "scenarios/Le Phare d'Arvor/personnages/Maren" neutre sourire ferme

@@ -12,7 +12,7 @@ muted cold palette, slate blue and grey, warm lamplight accents
 
 Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border`
 
-## Personnages (fond gris uni, puis détourage ; PNG ou WebP transparent, vertical 2:3)
+## Personnages (fond vert uni, puis détourage ; PNG ou WebP transparent, vertical 2:3)
 
 Maren — une herboriste bretonne de soixante ans :
 
@@ -22,7 +22,7 @@ grey hair tied back, sap-stained hands, thick wool cardigan over a dark work dre
 canvas apron with pockets, rubber boots,
 standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
 entire figure visible from head to feet, centered in the frame with a small margin on every side,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
 
@@ -34,7 +34,7 @@ weathered face, short grey beard, faded blue fisherman's smock he wears in every
 heavy work boots,
 standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
 entire figure visible from head to feet, centered in the frame with a small margin on every side,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
 

@@ -126,6 +126,10 @@ const detour = (w, h, px, t1 = 16) => {
     const v = border.map(i => orig[i * 4 + k]).sort((a, b) => a - b);
     return v[v.length >> 1];
   });
+  // Fond vif (vert d'incrustation, magenta) : aucun personnage n'en a la couleur, d'où une tolérance large, des trous
+  // retirés sans autre condition et, au lieu des passes propres au gris, le reflet du fond retiré sur les bords.
+  const key = Math.max(...bg) - Math.min(...bg) > 80;
+  if (key) t1 = 60;
   const diff = i => Math.max(...[0, 1, 2].map(k => Math.abs(orig[i * 4 + k] - bg[k])));
   const nb = i => {
     const x = i % w;
@@ -146,7 +150,8 @@ const detour = (w, h, px, t1 = 16) => {
     // chemise blanc cassé, même proche du gris, tire vers le chaud ou le froid).
     const m = [0, 1, 2].map(k => comp.reduce((a, i) => a + orig[i * 4 + k], 0) / comp.length - bg[k]);
     const tint = Math.max(Math.abs(m[0] - m[1]), Math.abs(m[1] - m[2]), Math.abs(m[0] - m[2]));
-    if (comp.length >= 12 && Math.max(...m.map(Math.abs)) <= 5.5 && tint <= 4) for (const i of comp) out[i] = 1;
+    if (key ? comp.length >= 4 : comp.length >= 12 && Math.max(...m.map(Math.abs)) <= 5.5 && tint <= 4)
+      for (const i of comp) out[i] = 1;
   }
   const dist = new Uint8Array(N).fill(255);
   let front = [];
@@ -186,7 +191,7 @@ const detour = (w, h, px, t1 = 16) => {
     // l'autre côté du gris), proche du fond et sans teinte propre, est du fond, pas un détail (des cheveux blonds
     // ont une teinte).
     const tint = Math.max(...[0, 1, 2].map(k => orig[i * 4 + k])) - Math.min(...[0, 1, 2].map(k => orig[i * 4 + k]));
-    if (num <= 0 && diff(i) <= 50 && tint <= 10) {
+    if (!key && num <= 0 && diff(i) <= 50 && tint <= 10) {
       px[i * 4 + 3] = 0;
       continue;
     }
@@ -200,7 +205,23 @@ const detour = (w, h, px, t1 = 16) => {
   // contour blanc sur un décor sombre. Trois passes rognent les pixels de bord gris neutre un peu plus clairs que
   // le fond (au plus 34 niveaux) ; une manchette blanche, plus claire, ou des cheveux blonds, teintés, restent.
   const bgL = (bg[0] + bg[1] + bg[2]) / 3;
-  for (let pass = 0; pass < 3; pass++) {
+  // Fond vif : le reflet du fond sur les bords (un liseré vert) est retiré en ramenant le canal du fond au niveau
+  // des deux autres, sur la bande de bord seulement (une veste olive, plus loin, garde sa couleur).
+  // Ailleurs, un pixel nettement plus vert que ses deux autres canaux est un reste de fond (une poche entre deux
+  // mèches) : très vert, il disparaît ; un peu, il perd son excès. Une veste olive reste sous ces seuils.
+  if (key) {
+    const d = bg.indexOf(Math.max(...bg)),
+      [o1, o2] = [0, 1, 2].filter(k => k !== d),
+      kx = bg[d] - Math.max(bg[o1], bg[o2]);
+    for (let i = 0; i < N; i++) {
+      if (!px[i * 4 + 3]) continue;
+      const v = Math.max(px[i * 4 + o1], px[i * 4 + o2]),
+        e = px[i * 4 + d] - v;
+      if (e > kx * 0.45) px[i * 4 + 3] = 0;
+      else if (dist[i] <= 3 || e > 30) px[i * 4 + d] = Math.min(px[i * 4 + d], v);
+    }
+  }
+  for (let pass = 0; pass < (key ? 0 : 3); pass++) {
     const cut = [];
     for (let i = 0; i < N; i++) {
       if (!px[i * 4 + 3] || !nb(i).some(j => !px[j * 4 + 3])) continue;
@@ -213,7 +234,7 @@ const detour = (w, h, px, t1 = 16) => {
   // Restes de fond entre des mèches fines : pixels de bord gris neutre, de la couleur du fond à quelques dizaines de
   // niveaux près, collés à un pixel nettement plus sombre du personnage. Deux passes, sur l'image telle qu'elle sort.
   const lum = i => (px[i * 4] + px[i * 4 + 1] + px[i * 4 + 2]) / 3;
-  for (let pass = 0; pass < 2; pass++) {
+  for (let pass = 0; pass < (key ? 0 : 2); pass++) {
     const cut = [];
     for (let i = 0; i < N; i++) {
       if (px[i * 4 + 3] < 24 || !nb(i).some(j => px[j * 4 + 3] < 24)) continue;

@@ -14,10 +14,10 @@ Négatif commun : `chibi, flat cel shading, photorealistic, 3d render, text, wat
 
 ## Personnages
 
-Une seule planche par personnage : ses trois expressions côte à côte, en une génération, pour garder le même visage et la même tenue. Format paysage 3:2 (1536 × 1024), fond gris uni. Puis :
+Une seule planche par personnage : ses trois expressions côte à côte, en une génération, pour garder le même visage et la même tenue. Format paysage 3:2 (1536 × 1024), fond vert d'incrustation uni (#00FF00). Puis :
 
-1. l'exporter en PNG (inutile de la détourer) ;
-2. la découper avec le script du skill, qui retire aussi le fond gris, les noms dans l'ordre de gauche à droite :
+1. garder le PNG d'origine téléchargé depuis le générateur (pas une image recollée dans une conversation, recompressée) ;
+2. la découper avec le script du skill, qui retire aussi le fond vert, les noms dans l'ordre de gauche à droite :
    `node skills/scenario-histoires/scripts/decouper.mjs planche-lilia.png "scenarios/Lumencia Academy/personnages/Lilia" lilia_neutre lilia_sourire lilia_ferme`
 3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
@@ -31,12 +31,12 @@ from left to right: [NEUTRE], [SOURIRE], [FERME].
 standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
 every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
-isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
 ```
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
 Les personnages qui ont déjà une image `neutre` peuvent garder la leur : la planche se génère alors avec cette image en référence, et seules `sourire` et `ferme` en sont gardées.
 
