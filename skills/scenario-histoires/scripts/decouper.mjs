@@ -292,7 +292,7 @@ if (!alpha && keep < 0) {
   const part = detour(w, h, px);
   alpha = true;
   console.log(`Fond retiré : ${Math.round(part * 100)} % de la planche.`);
-  if (part < 0.3)
+  if (part < 0.2)
     console.warn('Peu de fond retiré : le fond n’est sans doute pas uni. Vérifiez les images, ou relancez avec --garder-fond.');
 }
 const fig = i =>
