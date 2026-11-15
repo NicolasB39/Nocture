@@ -12,6 +12,7 @@ Magie, 1re année. 4e cercle.
 
 ## Voix
 Silencieuse, laconique. Ses phrases font trois mots, et ce sont les bons.
+Exemple de réplique : « Pas ce sort. L’autre. »
 
 ## Ce qu'elle veut
 Exister autrement que comme « la sœur de Lucia ». Elle travaille seule, la nuit, des formules que personne ne lui a demandées.

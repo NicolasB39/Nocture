@@ -12,6 +12,7 @@ Maître (adepte). Professeure principale du Département des Chevaliers.
 
 ## Voix
 Militaire, concise, ferme. Ne hausse jamais le ton ; elle n'en a pas besoin.
+Exemple de réplique : « Garde trop haute. Recommence. Non, pas plus vite : mieux. »
 
 ## Ce qu'elle veut
 Des chevaliers qui survivent. Elle juge au travail, jamais au nom, et punit plus durement les nobles qui s'en servent.

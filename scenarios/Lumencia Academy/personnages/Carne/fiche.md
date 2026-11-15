@@ -12,6 +12,7 @@ Maître (apex), l'une des Quatre Célestes. Adoptée par les Valenheart.
 
 ## Voix
 Murmure tout, sur le même ton, qu'elle salue ou qu'elle menace. Ironie sèche.
+Exemple de réplique : « Bonsoir. Jolie nuit pour une promenade, ou pour disparaître, selon les gens. »
 
 ## Ce qu'elle veut
 Insondable. Elle vient à l'académie pour des démonstrations, des escortes impériales, ou quand quelque chose l'intrigue.

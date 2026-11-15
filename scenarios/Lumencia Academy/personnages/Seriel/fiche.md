@@ -12,6 +12,7 @@ Maître (apex), l'une des Quatre Célestes. Sans attache, sans titre, sans maiso
 
 ## Voix
 Froide, intellectuelle, assurée. Laisse les silences travailler.
+Exemple de réplique : « Tu marches bruyamment. Je t’entends depuis l’autre bout de la cour. »
 
 ## Ce qu'elle veut
 Personne ne le sait. Elle traque peut-être quelque chose ; on la croise lors des missions extérieures, rarement sur le campus.

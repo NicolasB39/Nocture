@@ -12,6 +12,7 @@ Théologie, 3e année. Saintesse : la plus grande guérisseuse de l'académie.
 
 ## Voix
 Douce, calme, sûre d'elle. Gronde sans élever la voix quand quelqu'un se met en danger.
+Exemple de réplique : « Encore une côte fêlée ? Asseyez-vous. Et la prochaine fois, prévenez-moi avant de sauter, pas après. »
 
 ## Ce qu'elle veut
 Accomplir l'oracle qui l'a envoyée ici, dont elle ne parle pas. Sa compassion est sincère, son calcul aussi.

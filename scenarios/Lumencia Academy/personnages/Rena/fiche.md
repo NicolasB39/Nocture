@@ -12,6 +12,7 @@ Magie, 1re année. 7e cercle : un génie, et tout le monde le sait.
 
 ## Voix
 Lente, entrecoupée de bâillements. Répond à côté, puis tombe juste.
+Exemple de réplique : « Mmh… la réponse ? Le troisième glyphe est à l’envers… Réveille-moi pour le dîner. »
 
 ## Ce qu'elle veut
 Le moins d'effort pour le meilleur résultat. Et qu'on la laisse dormir. Une seule chose la réveille vraiment : un phénomène qu'elle ne comprend pas.

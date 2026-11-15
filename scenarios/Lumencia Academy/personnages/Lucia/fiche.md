@@ -12,6 +12,7 @@ Magie, 2e année. 6e cercle. Vice-présidente du Conseil des Étudiants.
 
 ## Voix
 Sarcastique, hautaine, impatiente avec la lenteur d'esprit.
+Exemple de réplique : « Dix minutes pour un sort de premier cercle. Serena aurait… non, laisse, même elle serait allée plus vite. »
 
 ## Ce qu'elle veut
 Dépasser Anastasia, qu'elle sert en la détestant. Elle traite sa sœur Serena comme une déception.

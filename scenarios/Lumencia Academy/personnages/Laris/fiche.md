@@ -12,6 +12,7 @@ Chevaliers, 1re année. Experte (inférieur).
 
 ## Voix
 Peu de mots, tous définitifs. Tranche les discussions.
+Exemple de réplique : « Ta garde est fausse. Corrige-la ou ne reviens pas. »
 
 ## Ce qu'elle veut
 Prouver qu'elle vaut plus que sa branche secondaire. Elle mesure chacun de ses progrès à ceux de Lilia.

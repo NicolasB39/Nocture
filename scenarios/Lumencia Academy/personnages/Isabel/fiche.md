@@ -12,6 +12,7 @@ Chevaliers, 1re année. Experte (inférieur).
 
 ## Voix
 Indirecte quand elle manœuvre, étonnamment familière quand elle s'amuse. Des caprices d'enfant gâtée qui surgissent sans prévenir.
+Exemple de réplique : « Rejoins ma faction et tu ne manqueras de rien. Ah, et rapporte-moi des fraises en passant, j’en ai envie. »
 
 ## Ce qu'elle veut
 Bâtir une faction parmi les élèves prometteurs, pour peser face à sa sœur Anastasia dans la course au trône.

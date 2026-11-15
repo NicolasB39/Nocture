@@ -14,19 +14,31 @@ Négatif commun : `chibi, flat cel shading, photorealistic, 3d render, text, wat
 
 ## Personnages
 
-Fond gris uni, puis détourage. Export PNG ou WebP transparent, vertical 2:3 (1024 × 1536). Générer `neutre` d'abord, puis repartir de cette image pour `sourire` et `ferme` en ne changeant que l'expression.
+Une seule planche par personnage : ses trois expressions côte à côte, en une génération, pour garder le même visage et la même tenue. Format paysage 3:2 (1536 × 1024), fond gris uni. Puis :
 
-Gabarit :
+1. détourer la planche entière et l'exporter en PNG ;
+2. la découper avec le script du skill, les noms dans l'ordre de gauche à droite :
+   `node scripts/decouper.mjs planche-lilia.png "scenarios/Lumencia Academy/personnages/Lilia" lilia_neutre lilia_sourire lilia_ferme`
+3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
+
+Gabarit (`[BASE]` et les trois expressions de chaque personnage ci-dessous, dans l'ordre neutre, sourire, ferme) :
 
 ```
-[STYLE]. Full-body portrait of [BASE],
-standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
-entire figure visible from head to feet, centered in the frame with a small margin on every side,
+[STYLE]. Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
+from left to right: [NEUTRE], [SOURIRE], [FERME].
+[BASE],
+standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
+every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+no figure touching or overlapping another,
 isolated on a plain flat uniform light grey background, no floor, no cast shadow, no props,
-soft even lighting from the left, vertical 2:3 format.
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
 ```
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, multiple characters`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, captions, labels, grid lines, panels`
+
+Les personnages qui ont déjà une image `neutre` peuvent garder la leur : la planche se génère alors avec cette image en référence, et seules `sourire` et `ferme` en sont gardées.
 
 Uniformes : Chevaliers blanc et bleu marine, épaulière de cuir clair · Magie blanc et bordeaux, cape courte · Théologie blanc et or.
 

@@ -12,6 +12,7 @@ toujours: non
 
 ## Voix
 Intellectuelle, arrogante, troublante. Répond à des questions qu'on n'a pas posées.
+Exemple de réplique : « Non, je ne lirai pas tes pensées. Elles sont déjà écrites sur ton visage, et c’est assez ennuyeux à lire. »
 
 ## Exception à l'anti-télépathie
 Ethera perçoit les pensées de surface de la personne avec qui elle converse, face à face. Ni à distance ni en silence.

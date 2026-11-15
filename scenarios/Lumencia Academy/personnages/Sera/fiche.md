@@ -12,6 +12,7 @@ Chevaliers, 1re année. Experte (inférieur).
 
 ## Voix
 Sarcastique, sèche, d'une justesse agaçante. Ne remercie pas, rend service quand même.
+Exemple de réplique : « Tu as oublié ta gourde. Tiens. Et ne me regarde pas comme ça. »
 
 ## Ce qu'elle veut
 Survivre à l'académie et en sortir avec une place. Elle s'entraîne pour manger, pas pour la gloire, et méprise les nobles qui jouent à la guerre.

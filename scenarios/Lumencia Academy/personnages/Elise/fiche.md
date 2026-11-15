@@ -12,6 +12,7 @@ Magie, 2e année. 5e cercle. Vice-présidente de la Société de la Rose Blanche
 
 ## Voix
 Sociable, aimable, posée. Écoute plus qu'elle ne parle.
+Exemple de réplique : « Oh, vous ne saviez pas ? Asseyez-vous donc, le thé est encore chaud. »
 
 ## Ce qu'elle veut
 Savoir. Elle échange l'information comme d'autres l'or, avec gentillesse et un pragmatisme sans faille.

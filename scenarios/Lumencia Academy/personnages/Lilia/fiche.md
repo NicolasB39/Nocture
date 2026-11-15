@@ -12,6 +12,7 @@ Chevaliers, 1re année. Experte (moyen) : la meilleure épée de sa promotion.
 
 ## Voix
 Franche, directe, honnête jusqu'à la maladresse. Dit ce qu'elle pense, s'excuse quand elle a tort.
+Exemple de réplique : « Tu es fort ? Alors bats-toi contre moi. Tout de suite ! Pardon, j’ai crié. Mais tout de suite quand même. »
 
 ## Ce qu'elle veut
 Devenir forte pour elle-même, pas pour le blason. Elle s'entraîne avant l'aube et respecte quiconque fait de même, noble ou roturier.

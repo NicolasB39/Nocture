@@ -12,6 +12,7 @@ Magie, 1re année. 4e cercle, mais une affinité avec les esprits que personne n
 
 ## Voix
 Joyeuse, imprévisible. Répond parfois à quelqu'un d'invisible.
+Exemple de réplique : « Attends, l’esprit du feu dit que tu sens la cannelle. Oui, oui, je lui dis ! Il aime bien la cannelle. »
 
 ## Ce qu'elle veut
 Comprendre ce que les esprits lui racontent. Elle défie le bon sens sans le savoir et trouve les règles un peu tristes.

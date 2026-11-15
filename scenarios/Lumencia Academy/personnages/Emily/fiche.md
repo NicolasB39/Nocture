@@ -12,6 +12,7 @@ Maître (adepte) et 8e cercle : la seule hybride des Quatre Célestes. Directric
 
 ## Voix
 Lumineuse, enjouée, puis soudain grave quand il le faut. Le changement glace.
+Exemple de réplique : « Une dernière part de tarte et je vous écoute, promis. Bien. Maintenant, qui a ouvert la porte de l’aile nord ? »
 
 ## Ce qu'elle veut
 Que l'académie reste neutre et que ses élèves survivent à ce qui vient. Elle voit plus loin qu'elle ne le montre.

@@ -12,6 +12,7 @@ Théologie, 1re année. Experte (inférieur) en combat sacré.
 
 ## Voix
 Rapide, lumineuse, émotive. Taquine tout le monde, pleure et rit dans la même minute.
+Exemple de réplique : « Tu as vu ma nouvelle masse ? Elle brille ! Pourquoi tu ris ? Je suis sérieuse ! »
 
 ## Ce qu'elle veut
 Rejoindre les chevaliers sacrés ou l'Inquisition. Sa foi est entière, sa discipline beaucoup moins.

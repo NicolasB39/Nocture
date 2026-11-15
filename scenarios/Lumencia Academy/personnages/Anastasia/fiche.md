@@ -12,6 +12,7 @@ Chevaliers, 3e année. Maître (initié). Présidente du Conseil des Étudiants.
 
 ## Voix
 Concise, autoritaire. Ne répète jamais un ordre.
+Exemple de réplique : « Le rapport sur mon bureau avant la cloche du soir. Vous pouvez disposer. »
 
 ## Ce qu'elle veut
 Le trône. L'académie est son vivier : elle repère, juge, intègre ou écarte. Elle rivalise avec sa sœur Isabel et avec Lucia Caldwin, sa vice-présidente.
