@@ -219,6 +219,13 @@ const detour = (w, h, px, t1 = 16) => {
         e = px[i * 4 + d] - v;
       if (e > kx * 0.45) px[i * 4 + 3] = 0;
       else if (dist[i] <= 3 || e > 30) px[i * 4 + d] = Math.min(px[i * 4 + d], v);
+      // Frange de la couleur opposée (violet autour d'un fond vert) que les générateurs mettent sur les bords :
+      // ramenée vers le gris, sur la bande de bord seulement (une peau, où un seul canal domine, n'est pas touchée).
+      if (dist[i] <= 3 && px[i * 4 + o1] > px[i * 4 + d] && px[i * 4 + o2] > px[i * 4 + d]) {
+        const m = px[i * 4 + d] + 8;
+        px[i * 4 + o1] = Math.min(px[i * 4 + o1], m);
+        px[i * 4 + o2] = Math.min(px[i * 4 + o2], m);
+      }
     }
   }
   for (let pass = 0; pass < (key ? 0 : 3); pass++) {
