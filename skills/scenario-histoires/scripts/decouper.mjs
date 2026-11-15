@@ -109,9 +109,12 @@ const writePng = (w, h, px, rgba = true) => {
 // 1. Fond : médiane des pixels du bord ; remplissage depuis les bords sur les pixels proches de cette couleur.
 // 2. Trous : zones de fond enfermées (entre un bras et le corps, entre deux mèches), reconnues à leur couleur,
 //    celle du fond à quelques niveaux près et sans teinte ; un col de chemise ou une trousse claire restent.
-// 3. Bord : chaque pixel à 2 pixels au plus du fond est un mélange du fond et du personnage ; sa transparence est
+// 3. Bord : chaque pixel à 3 pixels au plus du fond est un mélange du fond et du personnage ; sa transparence est
 //    sa part de personnage, mesurée par rapport au pixel voisin le plus éloigné du gris (une mèche noire), et il
 //    prend la couleur de ce pixel. Un pixel qui n'est pas un tel mélange (bord de peau claire) reste opaque.
+// 4. Halo : la compression laisse autour des silhouettes des pixels gris un peu plus clairs ou plus sombres que le
+//    fond, et des reflets gris clair de cheveux sombres se retrouvent au bord ; rognés, sinon ils font des points
+//    blancs sur un décor sombre.
 // Rend la part de l'image retirée.
 const detour = (w, h, px, t1 = 16) => {
   const N = w * h,
@@ -148,7 +151,7 @@ const detour = (w, h, px, t1 = 16) => {
   const dist = new Uint8Array(N).fill(255);
   let front = [];
   for (let i = 0; i < N; i++) if (out[i]) (dist[i] = 0), front.push(i);
-  for (let r = 1; r <= 2; r++) {
+  for (let r = 1; r <= 3; r++) {
     const next = [];
     for (const i of front) for (const j of nb(i)) if (dist[j] === 255) (dist[j] = r), next.push(j);
     front = next;
@@ -160,13 +163,13 @@ const detour = (w, h, px, t1 = 16) => {
       n++;
       continue;
     }
-    if (dist[i] > 2) continue;
+    if (dist[i] > 3) continue;
     const x = i % w,
       y = (i / w) | 0;
     let F = -1,
       best = -1;
-    for (let yy = Math.max(0, y - 4); yy <= Math.min(h - 1, y + 4); yy++)
-      for (let xx = Math.max(0, x - 4); xx <= Math.min(w - 1, x + 4); xx++) {
+    for (let yy = Math.max(0, y - 5); yy <= Math.min(h - 1, y + 5); yy++)
+      for (let xx = Math.max(0, x - 5); xx <= Math.min(w - 1, x + 5); xx++) {
         const j = yy * w + xx;
         if (!out[j] && diff(j) > best) (best = diff(j)), (F = j);
       }
@@ -179,11 +182,58 @@ const detour = (w, h, px, t1 = 16) => {
       num += c * f;
       den += f * f;
     }
+    // Halo de compression : un pixel de bord plus clair que le fond quand le personnage voisin est plus sombre (de
+    // l'autre côté du gris), proche du fond et sans teinte propre, est du fond, pas un détail (des cheveux blonds
+    // ont une teinte).
+    const tint = Math.max(...[0, 1, 2].map(k => orig[i * 4 + k])) - Math.min(...[0, 1, 2].map(k => orig[i * 4 + k]));
+    if (num <= 0 && diff(i) <= 50 && tint <= 10) {
+      px[i * 4 + 3] = 0;
+      continue;
+    }
     let a = den ? Math.max(0, Math.min(1, num / den)) : 1;
     for (let k = 0; k < 3; k++) res = Math.max(res, Math.abs(orig[i * 4 + k] - bg[k] - a * (orig[F * 4 + k] - bg[k])));
     if (res > 18) a = 1;
     if (a < 1) for (let k = 0; k < 3; k++) px[i * 4 + k] = orig[F * 4 + k];
     px[i * 4 + 3] = a < 0.05 ? 0 : Math.round(a * 255);
+  }
+  // Liseré clair : les reflets gris clair des cheveux sombres, que le retrait du halo a laissés au bord, font un
+  // contour blanc sur un décor sombre. Trois passes rognent les pixels de bord gris neutre un peu plus clairs que
+  // le fond (au plus 34 niveaux) ; une manchette blanche, plus claire, ou des cheveux blonds, teintés, restent.
+  const bgL = (bg[0] + bg[1] + bg[2]) / 3;
+  for (let pass = 0; pass < 3; pass++) {
+    const cut = [];
+    for (let i = 0; i < N; i++) {
+      if (!px[i * 4 + 3] || !nb(i).some(j => !px[j * 4 + 3])) continue;
+      const c = [0, 1, 2].map(k => orig[i * 4 + k]),
+        L = (c[0] + c[1] + c[2]) / 3;
+      if (L > bgL + 3 && Math.max(...c) - Math.min(...c) <= 10 && diff(i) <= 34) cut.push(i);
+    }
+    for (const i of cut) px[i * 4 + 3] = 0;
+  }
+  // Restes de fond entre des mèches fines : pixels de bord gris neutre, de la couleur du fond à quelques dizaines de
+  // niveaux près, collés à un pixel nettement plus sombre du personnage. Deux passes, sur l'image telle qu'elle sort.
+  const lum = i => (px[i * 4] + px[i * 4 + 1] + px[i * 4 + 2]) / 3;
+  for (let pass = 0; pass < 2; pass++) {
+    const cut = [];
+    for (let i = 0; i < N; i++) {
+      if (px[i * 4 + 3] < 24 || !nb(i).some(j => px[j * 4 + 3] < 24)) continue;
+      const L = lum(i),
+        t = Math.max(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]) - Math.min(px[i * 4], px[i * 4 + 1], px[i * 4 + 2]);
+      if (t > 12 || L < bgL - 45 || L > bgL + 34) continue;
+      const x = i % w,
+        y = (i / w) | 0;
+      let dark = false;
+      for (let yy = Math.max(0, y - 2); yy <= Math.min(h - 1, y + 2) && !dark; yy++)
+        for (let xx = Math.max(0, x - 2); xx <= Math.min(w - 1, x + 2); xx++) {
+          const j = yy * w + xx;
+          if (px[j * 4 + 3] > 200 && lum(j) < L - 60) {
+            dark = true;
+            break;
+          }
+        }
+      if (dark) cut.push(i);
+    }
+    for (const i of cut) px[i * 4 + 3] = 0;
   }
   // Poussières : îlots visibles de moins de 10 pixels, séparés du personnage (restes de compression du fond).
   const lab = new Uint8Array(N);
