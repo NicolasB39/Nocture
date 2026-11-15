@@ -1436,11 +1436,6 @@ hr {
   -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent);
   mask-image: linear-gradient(to bottom, #000 86%, transparent);
 }
-/* Cadrage aux genoux : le bas se fond plus tôt, les jambes s'effacent au lieu d'être coupées net. */
-.m .b .scn.kn.cut:not(.av):not(.tile) {
-  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
-  mask-image: linear-gradient(to bottom, #000 70%, transparent);
-}
 /* Légende en haut à gauche : en bas, elle disparaîtrait dans le fondu. */
 .scap {
   position: absolute;

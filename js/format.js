@@ -1,6 +1,6 @@
 import { IMG, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
-import { decorFor, frame, lieuOf, scene } from './scene.js';
+import { decorFor, lieuOf, scene } from './scene.js';
 import { deltas, invText, linkText } from './modes.js';
 import { el, ic, ikey, JET, nz, wkey } from './util.js';
 
@@ -218,11 +218,11 @@ const imgFor = c => {
   const m = ctx.images.filter(i => ikey(i.code).endsWith('_' + k));
   return m.length == 1 ? m[0].url : '';
 };
-// Cadrage des personnages détourés : aux genoux par défaut, en pied si les Réglages le demandent (Lecture).
+// Personnage détouré posé sur le décor du moment (scene.js, place : en buste).
 const imgNode = (c, d) => {
   const u = imgFor(c);
   return u
-    ? scene(u, d ?? decorFor(''), frame('pic'))
+    ? scene(u, d ?? decorFor(''), { cls: 'pic' })
     : el('span', { class: 'miss', text: 'image introuvable : ' + c.trim() });
 };
 // Typographie française, à l'affichage seulement (le texte enregistré et envoyé ne change pas) : apostrophes

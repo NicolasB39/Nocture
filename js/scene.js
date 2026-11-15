@@ -1,4 +1,4 @@
-import { app, ctx, S } from './state.js';
+import { app, ctx } from './state.js';
 import { el, hue, nz } from './util.js';
 
 export const lieuOf = st => (st || []).find(([k]) => /^(lieu|endroit|localisation|position)/.test(nz(k)))?.[1] || '';
@@ -96,12 +96,9 @@ export const decorNow = ms => {
 };
 
 export const SA = 16 / 9;
-// Cadrage aux genoux, comme dans un roman visuel : le haut de la silhouette à 3 % du haut de la scène, et
-// environ les trois quarts de sa hauteur visibles. Les pieds sortent de l'image, qui se fond par le bas.
-export const KNEES = { fill: 1.3, top: 0.03 };
-// Cadrage choisi dans les Réglages (Lecture) : en pied (full), ou aux genoux avec la classe kn qui fond le bas.
-export const frame = (cls, full = {}) => (S.fullBody ? { ...full, cls } : { ...KNEES, cls: cls + ' kn' });
-export const place = (a, { x = 2 / 3, fill = 0.9, top = null, sa = SA } = {}) => {
+// Personnages en buste, coupés à la taille au bas de leur image : le buste occupe 94 % de la hauteur de la
+// scène, la taille posée au bas, là où l'image se fond.
+export const place = (a, { x = 2 / 3, fill = 0.94, top = null, sa = SA } = {}) => {
   const [bx0, bx1, by0, by1] = a.b,
     hp = fill / (by1 - by0),
     iw = hp * a.r,

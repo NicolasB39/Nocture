@@ -293,7 +293,6 @@ const keyOf = (m, l, d, t, p, mo) => ({
   d,
   t,
   p,
-  f: !!S.fullBody,
   o: statOn(app.cur),
   g: ctx.iv,
   u: playerName(app.cur)
@@ -541,7 +540,6 @@ export function memRing() {
   );
 }
 on('mem', memRing);
-on('lecture', () => app.cur && render());
 // En-tête : les personnages en scène (trois avatars au plus, puis « +N ») à la place de l'icône Personnages.
 // Reconstruit seulement quand la distribution change, pour ne pas recharger les images à chaque rendu.
 function castView(pr) {

@@ -36,7 +36,7 @@ Chercher dans `systeme.md` : `<choix>`, `<etat>`, `{{img::`, « trois propositio
 
 ## Images
 
-- Les personnages sont-ils **détourés** (PNG ou WebP transparent), en pied, centrés ? Le vérificateur signale les images sans canal de transparence : elles s'affichent seules, sans décor.
+- Les personnages sont-ils **détourés** (PNG ou WebP transparent), en buste coupé à la taille par le bas de l’image, avec des expressions bien distinctes ? Le vérificateur signale les images sans canal de transparence : elles s'affichent seules, sans décor.
 - Les expressions d'un même personnage ont-elles la même pose, le même cadrage, le même visage et la même tenue ? Sinon, les régénérer en une seule planche (voir `images.md`).
 - Reste-t-il une planche d'expressions dans `personnages/<Nom>/` ? Elle deviendrait une expression : la sortir du dossier.
 - Reste-t-il un dossier de décors dans `personnages/` (`Decors`, `Lieux`…) ? Le déplacer dans `decors/` et supprimer sa fiche.

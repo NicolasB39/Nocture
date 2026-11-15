@@ -1,4 +1,3 @@
-import { emit } from './bus.js';
 import { S } from './state.js';
 import { saveSet } from './store.js';
 import { $ } from './util.js';
@@ -35,7 +34,6 @@ export function fillLec() {
   $('#lcw').value = S.cw || 45;
   $('#lff').value = S.ff || 'ser';
   $('#lpm').value = S.pm || 'sp';
-  $('#lfb').checked = !!S.fullBody;
 }
 $('#lfs').oninput = () => {
   S.fs = +$('#lfs').value;
@@ -66,9 +64,3 @@ $('#lpm').onchange = () => {
 };
 $('#lfm').onclick = () => setFs((S.fs || 17) - 1);
 $('#lfp').onclick = () => setFs((S.fs || 17) + 1);
-// Cadrage des personnages : la conversation ouverte se redessine (view.js écoute « lecture »).
-$('#lfb').onchange = () => {
-  S.fullBody = $('#lfb').checked;
-  saveSet();
-  emit('lecture');
-};

@@ -334,14 +334,16 @@ cuts.forEach(([l, r], i) => {
     for (let x = l; x <= r; x++)
       if (fig(y * w + x)) [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
   if (y1 < 0) return console.warn(`${names[i]} : case vide, rien écrit`);
-  // Marge de 4 % de la hauteur, puis cadre vertical 2:3, silhouette centrée.
-  const m = Math.round((y1 - y0) * 0.04),
+  // Marge de 4 % de la hauteur, puis cadre vertical 2:3, silhouette centrée. Un buste coupé par le bas de la
+  // planche reste collé au bas de son image : l'application y pose la taille au bas de la scène.
+  const cut = y1 >= h - 3,
+    m = Math.round((y1 - y0) * 0.04),
     cw = x1 - x0 + 1 + 2 * m,
-    chh = y1 - y0 + 1 + 2 * m,
+    chh = y1 - y0 + 1 + (cut ? m : 2 * m),
     H = Math.max(chh, Math.ceil((cw * 3) / 2)),
     W = Math.round((H * 2) / 3),
     ox = Math.round((W - (x1 - x0 + 1)) / 2),
-    oy = Math.round((H - (y1 - y0 + 1)) / 2),
+    oy = cut ? H - (y1 - y0 + 1) : Math.round((H - (y1 - y0 + 1)) / 2),
     o = Buffer.alloc(W * H * 4);
   if (!alpha) for (let k = 0; k < W * H; k++) o.set([...bg.map(Math.round), 255], k * 4);
   for (let y = y0; y <= y1; y++)

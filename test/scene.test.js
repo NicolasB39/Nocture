@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { KNEES, SA, decorFor, decorNow, decorsOf, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
+import { SA, decorFor, decorNow, decorsOf, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
 import { ctx } from '../js/state.js';
 
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
@@ -49,13 +49,14 @@ test('sans panneau d’état, le décor vient du texte des messages', () => {
   assert.equal(decorNow(ms), 'd/taverne.webp');
 });
 
-test('place : silhouette centrée aux 2/3, pieds en bas', () => {
-  const a = { r: 0.5, b: [0.4, 0.6, 0.1, 0.95] },
+test('place : buste centré aux 2/3, taille au bas de la scène, tête près du haut', () => {
+  const a = { r: 0.5, b: [0.4, 0.6, 0.1, 1] },
     p = place(a),
     cx = p.left + ((0.4 + 0.6) / 2) * p.width;
   assert.ok(Math.abs(cx - 200 / 3) < 1e-9);
-  const hp = 0.9 / 0.85;
-  assert.ok(Math.abs(p.bottom + 0.05 * hp * 100) < 1e-9);
+  assert.ok(Math.abs(p.bottom) < 1e-9);
+  const hp = 0.94 / 0.9;
+  assert.ok(Math.abs(1 - (1 - 0.1) * hp - 0.06) < 1e-9, 'haut de la tête à 6 %');
 });
 
 test('place : un personnage large est décalé pour rester entier', () => {
@@ -69,20 +70,10 @@ test('place : un personnage large est décalé pour rester entier', () => {
   assert.ok('top' in c && !('bottom' in c));
 });
 
-test('place aux genoux : haut de la silhouette à 3 %, trois quarts visibles, toujours aux 2/3', () => {
-  const a = { r: 0.5, b: [0.4, 0.6, 0.1, 0.95] },
-    p = place(a, KNEES),
-    hp = KNEES.fill / 0.85;
-  assert.ok(Math.abs(p.top + 0.1 * hp * 100 - 3) < 1e-9, 'haut de la silhouette : ' + (p.top + 0.1 * hp * 100));
-  const seen = (1 - KNEES.top) / KNEES.fill;
-  assert.ok(seen > 0.7 && seen < 0.8, 'part visible : ' + seen);
-  assert.ok(Math.abs(p.left + 0.5 * p.width - 200 / 3) < 1e-9);
-});
-
-test('la scène est un plan 16/9, le personnage y fait 90 % de la hauteur', () => {
+test('la scène est un plan 16/9, le personnage y fait 94 % de la hauteur', () => {
   assert.ok(Math.abs(SA - 16 / 9) < 1e-12);
   const p = place({ r: 0.5, b: [0, 1, 0, 1] });
-  assert.ok(Math.abs(p.width - (0.9 * 0.5 * 100) / SA) < 1e-9, 'largeur du personnage : ' + p.width + ' %');
+  assert.ok(Math.abs(p.width - (0.94 * 0.5 * 100) / SA) < 1e-9, 'largeur du personnage : ' + p.width + ' %');
 });
 
 test('moment de la journée : mots et heures reconnus, rien sans champ, le dernier connu reste', () => {

@@ -17,7 +17,7 @@ scenarios/
     personnages/
       Maren/
         fiche.md             ← fiche détaillée, avec en-têtes
-        sourire.png          ← détourée, en pied, centrée · code image : maren_sourire
+        sourire.png          ← détourée, en buste · code image : maren_sourire
         colere.png           ← code image : maren_colere
       Ozenn/
         fiche.md
@@ -34,7 +34,7 @@ scenarios/
 
 - Le nom du dossier est affiché tel quel : accents, espaces et apostrophes passent sans problème dans le dépôt. Évitez les deux-points et les barres obliques.
 - Les dossiers de personnages suivent la même règle, mais leur nom devient le préfixe des codes d'images, débarrassé de ses accents : `personnages/Élise/neutre.png` donne `elise_neutre`. Un nom sans accent ni espace évite les surprises.
-- Les images acceptées sont `.webp`, `.png`, `.jpg`, `.jpeg`, `.gif`, en **style anime réaliste**. Personnages : **détourés** (PNG ou WebP transparent), en pied, centrés, vertical 2:3. Décors : **16/9** dans `decors/`. Couverture : **3/4**. Voir `reference/personnages.md`, `reference/decors.md` et, pour les prompts, `reference/images.md`.
+- Les images acceptées sont `.webp`, `.png`, `.jpg`, `.jpeg`, `.gif`, en **style anime réaliste**. Personnages : **détourés** (PNG ou WebP transparent), en buste coupé à la taille, vertical 2:3. Décors : **16/9** dans `decors/`. Couverture : **3/4**. Voir `reference/personnages.md`, `reference/decors.md` et, pour les prompts, `reference/images.md`.
 - Le code d'une image est `<dossier>_<fichier>` en minuscules, accents compris : `personnages/Maren/sourire.webp` donne `maren_sourire`.
 - Le lorebook ne lit que les `.md` directement dans `lorebook/`, pas dans des sous-dossiers.
 - Un dossier de personnage sans `fiche.md` mais avec des images est accepté : il n'apporte que ses codes d'images.

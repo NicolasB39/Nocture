@@ -57,14 +57,14 @@ Un personnage qui accompagne le joueur en permanence attire l'intrigue : sans co
 
 ### Ce que l'application en fait
 
-Une image de personnage **détourée** (fond transparent) s'affiche en scène : posée sur le décor du lieu courant (voir `decors.md`). Dans la conversation, l'application place le personnage sur la ligne des 2/3 à droite, pieds en bas ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette elle-même : vous n'avez rien à cadrer, il suffit que l'image contienne le personnage seul, centré, en pied.
+Une image de personnage **détourée** (fond transparent) s'affiche en scène : posée sur le décor du lieu courant (voir `decors.md`). Dans la conversation, l'application place le personnage sur la ligne des 2/3 à droite, la taille en bas ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette elle-même : vous n'avez rien à cadrer, il suffit que l'image contienne le personnage seul, en buste coupé à la taille par le bas de l'image.
 
 Une image **à fond plein** (un JPG, ou un PNG sans transparence) s'affiche seule, en pleine largeur, sans décor derrière. C'est l'ancien fonctionnement, toujours accepté, mais elle ne profite pas des décors.
 
 ### Style et format, non négociables
 
 - **Style : anime réaliste.** Traits d'animation japonaise contemporaine, mais anatomie, lumière et matières crédibles. Pas de cel-shading plat, pas de chibi, pas de rendu photographique non plus.
-- **Personnages : détourés, en pied, centrés, format vertical 2:3** (1024 × 1536 par exemple), exportés en **PNG ou WebP avec transparence**. Pas d'ombre portée au sol.
+- **Personnages : détourés, en buste coupé à la taille, expressions marquées, format vertical 2:3** (1024 × 1536 par exemple), exportés en **PNG ou WebP avec transparence**. Pas d'ombre portée au sol.
 - **Décors : 16/9, sans personnage**, dans `decors/` et non plus dans `personnages/`.
 - **Couverture : 3/4**, sujet centré.
 - Cohérence avant qualité : mieux vaut six images du même style qu'une superbe et cinq dépareillées. Un même bloc de style en tête de tous les prompts, et une même lumière (venant de la gauche) pour les personnages et les décors.

@@ -20,17 +20,17 @@ chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, 
 
 Gardez le bloc de style et les prompts du scénario dans un fichier `images.md` à la racine du scénario : l'application l'ignore, et il permet de régénérer une image des mois plus tard dans le même style.
 
-## Personnages : détourés, centrés, en pied
+## Personnages : détourés, en buste
 
-L'application pose chaque personnage sur le décor du lieu courant. Dans la conversation, elle le place elle-même sur la ligne des 2/3 à droite, pieds en bas de la scène ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette sur l'image : l'image doit donc contenir **le personnage seul, centré, sur fond transparent**, et rien d'autre.
+L'application pose chaque personnage sur le décor du lieu courant. Dans la conversation, elle le place elle-même sur la ligne des 2/3 à droite, la taille au bas de la scène, le buste sur presque toute sa hauteur ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette sur l'image : l'image doit donc contenir **le personnage seul, centré, sur fond transparent**, et rien d'autre.
 
 ### Gabarit
 
 ```
 [BLOC DE STYLE].
-Full-body portrait of [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
-standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
-entire figure visible from head to feet, centered in the frame with a small margin on every side,
+Waist-up portrait of [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
+facing the viewer at a slight three-quarter angle, [EXPRESSION], strong readable facial expression,
+cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
@@ -38,12 +38,13 @@ soft even lighting from the left, vertical 2:3 format.
 Négatif, en plus du négatif commun :
 
 ```
-background scenery, ground, cast shadow, cropped head, cropped feet, multiple characters, props touching the edges
+background scenery, ground, cast shadow, cropped head, full body, legs, multiple characters, props touching the edges
 ```
 
 Les points qui comptent :
 
-- **En pied, de la tête aux pieds.** L'application aligne le bas de la silhouette sur le bas de la scène : des pieds coupés donnent un personnage qui flotte coupé à mi-jambe.
+- **En buste, coupé à la taille par le bas de l'image**, la tête près du haut. Le visage est grand : une émotion se lit d'un coup d'œil, même sur un téléphone. L'application pose le bas de l'image au bas de la scène, où elle se fond ; un buste qui ne touche pas le bas flotterait. Un animal fait exception : entier, assis, il se pose de la même façon.
+- **Expressions marquées**, à la manière de l'anime : sourcils, bouche et regard nettement différents d'une expression à l'autre. Une expression trop retenue ne se distingue pas de la neutre.
 - **Fond uni, puis détourage.** La plupart des générateurs ne savent pas produire de transparence : demandez un fond **vert d'incrustation** uni (#00FF00), comme au cinéma. Aucun personnage n'a cette couleur : rien ne se confond avec le fond, ni une chemise blanche, ni des cheveux gris, ni une armure argentée, ce qui arrivait avec un fond gris. Pour une planche, `scripts/decouper.mjs` retire le vert lui-même, reflet vert des bords compris ; pour une image isolée, retirez-le avec un outil de détourage (remove.bg, `rembg`, l'éditeur). Si le personnage porte du vert vif (un esprit de la forêt, une robe émeraude), demandez un fond magenta (`#FF00FF`) : le script détoure n'importe quel fond uni vif. Si votre générateur propose une sortie transparente, utilisez-la directement.
 - **Pas d'ombre portée au sol** : détourée, elle devient une tache flottante sur le décor.
 - **Lumière venant de la gauche**, comme dans le gabarit des décors : un personnage éclairé de l'autre côté que son décor se voit tout de suite.
@@ -63,8 +64,10 @@ Character expression sheet: the same character shown [N] times side by side in a
 identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
 from left to right: [EXPRESSION 1], [EXPRESSION 2], [EXPRESSION 3].
 [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
-standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
-every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+facing the viewer at a slight three-quarter angle, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -74,7 +77,7 @@ wide horizontal format [FORMAT].
 Négatif, en plus du négatif commun :
 
 ```
-different outfits, different characters, overlapping figures, green rim light, green reflections on the character, cropped feet, cropped head, captions, labels, grid lines, panels
+different outfits, different characters, overlapping figures, green rim light, green reflections on the character, full body, legs, cropped head, captions, labels, grid lines, panels
 ```
 
 Format selon le nombre d'expressions, pour que chaque silhouette garde assez de hauteur :
@@ -89,7 +92,7 @@ Au-delà de quatre, les silhouettes deviennent trop petites : faites deux planch
 
 Puis, dans l'ordre :
 
-1. **Vérifier la planche** : même visage et même tenue partout, pieds visibles, silhouettes séparées par un vrai vide. Sinon, régénérer.
+1. **Vérifier la planche** : même visage et même tenue partout, chaque buste coupé par le bas de l’image, expressions bien distinctes, silhouettes séparées par un vrai vide. Sinon, régénérer.
 2. **Garder le PNG d'origine**, téléchargé depuis le générateur, plutôt qu'une capture ou une image recollée dans une conversation : chaque recompression laisse un halo autour des silhouettes. Le script ne lit que le PNG ; exportez en PNG un WebP ou un JPG. Inutile de détourer : le script s'en charge.
 3. **Découper et détourer** :
 
@@ -141,7 +144,7 @@ people, person, character, figure, silhouette, crowd, animals in the foreground
 Les points qui comptent :
 
 - **Aucun personnage**, même au loin : un passant peint dans le décor se retrouve à côté de chaque personnage posé dessus.
-- **Caméra à hauteur de taille, horizon vers le milieu, sol jusqu'au bord bas** : le personnage, haut comme presque toute la scène, est posé pieds au bord bas. Un horizon placé au milieu tombe à sa taille, ce qui est naturel ; le sol doit descendre jusqu'au bord pour qu'il ait l'air de s'y tenir. Un horizon très haut le ferait flotter.
+- **Caméra à hauteur de taille, horizon vers le milieu** : le buste, haut comme presque toute la scène, a la taille au bord bas. Un horizon placé au milieu tombe à hauteur de poitrine, comme si la caméra était face à lui ; un horizon très haut ou très bas donnerait une plongée qui ne colle pas au personnage.
 - **Tiers droit dégagé** : c'est là que se tient le personnage. Un élément fort à cet endroit (une porte, une lampe) se retrouve caché derrière lui.
 - **Formes lisibles, peu de détails** : la scène est petite sur un téléphone. Les détails fins disparaissent, les grandes masses de lumière et de couleur passent.
 - **L'essentiel dans la bande centrale** : la pastille ronde de la fenêtre Personnages recadre le décor en carré, au centre.
@@ -188,8 +191,10 @@ from left to right: calm neutral expression, warm genuine smile with softened ey
 A 60-year-old Breton herbalist woman, short and sturdy,
 grey hair tied back, sap-stained hands, thick wool cardigan over a dark work dress,
 canvas apron with pockets, rubber boots,
-standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
-every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+facing the viewer at a slight three-quarter angle, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,

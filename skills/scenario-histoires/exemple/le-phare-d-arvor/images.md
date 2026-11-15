@@ -17,11 +17,11 @@ Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark,
 Maren — une herboriste bretonne de soixante ans :
 
 ```
-[STYLE]. Full-body portrait of a 60-year-old Breton herbalist woman, short and sturdy,
+[STYLE]. Waist-up portrait of a 60-year-old Breton herbalist woman, short and sturdy,
 grey hair tied back, sap-stained hands, thick wool cardigan over a dark work dress,
 canvas apron with pockets, rubber boots,
-standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
-entire figure visible from head to feet, centered in the frame with a small margin on every side,
+facing the viewer at a slight three-quarter angle, [EXPRESSION], strong readable facial expression,
+cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
@@ -29,11 +29,11 @@ soft even lighting from the left, vertical 2:3 format.
 Ozenn — le gardien du port :
 
 ```
-[STYLE]. Full-body portrait of a 60-year-old Breton harbour keeper, tall with sagging shoulders,
+[STYLE]. Waist-up portrait of a 60-year-old Breton harbour keeper, tall with sagging shoulders,
 weathered face, short grey beard, faded blue fisherman's smock he wears in every season, dark trousers,
 heavy work boots,
-standing, facing the viewer at a slight three-quarter angle, [EXPRESSION], arms relaxed,
-entire figure visible from head to feet, centered in the frame with a small margin on every side,
+facing the viewer at a slight three-quarter angle, [EXPRESSION], strong readable facial expression,
+cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
@@ -45,7 +45,7 @@ soft even lighting from the left, vertical 2:3 format.
 | `ferme` | closed, guarded expression, jaw set, eyes narrowed |
 | `colere` | restrained anger, furrowed brows, tense mouth |
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, multiple characters`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, multiple characters`
 
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 

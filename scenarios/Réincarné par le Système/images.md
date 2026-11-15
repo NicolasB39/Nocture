@@ -28,8 +28,10 @@ Gabarit, `[DESCRIPTION]` pris dans la liste ci-dessous :
 identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
 from left to right: [les trois expressions du tableau, dans l'ordre].
 [DESCRIPTION],
-standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
-every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+facing the viewer at a slight three-quarter angle, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -47,9 +49,9 @@ wide horizontal format 3:2.
 | `sourire` | warm, genuine smile, softened eyes |
 | `ferme` | closed, guarded expression, jaw set, eyes narrowed |
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
-Deimos n'a pas d'image : voix intérieure, et dragon trop grand pour un portrait en pied.
+Deimos n'a pas d'image : voix intérieure, et dragon trop grand pour un portrait.
 
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 

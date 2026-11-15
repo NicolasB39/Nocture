@@ -2,7 +2,7 @@
 
 Fichier ignoré par l'application. Il garde le bloc de style et les prompts, pour régénérer une image dans le même style. Gabarits complets : `reference/images.md` du skill.
 
-Les images actuelles sont des cartes encadrées en buste, sur un décor : elles s'affichent seules, sans décor derrière. Les planches ci-dessous les remplacent par des personnages en pied, détourés, en gardant les mêmes noms de fichiers (et donc les mêmes codes, que les histoires déjà jouées utilisent).
+Les images actuelles sont des cartes encadrées en buste, sur un décor : elles s'affichent seules, sans décor derrière. Les planches ci-dessous les remplacent par des personnages en buste, détourés, en gardant les mêmes noms de fichiers (et donc les mêmes codes, que les histoires déjà jouées utilisent).
 
 ## Bloc de style (en tête de chaque prompt)
 
@@ -29,8 +29,10 @@ Gabarit :
 identical outfit, hairstyle, proportions, pose and lighting in every figure, only the facial expression changes,
 from left to right: [EXPRESSIONS].
 [DESCRIPTION],
-standing, facing the viewer at a slight three-quarter angle, arms relaxed close to the body,
-every figure fully visible from head to feet, same height, evenly spaced with a wide empty gap between figures,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+facing the viewer at a slight three-quarter angle, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, evenly spaced with a wide empty gap between figures,
 no figure touching or overlapping another,
 isolated on a plain flat uniform [FOND], no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -39,7 +41,7 @@ wide horizontal format [FORMAT].
 
 `[FOND]` : `bright chroma-key green background (#00FF00)`, sauf pour un personnage qui porte du vert : `bright magenta background (#FF00FF)`.
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
 
 Expressions :
 
@@ -76,6 +78,6 @@ Expressions :
 
 ### Grumble (fond magenta : écailles vertes)
 
-`a baby dragon the size of a large cat, dull green scales, tiny wings, red runny nose, big curious eyes, sitting upright` (remplacer « standing » par « sitting » et « head to feet » par « head to tail »)
+`a baby dragon the size of a large cat, dull green scales, tiny wings, red runny nose, big curious eyes, sitting upright` (remplacer « waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge » par « sitting upright, every figure fully visible from head to tail »)
 
 - une planche 2:1 de quatre : neutre, joie, surprise, triste → `… "scenarios/La guilde des bras casses/personnages/grumble" grumble_neutre grumble_joie grumble_surprise grumble_triste`

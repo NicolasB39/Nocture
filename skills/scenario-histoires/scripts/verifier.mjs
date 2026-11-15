@@ -192,7 +192,7 @@ for (const c of chars) {
       warn.push(`personnages/${c}/${i} n’a pas de transparence : affichée seule, sans décor ; livrez un PNG ou WebP détouré`);
     else if (a === null) info.push(`personnages/${c}/${i} : transparence non vérifiable, contrôlez-la à la main`);
     else if (d && d[0] > d[1])
-      info.push(`personnages/${c}/${i} est en paysage (${d[0]}×${d[1]}) : un personnage en pied se livre en vertical 2:3`);
+      info.push(`personnages/${c}/${i} est en paysage (${d[0]}×${d[1]}) : un personnage se livre en vertical 2:3`);
   }
   if (!imgs.length) info.push(`personnages/${c} : aucune image`);
 }
