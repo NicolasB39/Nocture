@@ -33,6 +33,7 @@ waist-up portrait, every figure cut at the waist by the bottom edge of the image
 facing the viewer at a slight three-quarter angle, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
 every figure the same size, evenly spaced with a wide empty gap between figures,
+a green margin on the left and right edges of the image, no figure cut by the side edges,
 no figure touching or overlapping another,
 isolated on a plain flat uniform [FOND], no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -41,7 +42,7 @@ wide horizontal format [FORMAT].
 
 `[FOND]` : `bright chroma-key green background (#00FF00)`, sauf pour un personnage qui porte du vert : `bright magenta background (#FF00FF)`.
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, captions, labels, grid lines, panels`
 
 Expressions :
 

@@ -30,7 +30,7 @@ L'application pose chaque personnage sur le décor du lieu courant. Dans la conv
 [BLOC DE STYLE].
 Waist-up portrait of [PERSONNAGE : âge, silhouette, vêtements, signes distinctifs],
 facing the viewer at a slight three-quarter angle, [EXPRESSION], strong readable facial expression,
-cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally,
+cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally with a margin on the left and right,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
@@ -68,6 +68,7 @@ waist-up portrait, every figure cut at the waist by the bottom edge of the image
 facing the viewer at a slight three-quarter angle, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
 every figure the same size, evenly spaced with a wide empty gap between figures,
+a green margin on the left and right edges of the image, no figure cut by the side edges,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
@@ -77,7 +78,7 @@ wide horizontal format [FORMAT].
 Négatif, en plus du négatif commun :
 
 ```
-different outfits, different characters, overlapping figures, green rim light, green reflections on the character, full body, legs, cropped head, captions, labels, grid lines, panels
+different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, full body, legs, cropped head, captions, labels, grid lines, panels
 ```
 
 Format selon le nombre d'expressions, pour que chaque silhouette garde assez de hauteur :
@@ -195,6 +196,7 @@ waist-up portrait, every figure cut at the waist by the bottom edge of the image
 facing the viewer at a slight three-quarter angle, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
 every figure the same size, evenly spaced with a wide empty gap between figures,
+a green margin on the left and right edges of the image, no figure cut by the side edges,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,

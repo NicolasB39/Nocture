@@ -21,7 +21,7 @@ Maren — une herboriste bretonne de soixante ans :
 grey hair tied back, sap-stained hands, thick wool cardigan over a dark work dress,
 canvas apron with pockets, rubber boots,
 facing the viewer at a slight three-quarter angle, [EXPRESSION], strong readable facial expression,
-cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally,
+cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally with a margin on the left and right,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
@@ -33,7 +33,7 @@ Ozenn — le gardien du port :
 weathered face, short grey beard, faded blue fisherman's smock he wears in every season, dark trousers,
 heavy work boots,
 facing the viewer at a slight three-quarter angle, [EXPRESSION], strong readable facial expression,
-cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally,
+cut at the waist by the bottom edge of the image, head near the top with a small margin, centered horizontally with a margin on the left and right,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 soft even lighting from the left, vertical 2:3 format.
 ```
