@@ -4,8 +4,8 @@
 //   node scripts/decouper.mjs planche.png "scenarios/Nom/personnages/Maren" neutre sourire ferme
 //
 // Les noms suivent l'ordre des silhouettes, de gauche à droite. La planche doit être un PNG 8 bits (RGB ou RGBA).
-// Détourée (fond transparent), les images le sont aussi ; sur fond uni, le fond est gardé : détourez alors la
-// planche avant (une seule opération), ou chaque image après. Sans dépendance : Node seul.
+// Sur un fond uni (le gris clair des prompts), elle est détourée ici ; déjà détourée, sa transparence est gardée.
+// --garder-fond découpe sans détourer. Sans dépendance : Node seul.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { inflateSync, deflateSync } from 'node:zlib';
@@ -105,13 +105,102 @@ const writePng = (w, h, px, rgba = true) => {
   return Buffer.concat([SIG, chunk('IHDR', ih), chunk('IDAT', deflateSync(raw, { level: 9 })), chunk('IEND', Buffer.alloc(0))]);
 };
 
+// --- Détourage d'un fond uni ---
+// 1. Fond : médiane des pixels du bord ; remplissage depuis les bords sur les pixels proches de cette couleur.
+// 2. Trous : zones de fond enfermées (entre un bras et le corps, entre deux mèches), reconnues à leur uniformité ;
+//    un objet clair (trousse, col) a de la texture et reste.
+// 3. Bord : chaque pixel à 2 pixels au plus du fond est un mélange du fond et du personnage ; sa transparence est
+//    sa part de personnage, mesurée par rapport au pixel voisin le plus éloigné du gris (une mèche noire), et il
+//    prend la couleur de ce pixel. Un pixel qui n'est pas un tel mélange (bord de peau claire) reste opaque.
+// Rend la part de l'image retirée.
+const detour = (w, h, px, t1 = 16) => {
+  const N = w * h,
+    orig = Buffer.from(px),
+    border = [];
+  for (let x = 0; x < w; x++) border.push(x, (h - 1) * w + x);
+  for (let y = 0; y < h; y++) border.push(y * w, y * w + w - 1);
+  const bg = [0, 1, 2].map(k => {
+    const v = border.map(i => orig[i * 4 + k]).sort((a, b) => a - b);
+    return v[v.length >> 1];
+  });
+  const diff = i => Math.max(...[0, 1, 2].map(k => Math.abs(orig[i * 4 + k] - bg[k])));
+  const nb = i => {
+    const x = i % w;
+    return [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w].filter(j => j >= 0 && j < N);
+  };
+  const out = new Uint8Array(N),
+    st = border.filter(i => diff(i) <= t1);
+  for (const i of st) out[i] = 1;
+  while (st.length) for (const j of nb(st.pop())) if (!out[j] && diff(j) <= t1) (out[j] = 1), st.push(j);
+  const seen = new Uint8Array(N);
+  for (let s = 0; s < N; s++) {
+    if (out[s] || seen[s] || diff(s) > t1) continue;
+    const comp = [s],
+      q = [s];
+    seen[s] = 1;
+    while (q.length) for (const j of nb(q.pop())) if (!seen[j] && !out[j] && diff(j) <= t1) (seen[j] = 1), q.push(j), comp.push(j);
+    if (comp.length >= 12 && comp.reduce((m, i) => m + diff(i), 0) / comp.length <= 11) for (const i of comp) out[i] = 1;
+  }
+  const dist = new Uint8Array(N).fill(255);
+  let front = [];
+  for (let i = 0; i < N; i++) if (out[i]) (dist[i] = 0), front.push(i);
+  for (let r = 1; r <= 2; r++) {
+    const next = [];
+    for (const i of front) for (const j of nb(i)) if (dist[j] === 255) (dist[j] = r), next.push(j);
+    front = next;
+  }
+  let n = 0;
+  for (let i = 0; i < N; i++) {
+    if (out[i]) {
+      px[i * 4 + 3] = 0;
+      n++;
+      continue;
+    }
+    if (dist[i] > 2) continue;
+    const x = i % w,
+      y = (i / w) | 0;
+    let F = -1,
+      best = -1;
+    for (let yy = Math.max(0, y - 4); yy <= Math.min(h - 1, y + 4); yy++)
+      for (let xx = Math.max(0, x - 4); xx <= Math.min(w - 1, x + 4); xx++) {
+        const j = yy * w + xx;
+        if (!out[j] && diff(j) > best) (best = diff(j)), (F = j);
+      }
+    let num = 0,
+      den = 0,
+      res = 0;
+    for (let k = 0; k < 3; k++) {
+      const c = orig[i * 4 + k] - bg[k],
+        f = orig[F * 4 + k] - bg[k];
+      num += c * f;
+      den += f * f;
+    }
+    let a = den ? Math.max(0, Math.min(1, num / den)) : 1;
+    for (let k = 0; k < 3; k++) res = Math.max(res, Math.abs(orig[i * 4 + k] - bg[k] - a * (orig[F * 4 + k] - bg[k])));
+    if (res > 18) a = 1;
+    if (a < 1) for (let k = 0; k < 3; k++) px[i * 4 + k] = orig[F * 4 + k];
+    px[i * 4 + 3] = a < 0.05 ? 0 : Math.round(a * 255);
+  }
+  return n / N;
+};
+
 // --- Silhouettes ---
+// --garder-fond : découpe sans détourer (fond qui n'est pas uni, ou détourage fait ailleurs).
+const keep = names.indexOf('--garder-fond');
+if (keep >= 0) names.splice(keep, 1);
 const { w, h, px, alpha: ach } = readPng(readFileSync(src));
-// Fond : transparent s'il l'est vraiment aux quatre coins (un canal alpha tout opaque ne compte pas), sinon la
-// couleur moyenne des coins.
-const corners = [0, w - 1, (h - 1) * w, h * w - 1],
-  alpha = ach && corners.every(i => px[i * 4 + 3] < 24),
-  bg = [0, 1, 2].map(k => corners.reduce((s, i) => s + px[i * 4 + k], 0) / 4);
+// Fond : transparent s'il l'est vraiment aux quatre coins (un canal alpha tout opaque ne compte pas). Sinon, la
+// planche est détourée ici, sauf --garder-fond.
+const corners = [0, w - 1, (h - 1) * w, h * w - 1];
+let alpha = ach && corners.every(i => px[i * 4 + 3] < 24);
+const bg = [0, 1, 2].map(k => corners.reduce((s, i) => s + px[i * 4 + k], 0) / 4);
+if (!alpha && keep < 0) {
+  const part = detour(w, h, px);
+  alpha = true;
+  console.log(`Fond retiré : ${Math.round(part * 100)} % de la planche.`);
+  if (part < 0.3)
+    console.warn('Peu de fond retiré : le fond n’est sans doute pas uni. Vérifiez les images, ou relancez avec --garder-fond.');
+}
 const fig = i =>
   alpha ? px[i * 4 + 3] > 24 : Math.max(...[0, 1, 2].map(k => Math.abs(px[i * 4 + k] - bg[k]))) > 32;
 const col = Array.from({ length: w }, (_, x) => {

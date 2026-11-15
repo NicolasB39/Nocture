@@ -16,9 +16,9 @@ Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark,
 
 Les trois expressions d'un personnage se génèrent en une seule image, côte à côte : même visage, même tenue, même lumière. Format paysage 3:2 (1536 × 1024), fond gris uni. Puis :
 
-1. détourer la planche entière et l'exporter en PNG ;
-2. la découper avec le script du skill, les noms dans l'ordre de gauche à droite :
-   `node scripts/decouper.mjs planche-ines.png "scenarios/Le Dernier Rang/personnages/Ines" ines_neutre ines_sourire ines_ferme`
+1. l'exporter en PNG (inutile de la détourer) ;
+2. la découper avec le script du skill, qui retire aussi le fond gris, les noms dans l'ordre de gauche à droite :
+   `node skills/scenario-histoires/scripts/decouper.mjs planche-ines.png "scenarios/Le Dernier Rang/personnages/Ines" Ines_neutre Ines_sourire Ines_ferme`
 3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
 Gabarit, à la suite du bloc de style :
@@ -42,7 +42,7 @@ wide horizontal format 3:2.
 
 Négatif en plus : `background scenery, ground, cast shadow, cropped head, cropped feet, different outfits, different characters, overlapping figures, captions, labels, grid lines, panels`
 
-Inès et Dussault ont déjà leur image `neutre` : générez leur planche avec cette image en référence, et gardez-en seulement `sourire` et `ferme` si la neutre vous convient. Kaël n'a encore aucune image.
+Inès a ses trois expressions (planche du 15 novembre 2026). Dussault a seulement son image `neutre` : générez sa planche avec cette image en référence, ou refaites les trois pour qu'elles concordent. Kaël n'a encore aucune image.
 
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 

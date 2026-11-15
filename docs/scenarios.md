@@ -177,6 +177,6 @@ Ce qui reste au scénario : tout ce qui touche à la voix. Ce qui passe à l'app
 `skills/scenario-histoires/` est le skill Claude qui aide à écrire un scénario : arborescence, prompt système et section Rythme, fiches avec réplique d'exemple, modes, prompts d'images (une planche d'expressions par personnage), et deux scripts sans dépendance :
 
 - `node skills/scenario-histoires/scripts/verifier.mjs "scenarios/<Nom>"` relit un scénario et signale ce qui cloche ;
-- `node skills/scenario-histoires/scripts/decouper.mjs planche.png "scenarios/<Nom>/personnages/<Perso>" neutre sourire ferme` découpe une planche d'expressions détourée en une image par expression.
+- `node skills/scenario-histoires/scripts/decouper.mjs planche.png "scenarios/<Nom>/personnages/<Perso>" neutre sourire ferme` découpe une planche d'expressions sur fond gris uni en une image détourée par expression.
 
 Pour l'installer ou le mettre à jour sur claude.ai : `npm run skill` crée `scenario-histoires.zip` (ignoré par git), à téléverser dans les réglages des skills à la place de l'ancien. Après une modification de l'application qui touche aux scénarios, mettre aussi le skill à jour.

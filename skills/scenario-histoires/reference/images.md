@@ -44,7 +44,7 @@ background scenery, ground, cast shadow, cropped head, cropped feet, multiple ch
 Les points qui comptent :
 
 - **En pied, de la tête aux pieds.** L'application aligne le bas de la silhouette sur le bas de la scène : des pieds coupés donnent un personnage qui flotte coupé à mi-jambe.
-- **Fond uni, puis détourage.** La plupart des générateurs ne savent pas produire de transparence : demandez un fond gris clair uni, puis retirez-le (outil de détourage de l'éditeur, remove.bg, `rembg`…). Si votre générateur propose une sortie transparente, utilisez-la directement.
+- **Fond uni, puis détourage.** La plupart des générateurs ne savent pas produire de transparence : demandez un fond gris clair uni. Pour une planche, `scripts/decouper.mjs` le retire lui-même ; pour une image isolée, retirez-le avec un outil de détourage (remove.bg, `rembg`, l'éditeur). Si votre générateur propose une sortie transparente, utilisez-la directement.
 - **Pas d'ombre portée au sol** : détourée, elle devient une tache flottante sur le décor.
 - **Lumière venant de la gauche**, comme dans le gabarit des décors : un personnage éclairé de l'autre côté que son décor se voit tout de suite.
 - **Format vertical 2:3**, par exemple 1024 × 1536. L'application s'adapte à d'autres proportions puisqu'elle mesure la silhouette, mais un même format pour tout le scénario garde les personnages à la même échelle.
@@ -90,14 +90,14 @@ Au-delà de quatre, les silhouettes deviennent trop petites : faites deux planch
 Puis, dans l'ordre :
 
 1. **Vérifier la planche** : même visage et même tenue partout, pieds visibles, silhouettes séparées par un vrai vide. Sinon, régénérer.
-2. **Détourer la planche entière**, en une opération (remove.bg, `rembg`, l'outil de l'éditeur), et l'exporter en PNG.
-3. **Découper** :
+2. **L'exporter en PNG** si le générateur a donné un WebP ou un JPG (le script ne lit que le PNG). Inutile de la détourer : le script s'en charge.
+3. **Découper et détourer** :
 
    ```
    node scripts/decouper.mjs planche-maren.png "scenarios/<Nom>/personnages/Maren" neutre sourire ferme
    ```
 
-   Les noms suivent l'ordre des silhouettes, de gauche à droite. Le script écrit une image par nom, PNG vertical 2:3, personnage centré avec une petite marge, et garde la transparence. S'il ne trouve pas autant de silhouettes que de noms (deux personnages qui se touchent), il coupe en parts égales et le signale : vérifiez, ou régénérez avec plus d'espace. Sur une planche non détourée, il garde le fond et le signale.
+   Les noms suivent l'ordre des silhouettes, de gauche à droite. Le script écrit une image par nom, PNG vertical 2:3, personnage centré avec une petite marge, et rend le fond transparent. Le détourage part des bords sur le gris uni, retire aussi le gris enfermé (entre un bras et le corps, entre deux mèches) et adoucit le contour pour éviter un liseré gris autour des cheveux ; un objet clair texturé (une trousse, un col) reste. Une planche déjà détourée garde sa transparence ; `--garder-fond` découpe sans détourer. S'il ne trouve pas autant de silhouettes que de noms (deux personnages qui se touchent), il coupe en parts égales et le signale : vérifiez, ou régénérez avec plus d'espace. S'il retire peu de fond, le fond n'était sans doute pas uni : il le signale.
 4. **Vérifier chaque image** sur fond sombre (liseré clair autour des cheveux), puis convertir en WebP si possible : un PNG détouré pèse souvent plus d'un mégaoctet.
 5. **Ranger la planche hors du dossier du personnage** : toute image de `personnages/<Nom>/` devient une expression. Gardez-la hors du scénario, ou dans `planches/` à la racine du scénario, que l'application ignore.
 

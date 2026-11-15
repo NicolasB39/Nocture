@@ -16,9 +16,9 @@ Négatif commun : `chibi, flat cel shading, photorealistic, 3d render, text, wat
 
 Une seule planche par personnage : ses trois expressions côte à côte, en une génération, pour garder le même visage et la même tenue. Format paysage 3:2 (1536 × 1024), fond gris uni. Puis :
 
-1. détourer la planche entière et l'exporter en PNG ;
-2. la découper avec le script du skill, les noms dans l'ordre de gauche à droite :
-   `node scripts/decouper.mjs planche-lilia.png "scenarios/Lumencia Academy/personnages/Lilia" lilia_neutre lilia_sourire lilia_ferme`
+1. l'exporter en PNG (inutile de la détourer) ;
+2. la découper avec le script du skill, qui retire aussi le fond gris, les noms dans l'ordre de gauche à droite :
+   `node skills/scenario-histoires/scripts/decouper.mjs planche-lilia.png "scenarios/Lumencia Academy/personnages/Lilia" lilia_neutre lilia_sourire lilia_ferme`
 3. ne pas laisser la planche dans le dossier du personnage (elle deviendrait une expression).
 
 Gabarit (`[BASE]` et les trois expressions de chaque personnage ci-dessous, dans l'ordre neutre, sourire, ferme) :
