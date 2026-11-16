@@ -3,9 +3,9 @@ import { estTok, statFields, statOn } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { choiceMark } from './format.js';
 import { jourLabel, jourOf } from './scene.js';
-import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, chStart, clip, mergeMem, mergeRel, summaryOf, unnum } from './memory.js';
+import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, chStart, clip, mergeMem, mergeRel, sameName, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
-import { API, S, app, ctx } from './state.js';
+import { API, S, app, ctx, playerName } from './state.js';
 import { emit } from './bus.js';
 import { addCall, getOne, put } from './store.js';
 import { $, bare, err, LS } from './util.js';
@@ -513,10 +513,13 @@ async function sumRun(s, start) {
       // tiret est retiré) sur chaque réponse où il change : les messages résumés n'ont pas l'état, la mémoire ne
       // saurait pas dater souvenirs et échéances.
       let shown = '';
+      // Le personnage du joueur par son nom : « le Joueur » peut être aussi un titre dans la fiction.
+      const nm = playerName(s),
+        who = nm || 'Joueur';
       const parts = s.messages.slice(s.mem.upto, end).map(m => {
         const d = m.role == 'assistant' && jourLabel(jourOf(m.state).split(/[,(—–]/)[0]),
           tag = d && d != shown ? ' (' + (shown = d) + ')' : '';
-        return (m.role == 'user' ? 'Joueur : ' : 'Narrateur' + tag + ' : ') + bare(m.content).trim();
+        return (m.role == 'user' ? who + ' : ' : 'Narrateur' + tag + ' : ') + bare(m.content).trim();
       });
       const stale = batchGuard(s, parts.length),
         // Messages du chapitre en cours une fois ce lot résumé : dit au modèle s'il peut, ou doit, le clore.
@@ -535,6 +538,7 @@ async function sumRun(s, start) {
                 .map(([k, v]) => '- ' + k + ' : ' + v)
                 .join('\n') || '(aucune)') +
               (keep.length ? '\n\nPersonnages à fiche : ' + keep.join(', ') : '') +
+              (nm ? '\n\nPersonnage du joueur : ' + nm + ' (nomme-le ainsi, jamais « le Joueur » ; pas de relation pour lui)' : '') +
               '\n\nSouvenirs déjà retenus (ne les répète pas) :\n' +
               ((s.mem.memories || []).map(x => '- ' + x).join('\n') || '(aucun)') +
               '\n\nChapitres déjà clos :\n' +
@@ -582,7 +586,9 @@ async function sumRun(s, start) {
         ];
       s.mem.summary = sum;
       s.mem.memories = mergeMem(s.mem.memories, list(j.souvenirs));
-      s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(j.relations.map(r => [r.nom.trim(), r.relation.trim()])), keep);
+      // Jamais de relation pour le personnage du joueur, que la mémoire voit parler sous son nom.
+      const rel = j.relations.filter(r => !(nm && sameName(r.nom, nm)));
+      s.mem.relations = mergeRel(s.mem.relations, Object.fromEntries(rel.map(r => [r.nom.trim(), r.relation.trim()])), keep);
       addLines(s, list(j.lignes), parts.length);
       s.mem.upto += parts.length;
       if (!(await persist(s))) break;

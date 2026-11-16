@@ -13,8 +13,8 @@ Le cache de prompt de Claude réutilise le calcul d'un **préfixe exact**. Dès 
 L'application range donc le prompt par volatilité croissante :
 
 ```
-système  prompt du scénario, préambule, casting, fiches et lorebook « toujours »,
-         codes d'images, protocole, avatar, chapitres    ← fixe
+système  prompt du scénario, préambule, règles d'écriture (Narration, Style), casting,
+         fiches et lorebook « toujours », codes d'images, formats, avatar, chapitres    ← fixe
          résumé, lignes récentes, souvenirs, relations, note   ← change par paliers
 historique
 queue    dernier message, lorebook déclenché, fiches en scène, passages anciens, état précédent
@@ -72,6 +72,8 @@ La mémoire tient sur quatre étages, du plus détaillé au plus condensé :
 À côté, deux listes : les **souvenirs** (faits durables, en priorité ce qui pourra revenir plus tard) et les **relations** (une ligne par personnage). Toutes les relations partent avec la mémoire, dans la partie qui reste en cache ; celle d'un personnage en scène est de plus répétée sous sa fiche quand celle-ci part en fin de requête. Le résumé, les souvenirs, les relations et les lignes récentes arrivent dans des champs séparés : rien n'est envoyé deux fois.
 
 Les modèles reformulent (« Alice », « Alice, l'herboriste » ; « la fiole est verte », « La fiole verte est importante ») : l'application rapproche les noms dont les mots se recouvrent, et les souvenirs dont le vocabulaire se recouvre à plus de 60 %, et la formulation la plus récente remplace l'ancienne. Exceptions : un souvenir plus court contenu tel quel dans l'ancien ne le remplace pas, et « La mère de Lena » n'est pas Lena.
+
+Le modèle de mémoire voit les messages du joueur sous le nom de son personnage (« Joueur » sans nom) et a pour consigne de le nommer ainsi : « le Joueur » peut être un titre dans la fiction. Il n'écrit pas de relation pour ce personnage, et l'application écarte celle qu'il écrirait quand même. Les souvenirs passent avec l'en-tête « faits passés ; l'état précédent et le scénario priment sur eux ».
 
 Les deux listes sont plafonnées : 12 relations, 60 souvenirs. Au-delà, les entrées les moins récemment mises à jour disparaissent, sauf les personnages qui ont une fiche dans `personnages/`. Le résumeur reçoit ce qu'il connaît déjà, avec la consigne de reprendre les noms tels quels et de ne pas répéter les souvenirs acquis, et les noms des personnages à fiche : quand l'histoire révèle qu'un inconnu en est un (Cendrine s'avère être Isaure), il écrit « Isaure (Cendrine) », et la relation passe sous le nom de la fiche.
 

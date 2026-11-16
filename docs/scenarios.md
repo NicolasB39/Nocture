@@ -14,7 +14,7 @@ scenarios/
     inventaire.md           objets et ressources du mode Inventaire (optionnel, voir plus bas)
     liens.md                échelle et paliers du mode Liens (optionnel, voir plus bas)
     intro.md                accroche et débuts proposés, affichés avant le premier tour (optionnel)
-    avatar.md               description du personnage du joueur
+    avatar.md               description du personnage du joueur, envoyée sous l'en-tête « texte montré au joueur »
     personnages/
       Alice/
         fiche.md            fiche du personnage
@@ -50,7 +50,7 @@ Les codes d'images de tous les personnages sont envoyés en permanence, regroup�
 
 Les images de `personnages/<Nom>/` (formats `.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`) sont proposées à l'IA sous le code `nom_fichier` (minuscules, sans extension). Un fichier qui commence déjà par le nom du personnage n'est pas préfixé une seconde fois : `maelys/maelys_joie.png` donne `maelys_joie` (le code doublé `maelys_maelys_joie` reste reconnu). L'IA les affiche avec `{{img::alice_sourire}}` seul sur une ligne.
 
-L'application affiche l'image **là où le modèle l'écrit**, en tête, au milieu ou à la fin. Le protocole demande de la placer à l'endroit du récit qu'elle illustre et de ne pas ouvrir systématiquement la réponse par une image. Si un scénario demande lui-même « commence par l'image » dans son prompt système, cette phrase l'emporte.
+L'application affiche l'image **là où le modèle l'écrit**, en tête, au milieu ou à la fin. Le protocole demande de la placer juste après le paragraphe où le personnage agit ou parle. Si un scénario demande lui-même « commence par l'image » dans son prompt système, cette phrase l'emporte.
 
 La reconnaissance du code est tolérante : majuscules, accents, espaces, tirets et tirets bas sont équivalents (`alice_sourire heureux`, `alice_sourire_heureux` et `Alice-Sourire-Heureux` désignent le même fichier), et le nom du fichier seul suffit s'il est unique (`sourire_heureux`). Quand un code ne correspond à aucune image, un repère « image introuvable : code » s'affiche à la place.
 

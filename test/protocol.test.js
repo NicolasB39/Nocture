@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { protocol, conflicts } from '../js/protocol.js';
+import { narration, protocol, conflicts } from '../js/protocol.js';
 import { buildInfo } from '../js/prompt.js';
 import { clean } from '../js/store.js';
 import { S, ctx } from '../js/state.js';
@@ -37,7 +37,7 @@ test('la balise <lieu> est lue puis retirée du texte', async () => {
 });
 
 test('aucun format n’est émis pour ce qui est désactivé ; les conseils de narration et le style restent', () => {
-  const p = protocol({ stat: false, choices: false, images: false });
+  const p = narration() + protocol({ stat: false, choices: false, images: false });
   assert.doesNotMatch(p, /<etat>|<choix>|\{\{img::/);
   assert.match(p, /# Narration/);
   assert.match(p, /# Style/);
@@ -47,17 +47,17 @@ test('les choix par défaut demandent des registres différents', () => {
   assert.match(protocol({ choices: true }), /registres différents/);
 });
 
-test('la consigne d’images demande de les placer dans le récit, pas en tête', () => {
+test('la consigne d’images les place après le paragraphe du personnage, sans en tête ni en queue par défaut', () => {
   for (const model of ['claude-sonnet-5-5', 'claude-haiku-5-5']) {
     const s = protocol({ model, images: true });
     assert.match(s, /\{\{img::code\}\}/);
-    assert.match(s, /récit|texte/);
-    assert.match(s, /pas (systématiquement|par défaut)|N.ouvre pas/);
+    assert.match(s, /juste après le paragraphe où ce personnage agit ou parle/);
   }
 });
 
 test('la consigne de style est émise par défaut', () => {
-  assert.match(protocol({ stat: false, choices: false, images: false }), /astérisques/);
+  assert.match(narration(), /astérisques/);
+  assert.doesNotMatch(protocol({ stat: true, choices: true, images: true }), /# Narration|# Style/);
   assert.match(protocol({ choices: true }), /\*un geste\*/);
 });
 
@@ -88,7 +88,7 @@ test('un scénario peut ignorer le préambule commun', () => {
 test('agentivité et anti-télépathie toujours envoyées, avec leurs exceptions', () => {
   assert.match(protocol({ choices: true }), /seul endroit où tu le fais agir ou parler/);
   for (const o of [{}, { choices: true, stat: true }]) {
-    const p = protocol(o);
+    const p = narration() + protocol(o);
     assert.match(p, /Le joueur décide seul de ce que fait, dit, pense et ressent \{\{user\}\}/);
     assert.match(p, /Sauf exception prévue par le scénario, les personnages n'ont pas accès aux pensées/);
   }

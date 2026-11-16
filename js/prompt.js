@@ -1,7 +1,7 @@
 import { rulesOf } from './dice.js';
 import { lastEtat } from './format.js';
 import { CH_FULL, SUM_KEEP, SUM_MAX, clip, sameName } from './memory.js';
-import { DEFAULT_FIELDS, protocol } from './protocol.js';
+import { DEFAULT_FIELDS, narration, protocol } from './protocol.js';
 import { invOn, linksOn, modesTail } from './modes.js';
 import { recall, recallTag } from './recall.js';
 import { S, ctx, playerName } from './state.js';
@@ -133,7 +133,8 @@ export function buildInfo(s, cont, hint) {
   const av = (nm ? 'Nom : ' + nm + '\n' : '') + (c.avatar || '');
   let sys = c.system || '';
   if (!s.noPre && S.pre?.trim()) sys += '\n\n' + S.pre.trim();
-  sys += castBlock() + permBlock();
+  // Ordre : scénario et préambule, règles d'écriture communes, personnages et lorebook, formats de sortie, avatar.
+  sys += narration() + castBlock() + permBlock();
   sys += protocol({
     stat: statOn(s),
     fields: statFields(s).replace(/\s*\n+\s*/g, ', '),
@@ -144,7 +145,10 @@ export function buildInfo(s, cont, hint) {
     inv: invOn(s),
     liens: linksOn(s) ? ctx.liens : null
   });
-  if (av.trim()) sys += '\n\n# Avatar du joueur\n' + av;
+  // Le texte de l'avatar s'adresse au joueur (« vous »), comme le scénario au narrateur : l'en-tête dit à qui il
+  // parle, pour que le narrateur n'y lise pas le droit d'inventer le passé du personnage.
+  if (av.trim())
+    sys += "\n\n# Avatar du joueur\n(Texte montré au joueur. De son personnage, tu ne sais que ceci et ce que le joueur écrit.)\n" + av;
   // Blocs du système : partie fixe et mémoire, chacun avec son marqueur de cache (avec celui de l'historique,
   // trois en tout) : une mise à jour de la mémoire ne réécrit pas la partie fixe.
   const blocks = [

@@ -279,3 +279,17 @@ test('fiches et lorebook modestes en entier dans la partie fixe, en cache', () =
   assert.doesNotMatch(r.msgs[0].blocks[0].text, /## Bob/);
   assert.match(r.msgs.at(-1).content, /## Alice/);
 });
+
+test('ordre du système : scénario, règles d’écriture, personnages et lorebook, formats, avatar', () => {
+  ctx.chars = [{ name: 'Alice', sum: 'herboriste', text: 'A', always: true, images: ['alice_x'], keys: [] }];
+  ctx.images = [{ code: 'alice_x', url: 'u' }];
+  ctx.system = 'SYS';
+  ctx.avatar = 'Vous êtes forgeronne.';
+  const sys = buildInfo(sc({ remote: true, pname: 'Lou', messages: [{ role: 'user', content: 'un' }] })).msgs[0].blocks[0].text;
+  const at = s => sys.indexOf(s);
+  const order = ['SYS', '# Narration', '# Style', '# Personnages du monde', '<images_disponibles>', '# Images', '# Choix', '# Avatar du joueur'];
+  for (const s of order) assert.ok(at(s) >= 0, s + ' absent');
+  for (let i = 1; i < order.length; i++) assert.ok(at(order[i - 1]) < at(order[i]), order[i - 1] + ' avant ' + order[i]);
+  assert.equal(sys.split('# Narration').length, 2, 'règles d’écriture une seule fois');
+  assert.match(sys, /# Avatar du joueur\n\(Texte montré au joueur\. De son personnage, tu ne sais que ceci/);
+});

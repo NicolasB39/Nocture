@@ -74,7 +74,7 @@ export function recap(s) {
             role: 'user',
             content: ms
               .slice(-20)
-              .map(x => (x.role == 'user' ? 'Joueur : ' : 'Narrateur : ') + plain(x.content, nm))
+              .map(x => (x.role == 'user' ? (nm || 'Joueur') + ' : ' : 'Narrateur : ') + plain(x.content, nm))
               .join('\n\n')
           }
         ],

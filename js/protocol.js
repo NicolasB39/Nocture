@@ -37,7 +37,7 @@ const NARRATION =
 const STYLE =
   '\n\n# Style\nGestes et actions entre astérisques (*il repose sa tasse*). Dans un tour, le geste précède la parole. Pas de note de jeu dans le récit (« [Situation : …] », « [Action risquée : …] ») : l’état et les jets ont leurs blocs. Les messages que le scénario met entre crochets restent permis.';
 const IMAGES =
-  '\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la au fil du récit, là où elle illustre le texte, pas par défaut en tête de réponse.';
+  '\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la juste après le paragraphe où ce personnage agit ou parle.';
 
 // Mode jeu de rôle (regles.md) : l'IA désigne les jets, l'application les lance (dice.js).
 const jetBlock = (rules, choices) =>
@@ -67,11 +67,12 @@ export const DEFAULT_CHOICE =
   'Trois propositions courtes, chacune sous la forme *un geste* suivi de ce que dit le personnage. Deux poursuivent la scène dans des registres différents ; la troisième la quitte : elle change de lieu, saute dans le temps ou tranche la question en cours.';
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
-// Formats de sortie imposés par l'application (partie fixe du prompt système).
+// Règles d'écriture communes : placées par prompt.js juste après le scénario, avant les fiches et le lorebook,
+// pour qu'elles se lisent avec les règles de prose du scénario.
+export const narration = () => NARRATION + STYLE;
+// Formats de sortie imposés par l'application (partie fixe du prompt système), placés après les fiches et le lorebook.
 export function protocol({ stat = false, fields = '', choices = false, prompt = '', images = false, rules = [], inv = false, liens = null } = {}) {
   return (
-    NARRATION +
-    STYLE +
     (images ? IMAGES : '') +
     (stat ? stateBlock(fields || DEFAULT_FIELDS, choices) : '') +
     (choices ? choiceBlock(prompt || DEFAULT_CHOICE) : '') +
