@@ -186,6 +186,31 @@ try {
     await pg.click('#dcc');
     await wait(150);
     assert.ok(!(await pg.evaluate(() => history.state?.d)));
+    // Texte tapé dans une feuille à enregistrer : le retour demande d'abord ; Continuer garde la feuille ouverte,
+    // Abandonner la ferme et rend l'historique propre.
+    await pg.click('#cfg');
+    await pg.fill('#ck', 'brouillon');
+    await pg.evaluate(() => history.back());
+    await until(pg, () => document.querySelector('#dq').open);
+    assert.equal(await pg.textContent('#dqt'), 'Abandonner les modifications ?');
+    await pg.click('#dqc');
+    await wait(150);
+    assert.ok(await pg.evaluate(() => document.querySelector('#dc').open && !document.querySelector('#dq').open));
+    await pg.evaluate(() => history.back());
+    await until(pg, () => document.querySelector('#dq').open);
+    await pg.click('#dqo');
+    await until(pg, () => !document.querySelector('#dc').open);
+    await wait(150);
+    assert.ok(!(await pg.evaluate(() => history.state?.d)));
+    assert.ok(await pg.isVisible('#list'));
+    // Échap, comme le geste retour de Chrome Android, passe par l'événement cancel de la feuille.
+    await pg.click('#cfg');
+    await pg.fill('#ck', 'brouillon');
+    await pg.keyboard.press('Escape');
+    await until(pg, () => document.querySelector('#dq').open);
+    assert.ok(await pg.evaluate(() => document.querySelector('#dc').open));
+    await pg.click('#dqo');
+    await until(pg, () => !document.querySelector('#dc').open);
   });
 
   await step('toast au-dessus d’une feuille ouverte ; le toast permanent revient après un passager', async () => {
@@ -519,6 +544,9 @@ try {
     await pg.fill('#bgr', 'me/bk');
     await pg.fill('#bgt', 'tok');
     await pg.click('#bkv');
+    // La sauvegarde s'ouvrait par-dessus les Réglages : on les retrouve, puis on les ferme.
+    await until(pg, () => !document.querySelector('#dbk').open && document.querySelector('#dc').open);
+    await pg.click('#dcc');
     await wait(300);
     await syncDone();
     const files = [...GH.keys()].sort();

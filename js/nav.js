@@ -5,7 +5,7 @@ import { byRecent, newGame, showList } from './list.js';
 import { coverOf, localTree } from './scenarios.js';
 import { app } from './state.js';
 import { getSome } from './store.js';
-import { $, el, hue, initial, LS, toast } from './util.js';
+import { $, dlg, el, hue, initial, LS, toast } from './util.js';
 import { readPos, WIDE } from './view.js';
 
 export const go = async id => {
@@ -97,15 +97,49 @@ addEventListener('visibilitychange', () => {
 });
 let skip = false;
 const open = () => document.querySelector('dialog[open]');
+// Feuilles ouvertes, dans l'ordre d'ouverture : celle du dessus n'est pas forcément la dernière du document (#dq,
+// la question, est placée avant les réglages dans index.html).
+let stack = [];
+const top = () => (stack = stack.filter(x => x.open)).at(-1);
 const sm = HTMLDialogElement.prototype.showModal;
 HTMLDialogElement.prototype.showModal = function () {
+  if (this === dirty) dirty = null;
   sm.call(this);
+  stack = [...stack.filter(x => x !== this), this];
   if (!history.state?.d) history.pushState({ ...history.state, d: 1 }, '');
 };
+// Feuilles à enregistrer (data-garde : réglages, mémoire, message) : une modification ne se perd pas sur un geste
+// retour, un glissement vers le bas ou Échap, on demande d'abord. Annuler et Enregistrer ferment sans question.
+// Tout champ modifié compte, sauf ceux appliqués tout de suite (data-direct : la section Lecture) ; un retrait fait
+// par un bouton (souvenir, chapitre, couverture) le signale par un événement change sur la feuille (settings.js).
+let dirty = null;
+const mark = e => {
+  const d = e.target.closest?.('dialog[data-garde]');
+  if (d && !e.target.closest('[data-direct]')) dirty = d;
+};
+document.addEventListener('input', mark, true);
+document.addEventListener('change', mark, true);
+const shut = async d => {
+  if (d === dirty && !(await dlg('Abandonner les modifications ?', { ok: 'Abandonner', no: 'Continuer' }))) return;
+  d.close();
+};
+// Geste retour d'Android et Échap : le navigateur annonce la fermeture par cancel, qu'on retient le temps de demander.
+document.addEventListener(
+  'cancel',
+  e => {
+    // Non annulable (un retour répété sans toucher l'écran entre-temps) : le navigateur ferme quoi qu'on fasse,
+    // inutile de poser la question sur une feuille déjà fermée.
+    if (e.target !== dirty || !e.cancelable) return;
+    e.preventDefault();
+    shut(e.target);
+  },
+  true
+);
 document.addEventListener(
   'close',
-  () =>
+  e =>
     setTimeout(() => {
+      if (e.target === dirty) dirty = null;
       if (!open() && history.state?.d) {
         skip = true;
         history.back();
@@ -168,7 +202,7 @@ document.addEventListener(
       if (ev.timeStamp - lt > 100) v = 0;
       // La transition reprend de là où le doigt a lâché : vers le bas pour fermer, sinon retour en place.
       d.style.transition = d.style.transform = '';
-      if (ev.type == 'touchend' && (dy > Math.min(140, r.height / 3) || (dy > 24 && v > 0.3))) d.close();
+      if (ev.type == 'touchend' && (dy > Math.min(140, r.height / 3) || (dy > 24 && v > 0.3))) shut(d);
     };
     addEventListener('touchmove', move, { ...o, passive: false });
     addEventListener('touchend', end, o);
@@ -181,7 +215,13 @@ addEventListener('popstate', () => {
     skip = false;
     return;
   }
-  const d = [...document.querySelectorAll('dialog[open]')].at(-1);
+  const d = top();
+  if (d === dirty) {
+    // Le retour a consommé l'entrée d'historique de la feuille : elle reste ouverte le temps de la question.
+    history.pushState({ ...history.state, d: 1 }, '');
+    shut(d);
+    return;
+  }
   if (d) {
     d.close();
     if (open()) history.pushState({ ...history.state, d: 1 }, '');

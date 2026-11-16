@@ -406,10 +406,8 @@ async function bkSave() {
   bkMsg();
 }
 $('#bp').onchange = bkShow;
-$('#bko').onclick = () => {
-  $('#dc').close();
-  openBk();
-};
+// La sauvegarde s'ouvre par-dessus les Réglages, qu'on retrouve en la fermant : rien de ce qui y est tapé ne se perd.
+$('#bko').onclick = () => openBk();
 async function syncNow() {
   await sync(true);
   const e = S.bk?.err;

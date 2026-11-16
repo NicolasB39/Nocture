@@ -34,13 +34,18 @@ export async function showList() {
   await draw();
 }
 const CVC = new Map();
-const coverImg = (id, src) => {
+// La grande carte du haut est visible dès l'ouverture : chargée tout de suite et en priorité ; les autres attendent
+// d'approcher de l'écran. L'élément est réutilisé d'un rendu à l'autre, d'où le réglage à chaque fois.
+const coverImg = (id, src, hero) => {
   let e = CVC.get(id);
   if (!e || e.dataset.src !== src) {
-    e = el('img', { class: 'cv', src, alt: '', loading: 'lazy', decoding: 'async' });
+    e = el('img', { class: 'cv', alt: '', decoding: 'async' });
     e.dataset.src = src;
     CVC.set(id, e);
   }
+  e.loading = hero ? 'eager' : 'lazy';
+  e.fetchPriority = hero ? 'high' : 'auto';
+  if (!e.getAttribute('src')) e.src = src;
   return e;
 };
 // Ordre de la liste : la plus récemment modifiée d'abord.
@@ -60,7 +65,7 @@ export async function draw() {
       'div',
       { class: 'item ' + (h ? 'hero' : 'card') },
       cv
-        ? coverImg(s.id, cv)
+        ? coverImg(s.id, cv, h)
         : el(
             'div',
             { class: 'art v' + (hv % 4), style: '--h:' + hv },

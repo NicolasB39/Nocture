@@ -744,8 +744,16 @@ header button:active {
 }
 .m .b {
   font: var(--fs) / var(--lh) var(--rf);
-  /* Taille retenue dès le premier rendu (auto) : un message qui devient ancien garde sa hauteur réelle. */
+  /* Taille retenue dès le premier rendu (auto) : un message qui devient ancien garde sa hauteur réelle. Avant son
+     premier rendu, une estimation par rôle (un tour du joueur est court, une réponse longue) garde l'ascenseur stable
+     et les sauts du Sommaire justes. */
   contain-intrinsic-size: auto 300px;
+}
+.m.user .b {
+  contain-intrinsic-size: auto 80px;
+}
+.m.assistant .b {
+  contain-intrinsic-size: auto 900px;
 }
 /* Longue conversation : un ancien message loin de l'écran n'est ni mis en page ni dessiné. Jamais les trois derniers
    (dont la réponse en cours) : recréés pendant un tour et mesurés aussitôt, ils auraient une hauteur nulle et l'écran

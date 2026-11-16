@@ -12,7 +12,7 @@ import { tocOf } from './scene.js';
 import { TERR, getTree, loadCtx } from './scenarios.js';
 import { API, S, app, ctx, playerName } from './state.js';
 import { clean, put, save, saveSet } from './store.js';
-import { $, LS, dlg, el, ic, nz, plain } from './util.js';
+import { $, LS, dlg, el, ic, nz, onEnter, plain } from './util.js';
 
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
@@ -129,6 +129,8 @@ $('#sc').onclick = () => {
   $('#dmn').close();
   openSc();
 };
+// Modification faite par un bouton, sans champ : la feuille est signalée modifiée (nav.js la protège du retour).
+const touched = s => $(s).dispatchEvent(new Event('change'));
 let MM = [];
 const memView = () => {
   $('#mml').replaceChildren(
@@ -145,6 +147,7 @@ const memView = () => {
                 onclick: () => {
                   MM.splice(i, 1);
                   memView();
+                  touched('#dm');
                 }
               },
               ic('x', 14)
@@ -174,6 +177,7 @@ const chView = () =>
                   onclick: () => {
                     MC.splice(i, 1);
                     chView();
+                    touched('#dm');
                   }
                 },
                 ic('x', 14)
@@ -207,6 +211,7 @@ $('#mb').onclick = () => {
   $('#nti').value = MN = app.cur.note || '';
   $('#dm').showModal();
 };
+onEnter($('#mmi'), $('#mma'));
 $('#mma').onclick = () => {
   const v = $('#mmi').value.trim();
   if (!v) return;
@@ -541,6 +546,7 @@ $('#scva').onclick = () => $('#scvf').click();
 $('#scvx').onclick = () => {
   COVER = '';
   cvView();
+  touched('#ds');
 };
 $('#scvf').onchange = async e => {
   const f = e.target.files[0];

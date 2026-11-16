@@ -94,6 +94,14 @@ export const LS = {
     } catch (e) {}
   }
 };
+// Champ d'une ligne : la touche Entrée (la coche du clavier Android) vaut le bouton b ; pas pendant qu'une saisie
+// prédictive se compose, où Entrée la valide.
+export const onEnter = (i, b) =>
+  (i.onkeydown = e => {
+    if (e.key != 'Enter' || e.isComposing || e.keyCode === 229) return;
+    e.preventDefault();
+    b.click();
+  });
 export const dlg = (t, { m = '', v = null, ok = 'OK', no = 'Annuler', ph = '' } = {}) =>
   new Promise(res => {
     const d = $('#dq'),
@@ -112,6 +120,7 @@ export const dlg = (t, { m = '', v = null, ok = 'OK', no = 'Annuler', ph = '' } 
       d.close();
     };
     $('#dqc').onclick = () => d.close();
+    onEnter(i, $('#dqo'));
     d.onclose = () => res(r);
     d.showModal();
     if (v !== null) i.focus();

@@ -8,7 +8,7 @@ Comment est organisé un scénario de Nocturne (dossier `scenarios/`), et ce que
 scenarios/
   Mon scenario/
     systeme.md              prompt système (obligatoire)
-    cover.webp              couverture (optionnelle)
+    cover.webp              couverture (optionnelle, aussi .png ou .jpg)
     etat.md                 champs du panneau d'état (optionnel)
     regles.md               caractéristiques du mode jeu de rôle (optionnel, voir plus bas)
     inventaire.md           objets et ressources du mode Inventaire (optionnel, voir plus bas)
@@ -19,6 +19,7 @@ scenarios/
       Alice/
         fiche.md            fiche du personnage
         sourire.webp        image, code : alice_sourire
+    decors/                 décors des scènes (optionnel, voir plus bas)
     lorebook/
       dragon.md
 ```
@@ -39,21 +40,19 @@ Alice a trente ans, les mains tachées de sève…
 
 L'IA reçoit **en permanence** la liste de tous les personnages du monde, une ligne chacun (le `résumé:`, ou à défaut la première ligne de la fiche). Elle sait donc toujours qui existe et peut faire entrer qui elle veut.
 
-Au-delà du budget de la partie fixe (voir plus bas), la **fiche complète** n'est envoyée que lorsque le personnage est en scène : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie stable du prompt, qui reste en cache, et n'est jamais envoyée une seconde fois quand le personnage est en scène.
+Tant que l'ensemble des fiches tient dans un budget de 8 000 tokens environ, aucune n'est filtrée : le scénario reçoit toutes ses fiches à chaque tour, dans la partie fixe du prompt, qui reste en cache. Un personnage que l'IA fait entrer d'elle-même est ainsi écrit avec sa fiche complète. Le lorebook suit la même règle, avec le même budget. La partie fixe est relue en cache à prix réduit, alors que la fin de requête est payée plein tarif à chaque tour : des fiches et un lorebook modestes coûtent moins en entier dans la partie fixe que par morceaux en fin de requête (voir [Prompt et cache](technique.md#prompt-et-cache)).
 
-Tant que l'ensemble des fiches tient dans un budget de 8 000 tokens environ, aucune n'est filtrée : le scénario reçoit toutes ses fiches à chaque tour, dans la partie stable. C'est le cas de tous les scénarios du dépôt, Lumencia compris (19 fiches, environ 5 200 tokens) : un personnage que l'IA fait entrer d'elle-même est écrit avec sa fiche complète, pas seulement avec son résumé. Le lorebook suit la même règle, avec le même budget.
+Au-delà du budget, la **fiche complète** n'est envoyée que lorsque le personnage est en scène : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie fixe et n'est jamais envoyée une seconde fois quand le personnage est en scène.
 
-La partie stable est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des fiches et un lorebook modestes coûtent donc moins en entier dans la partie stable que par morceaux en fin de requête : environ 5 % du coût d'un tour en moins sur un scénario comme « Réincarné par le Système » (5 fiches et 11 entrées). Sur Lumencia, avant que le budget passe de 5 000 à 8 000 tokens, un journal de 77 tours montrait environ 555 tokens de fiches envoyées en fin de requête, au prix plein, à chaque tour. Au-delà du budget, tout redevient déclenché par mots-clés.
-
-Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie stable, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène, et de ne pas en inventer pour un personnage absent de la liste (sans quoi le modèle imite le format, `emily_emily_neutre`, pour un personnage qui n'a pas d'image). L'IA peut ainsi montrer un personnage dès son entrée, sans attendre le tour suivant.
+Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie fixe, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène, et de ne pas en inventer pour un personnage qui n'a pas d'image. L'IA peut ainsi montrer un personnage dès son entrée.
 
 ### Images
 
-Les images de `personnages/<Nom>/` (formats `.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`) sont proposées à l'IA sous le code `nom_fichier` (minuscules, sans extension). Un fichier qui commence déjà par le nom du personnage n'est pas préfixé une seconde fois : `maelys/maelys_joie.png` donne `maelys_joie`, et l'ancien code doublé `maelys_maelys_joie` reste reconnu dans les messages déjà écrits. L'IA les affiche avec `{{img::alice_sourire}}` seul sur une ligne.
+Les images de `personnages/<Nom>/` (formats `.png`, `.webp`, `.jpg`, `.jpeg`, `.gif`) sont proposées à l'IA sous le code `nom_fichier` (minuscules, sans extension). Un fichier qui commence déjà par le nom du personnage n'est pas préfixé une seconde fois : `maelys/maelys_joie.png` donne `maelys_joie` (le code doublé `maelys_maelys_joie` reste reconnu). L'IA les affiche avec `{{img::alice_sourire}}` seul sur une ligne.
 
-L'application affiche l'image **là où le modèle l'écrit**, en tête, au milieu ou à la fin. C'est donc la consigne qui décide : le protocole demande de la placer à l'endroit du récit qu'elle illustre et de ne pas ouvrir systématiquement la réponse par une image, et la liste des codes envoyée à chaque tour le rappelle. Si un scénario demande lui-même « commence par l'image » dans son prompt système, cette phrase l'emporte, et c'est à elle qu'il faut toucher. Les messages déjà écrits gardent leurs images où elles sont ; seules les nouvelles réponses suivent la nouvelle consigne.
+L'application affiche l'image **là où le modèle l'écrit**, en tête, au milieu ou à la fin. Le protocole demande de la placer à l'endroit du récit qu'elle illustre et de ne pas ouvrir systématiquement la réponse par une image. Si un scénario demande lui-même « commence par l'image » dans son prompt système, cette phrase l'emporte.
 
-La reconnaissance du code est tolérante : majuscules, accents, espaces, tirets et tirets bas sont équivalents (`alice_sourire heureux`, `alice_sourire_heureux` et `Alice-Sourire-Heureux` désignent le même fichier), et le nom du fichier seul suffit s'il est unique (`sourire_heureux`). Quand un code ne correspond à aucune image, un repère « image introuvable : code » s'affiche à la place, au lieu de ne rien montrer.
+La reconnaissance du code est tolérante : majuscules, accents, espaces, tirets et tirets bas sont équivalents (`alice_sourire heureux`, `alice_sourire_heureux` et `Alice-Sourire-Heureux` désignent le même fichier), et le nom du fichier seul suffit s'il est unique (`sourire_heureux`). Quand un code ne correspond à aucune image, un repère « image introuvable : code » s'affiche à la place.
 
 Après avoir renommé des images :
 
@@ -62,7 +61,7 @@ Après avoir renommé des images :
 
 ### Décors
 
-Une image de personnage **détourée** (fond transparent, en `.png` ou `.webp`) s'affiche en scène : un décor en fond, le personnage posé dessus. L'application le détecte elle-même en lisant les pixels du bord de l'image ; une image à fond plein s'affiche comme avant, en pleine largeur, sans décor derrière, puisqu'elle contient déjà le sien.
+Une image de personnage **détourée** (fond transparent, en `.png` ou `.webp`) s'affiche en scène : un décor en fond, le personnage posé dessus. L'application le détecte elle-même en lisant les pixels du bord de l'image ; une image à fond plein s'affiche en pleine largeur, sans décor derrière, puisqu'elle contient déjà le sien.
 
 Les décors se rangent dans `scenarios/<scénario>/decors/` :
 
@@ -74,13 +73,13 @@ decors/
   defaut.webp       facultatif : fond quand aucun décor ne correspond
 ```
 
-C'est l'application qui choisit le décor, pas l'IA : elle lit le champ « Lieu » du panneau d'état (ou « Endroit », « Localisation »), et à défaut cherche les mots-clés dans le texte des derniers messages. Les mots-clés suivent les règles du lorebook (accents et majuscules ignorés, mot entier, `chateau*` pour les variantes) ; quand plusieurs décors correspondent, le mot-clé le plus long l'emporte (« forêt de nuit » avant « forêt »). Si rien ne correspond, c'est `defaut.webp`, et sans lui un fond généré aux couleurs du scénario : il n'y a jamais de vide. L'IA ne reçoit pas la liste des décors et écrit librement ; cela ne coûte aucun token.
+C'est l'application qui choisit le décor, pas l'IA : elle lit le champ « Lieu » du panneau d'état (ou « Endroit », « Localisation »), et à défaut cherche les mots-clés dans le texte des derniers messages. Les mots-clés suivent les règles du lorebook (accents et majuscules ignorés, mot entier, `chateau*` pour les variantes) ; quand plusieurs décors correspondent, le mot-clé le plus long l'emporte (« forêt de nuit » avant « forêt »). Si rien ne correspond, c'est `defaut.webp`, et sans lui un fond généré aux couleurs du scénario. L'IA ne reçoit pas la liste des décors : cela ne coûte aucun token.
 
-Un champ « Moment » dans `etat.md` (ou « Heure », « Période ») teinte les décors selon l'heure : rose à l'aube, orangé au crépuscule, bleu sombre la nuit. Un même décor sert ainsi à toute la journée ; détail des mots reconnus dans [utilisation.md](utilisation.md).
+Un champ « Moment » dans `etat.md` (ou « Heure », « Période ») teinte les décors selon l'heure : un même décor sert ainsi à toute la journée (mots reconnus dans [utilisation.md](utilisation.md#mise-en-page-de-la-conversation)).
 
 Chaque message garde le décor de son moment : celui de son propre bloc d'état, sinon le dernier lieu connu avant lui. Relire une ancienne scène montre donc l'ancien décor. Pendant l'écriture, la scène prend le lieu précédent, puis bascule si la réponse annonce un nouveau lieu.
 
-Dans la conversation, le personnage, en buste, est centré aux trois quarts de la largeur, à droite, la taille au bas de la scène et la tête près du haut : l'application mesure la silhouette elle-même, donc une image centrée ou avec plus de marge d'un côté donne le même résultat, et un personnage large est décalé juste assez pour rester entier. Dans la fenêtre Personnages, la pastille et la galerie montrent le personnage centré sur le décor du lieu actuel. Toucher une scène l'agrandit en plein écran. Chaque scène a des proportions fixes (16/9, un plan large qui prend peu de place dans le fil), ce qui évite aussi les sauts de mise en page au chargement des images.
+Le personnage, en buste, est centré aux trois quarts de la largeur, à droite, la taille au bas de la scène et la tête près du haut (le buste occupe 94 % de la hauteur). L'application mesure la silhouette elle-même : une image centrée ou avec plus de marge d'un côté donne le même résultat, et un personnage large est décalé juste assez pour rester entier. Chaque scène a des proportions fixes (16/9). Dans la fenêtre Personnages, la pastille et la galerie montrent le personnage centré sur le décor du lieu actuel.
 
 ### Lorebook
 
@@ -94,7 +93,7 @@ Le dragon dort dans la montagne.
 ```
 
 - `mots-clés:` liste séparée par des virgules, sans accents ni casse. Recherche par mot entier ; `dragon*` accepte `dragons`, `dragonnet`…
-- `toujours` : entrée toujours injectée, sans mot-clé. Elle va dans la partie stable du prompt, qui reste en cache.
+- `toujours` : entrée toujours injectée, sans mot-clé. Elle va dans la partie fixe du prompt, qui reste en cache.
 - `priorité: N` : les valeurs les plus hautes passent en premier (défaut 0).
 
 Un lorebook qui tient dans le budget de la partie fixe part en entier, en cache, et les mots-clés ne servent pas. Au-delà, les entrées `toujours` restent dans la partie fixe, et les autres partent en fin de requête quand un de leurs mots-clés apparaît dans les deux derniers messages, par priorité.
@@ -109,21 +108,21 @@ Vigueur, Adresse, Esprit, Présence, Volonté
 
 L'IA ne lance jamais les dés : un modèle ne sait pas tirer au hasard et choisit presque toujours le résultat qui arrange l'histoire. Elle désigne seulement le jet, et l'application le lance (`js/dice.js`) :
 
-- dans ses choix, une action risquée se termine par sa caractéristique et sa difficulté : « Je force le cadenas (Adresse, difficile) ». L'application l'affiche en étiquette ; toucher le choix lance un d20, ajoute le bonus de la fiche et envoie le résultat avec le message ;
-- quand le joueur écrit lui-même une action risquée, l'IA montre l'instant d'avant et finit par `<jet>Adresse, difficile</jet>` : un bouton « Lancer le dé » apparaît, et le tour suivant part avec le résultat (et avec le brouillon en cours, s'il y en a un) ;
+- dans ses choix, une action risquée se termine par sa caractéristique et sa difficulté : « Je force le cadenas (Adresse, difficile) ». L'application l'affiche en étiquette, avec la chance de réussite d'après la fiche (« Adresse · difficile · 50 % », en rouge sous 35 %) ; toucher le choix lance un d20, ajoute le bonus de la fiche et envoie le résultat avec le message ;
+- quand le joueur écrit lui-même une action risquée, l'IA montre l'instant d'avant et finit par `<jet>Adresse, difficile</jet>` : un bouton « Lancer le dé », avec la même chance de réussite, apparaît, et le tour suivant part avec le résultat (et avec le brouillon en cours, s'il y en a un) ;
 - le résultat s'écrit dans le message du joueur, `<jet>Adresse, difficile (13) : 14 + 2 = 16, réussite</jet>`, affiché en carte. L'IA raconte l'issue sans la contredire. Un 20 naturel est une réussite critique, un 1 naturel un échec critique.
 
 Seule l'application lance les dés : un résultat que le narrateur écrirait lui-même est retiré de sa réponse. Une demande de jet mal formée garde son bouton (caractéristique inconnue : bonus nul ; difficulté inconnue : moyen). Une marque placée au milieu d'un choix, avant une réplique ou une ponctuation, est reconnue aussi.
 
-Difficultés : facile (6), moyen (10), difficile (13), très difficile (16), soit 75, 55, 40 et 25 % de réussite sans bonus, 85, 65, 50 et 35 % avec +2. Les seuils sont choisis pour que l'échec reste l'exception sur une action ordinaire. Quand le joueur écrit lui-même une action, l'IA en raconte l'issue sans dé, sauf si un échec changerait la scène : elle amène alors le jet en 60 mots au plus, jamais dans deux réponses de suite, et un obstacle raté ne se retente pas. La fiche du personnage (menu « … » de la conversation, ou bouton de l'introduction avant le premier tour) répartit trois points : chaque caractéristique va de −1 à +2, et en baisser une rend un point. Une nouvelle partie repart avec une fiche vide. Elle n'est pas envoyée à l'IA : seuls les résultats le sont, une vingtaine de tokens par jet, dans la même requête que le tour. Les consignes des jets partent dans la partie fixe du prompt, en cache.
+Difficultés : facile (6), moyen (10), difficile (13), très difficile (16), soit 75, 55, 40 et 25 % de réussite sans bonus, 85, 65, 50 et 35 % avec +2 : l'échec reste l'exception sur une action ordinaire. Quand le joueur écrit lui-même une action, l'IA en raconte l'issue sans dé, sauf si un échec changerait la scène : elle amène alors le jet en 60 mots au plus, jamais dans deux réponses de suite, et un obstacle raté ne se retente pas.
 
-L'étiquette d'un choix et le bouton « Lancer le dé » affichent la chance de réussite avec la fiche du personnage (« Adresse · difficile · 50 % »), en rouge sous 35 % ; elle suit la fiche dès qu'on la referme.
+La fiche du personnage (menu « … » de la conversation, ou bouton de l'introduction avant le premier tour) répartit trois points : chaque caractéristique va de −1 à +2, et en baisser une rend un point. Une nouvelle partie repart avec une fiche vide. La fiche n'est pas envoyée à l'IA : seuls les résultats le sont, une vingtaine de tokens par jet. Les consignes des jets partent dans la partie fixe du prompt, en cache.
 
 Le mode est réservé aux scénarios GitHub. Pas besoin de décrire les jets dans `systeme.md` : l'application s'en charge, comme pour les choix et l'état.
 
 ## Mode Inventaire (inventaire.md)
 
-Un scénario qui a un fichier `inventaire.md` confie l'inventaire à l'application : le narrateur ne peut plus faire apparaître ou disparaître un objet en oubliant ce qu'il a écrit trois tours plus tôt. Une ligne par objet ou ressource, avec sa quantité de départ ; une borne (`/10`) et une baisse par jour sont facultatives (vingt lignes au plus, `#` pour un commentaire) :
+Un scénario qui a un fichier `inventaire.md` confie l'inventaire à l'application : le narrateur ne peut pas faire apparaître ou disparaître un objet en oubliant ce qu'il a écrit trois tours plus tôt. Une ligne par objet ou ressource, avec sa quantité de départ ; une borne (`/10`) et une baisse par jour sont facultatives (vingt lignes au plus, `#` pour un commentaire) :
 
 ```
 Or: 20
@@ -157,18 +156,38 @@ Comme l'inventaire, les liens se recalculent depuis le départ. Les deux modes s
 
 ## Protocole et préambule
 
-L'application est propriétaire du **protocole** : les formats du bloc `<etat>`, du bloc `<choix>` et de la syntaxe `{{img::}}` sont produits par `js/protocol.js`, pas par les scénarios. Un `systeme.md` ne décrit donc plus que la fiction : le monde, la voix, le registre, le rythme.
+L'application est propriétaire du **protocole** : les formats du bloc `<etat>`, du bloc `<choix>` et de la syntaxe `{{img::}}` sont produits par `js/protocol.js`, pas par les scénarios. Un `systeme.md` ne décrit que la fiction : le monde, la voix, le registre, le rythme. Faire évoluer un format se fait en un seul endroit, pour tous les scénarios à la fois. Les consignes de format sont concises et les mêmes pour tous les modèles.
 
-Conséquences :
+Le protocole demande notamment :
 
-- Faire évoluer un format se fait en un seul endroit, pour tous les scénarios à la fois.
-- Les consignes de format sont concises, les mêmes pour tous les modèles : elles décrivent les blocs <etat> et <choix>, le style et les images sans rappel en fin de requête.
-- Un modèle oublie parfois la balise `<choix>` et écrit ses choix en simple liste numérotée (Haiku, une réponse sur cinq ou six dans un journal du 7 novembre). Quand le récit se termine par deux ou trois lignes « 1. », « 2. »… qui commencent comme une action du joueur (geste en italique, réplique, « Je »), l'application les prend comme des choix, à la réception comme au chargement des réponses déjà enregistrées (`looseChoices`, `js/format.js`).
-- À l’inverse, il arrive qu’il écrive ses choix en liste à la fin du récit **et** dans le bloc `<choix>` : ils s’afficheraient deux fois. La liste qui reprend les choix (ou qui en a la forme : « Je… », guillemets) est alors retirée du récit, avec sa ligne d’annonce (« Vos options : »), à la réception comme au chargement des réponses déjà enregistrées. La consigne des choix le lui demande aussi : « Ne les recopie pas en liste dans le récit ».
-- Un court bloc « Narration » part aussi pour tous les scénarios : le joueur seul décide de ce que fait, dit, pense et ressent son personnage, les autres n'ont pas accès à ses pensées sauf exception prévue par le scénario (seules les propositions de choix le font agir ou parler), des personnages qui agissent sans attendre le joueur et réagissent entre eux, une voix par personnage, des détails concrets, le retour de ce qui a déjà eu lieu, des réponses qui s'ouvrent sur ce que provoque l'action du joueur au lieu de la raconter de nouveau, et un rythme qui résume ce qui se répète (entraînement, trajet, attente) pour avancer jusqu'au prochain moment qui compte. Les choix par défaut en proposent deux qui poursuivent la scène, dans des registres différents, et un troisième qui la quitte (autre lieu, saut dans le temps, question tranchée) ; une scène tient en cinq ou six échanges, puis le narrateur la fait aboutir et propose d'en sortir. Contre les répétitions relevées dans un journal du 15 novembre (une fin de réponse qui reprend la précédente, Inès qui « ne répond pas » sept fois en cinquante réponses, le goutte-à-goutte décrit huit fois), la dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes, un personnage ne répète pas le même comportement d'une réponse à l'autre, et un détail déjà décrit ne revient que s'il a changé. Il proscrit aussi les didascalies vides (« Un temps. », « Silence. ») : un tic relevé dans un journal (une réponse sur cinq sur Lumencia), qu'une pause montrée par un geste remplace.
+- **les gestes entre astérisques et les paroles en texte simple**, dans la narration comme dans les choix, le geste avant la parole ; pas de note de jeu entre crochets dans le récit (« [Situation : …] ») ;
+- trois choix numérotés dans le bloc `<choix>`, à la première personne (« Je… »), seul endroit où le personnage du joueur agit ou parle, sans les recopier en liste dans le récit ;
+- quand le panneau d'état suit un champ « Lieu » (ou Endroit, Localisation, Position), une ligne `<lieu>Nouveau lieu</lieu>` en tête de la réponse quand le lieu change. Cette ligne n'est ni affichée ni gardée : elle installe tout de suite l'intertitre, la lettrine et le décor, alors que l'état n'arrive qu'en fin de réponse.
+
+L'application rattrape les écarts courants :
+
+- Des choix écrits en simple liste numérotée sans la balise `<choix>` : quand le récit se termine par deux ou trois lignes « 1. », « 2. »… qui commencent comme une action du joueur (geste en italique, réplique, « Je »), elles sont prises comme des choix, à la réception comme au chargement des réponses enregistrées (`looseChoices`, `js/format.js`).
+- Des choix écrits en liste à la fin du récit **et** dans le bloc `<choix>` : la liste qui les reprend (ou qui en a la forme : « Je… », guillemets) est retirée du récit, avec sa ligne d'annonce (« Vos options : »).
+- Un état écrit en lignes nues à la fin de la réponse (« Lieu: … ») est reconnu sur les noms des champs du panneau ; s'il double un bloc `<etat>`, ces lignes sont seulement retirées du récit, le bloc faisant foi.
 - Si un `systeme.md` contient encore `<choix>`, `<etat>` ou `{{img::`, l'application le signale à l'ouverture de la conversation et dans la feuille Réglages de l'histoire : l'IA recevrait deux versions du même format, et arbitrerait mal. Retirez ces lignes.
 
-Le **préambule commun** (Réglages) est votre texte à vous (la case « Ignorer le préambule commun » des réglages de l'histoire n'apparaît que s'il en existe un), ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun » dans sa section Narration.
+### Consignes du narrateur
+
+Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/protocol.js`). Le scénario donne le monde et le ton, ce bloc le mouvement :
+
+- le joueur seul décide de ce que fait, dit, pense et ressent son personnage : ce qu'il écrit est une tentative, dont le narrateur raconte le résultat et les réactions ; seules les propositions de choix le font agir ou parler ;
+- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées ;
+- la réponse s'ouvre sur ce que provoque l'action du joueur, sans la raconter de nouveau ; sa dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes ;
+- les personnages agissent sans attendre le joueur et réagissent entre eux ; chacun a sa voix, et ne répète pas le même comportement d'une réponse à l'autre ;
+- des détails concrets plutôt que des adjectifs ; un détail déjà décrit ne revient que s'il a changé ; ce qui a déjà eu lieu (objet, promesse, blessure) revient ;
+- les émotions se montrent par des gestes ; pas de didascalie vide (« Un temps. », « Silence. ») ;
+- ce qui se répète (entraînement, trajet, attente) se résume pour avancer jusqu'au prochain moment qui compte ; une scène tient en cinq ou six échanges, puis le narrateur la fait aboutir et propose d'en sortir.
+
+Les choix par défaut en proposent deux qui poursuivent la scène, dans des registres différents, et un troisième qui la quitte (autre lieu, saut dans le temps, question tranchée).
+
+### Préambule commun
+
+Le **préambule commun** (Réglages de l'application) est votre texte à vous, ajouté au prompt système de tous les scénarios : longueur des réponses, personne, registre, manies de narration. Un scénario peut s'en affranchir avec « Ignorer le préambule commun », dans la section Narration de ses réglages (la case n'apparaît que si un préambule existe).
 
 Ce qui reste au scénario : tout ce qui touche à la voix. Ce qui passe à l'application : tout ce qui touche à la forme des blocs.
 
@@ -179,4 +198,4 @@ Ce qui reste au scénario : tout ce qui touche à la voix. Ce qui passe à l'app
 - `node skills/scenario-histoires/scripts/verifier.mjs "scenarios/<Nom>"` relit un scénario et signale ce qui cloche ;
 - `node skills/scenario-histoires/scripts/decouper.mjs planche.png "scenarios/<Nom>/personnages/<Perso>" neutre sourire ferme` découpe une planche d'expressions sur fond uni (vert d'incrustation conseillé) en une image détourée par expression.
 
-Pour l'installer ou le mettre à jour sur claude.ai : `npm run skill` crée `scenario-histoires.zip` (ignoré par git), à téléverser dans les réglages des skills à la place de l'ancien. Après une modification de l'application qui touche aux scénarios, mettre aussi le skill à jour.
+Pour l'installer ou le mettre à jour sur claude.ai : `npm run skill` crée `scenario-histoires.zip` (ignoré par git), à téléverser dans les réglages des skills à la place de l'ancien. Après une modification de l'application qui touche aux scénarios, mettre aussi le skill à jour. `npm run scenarios` vérifie tous les scénarios du dépôt (aussi en CI).

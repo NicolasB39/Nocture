@@ -333,7 +333,7 @@ export function render(sc) {
   const cv = !st && coverOf(app.cur);
   head.replaceChildren(
     ...[
-      cv && el('img', { class: 'cover', src: cv, alt: '', decoding: 'async' }),
+      cv && el('img', { class: 'cover', src: cv, alt: '', loading: 'lazy', decoding: 'async' }),
       st && el('button', { class: 'more', text: 'Afficher les messages précédents' })
     ].filter(Boolean)
   );
@@ -367,6 +367,10 @@ export function render(sc) {
     f.append(x);
   }
   foot.before(f);
+  // Les trois derniers messages sont ceux qu'on voit en ouvrant l'histoire : leurs images (décor, personnage) se
+  // chargent tout de suite, les plus anciennes à l'approche de l'écran.
+  for (const x of [...w.querySelectorAll(':scope > .m[data-i]')].slice(-3))
+    for (const img of x.querySelectorAll('img[loading="lazy"]')) img.loading = 'eager';
   for (const e of w.querySelectorAll(':scope > .day')) e.remove();
   let pt = 0;
   for (let i = st; i < n; i++) {

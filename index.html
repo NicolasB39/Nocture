@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="13b674c47b">
+<meta name="app-version" content="3e6ecca00f">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -154,7 +154,7 @@
 <form method="dialog" class="col"><button id="dinvc">Fermer</button></form>
 </dialog>
 
-<dialog id="ds" aria-labelledby="hds">
+<dialog id="ds" data-garde aria-labelledby="hds">
 <h2 id="hds" tabindex="-1" autofocus>Réglages de l'histoire</h2>
 <label for="ssys">Prompt système</label>
 <textarea id="ssys"></textarea>
@@ -205,7 +205,7 @@
 <form method="dialog" class="row"><button id="dsc">Annuler</button><button id="dss" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 
-<dialog id="dm" aria-labelledby="hdm">
+<dialog id="dm" data-garde aria-labelledby="hdm">
 <h2 id="hdm" tabindex="-1" autofocus>Mémoire et note</h2>
 <label for="nti">Note pour l'IA</label>
 <textarea id="nti" style="min-height:70px" placeholder="Une consigne que l'IA garde en tête à chaque tour : ton, rythme, ce qu'elle doit éviter…"></textarea>
@@ -288,7 +288,7 @@
 <div class="row"><button id="dqc">Annuler</button><button id="dqo" class="primary">OK</button></div>
 </dialog>
 
-<dialog id="dc" aria-labelledby="hdc">
+<dialog id="dc" data-garde aria-labelledby="hdc">
 <h2 id="hdc" tabindex="-1" autofocus>Réglages</h2>
 <label for="ck">Clé API Claude</label>
 <input id="ck" type="password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
@@ -303,7 +303,7 @@
 <label><input id="cwa" type="checkbox">Garder le cache au chaud pendant les pauses</label>
 <p class="note">Avec le cache de 5 minutes : peu avant son expiration, l'application relit le prompt au tarif réduit au lieu de le laisser se perdre, jusqu'à trois fois d'affilée (une vingtaine de minutes), tant que la conversation est ouverte à l'écran. Sans effet avec le cache d'une heure.</p>
 
-<details>
+<details data-direct>
 <summary>Lecture</summary>
 <p class="note">Appliqué et enregistré immédiatement, sans passer par « Enregistrer ».</p>
 <label for="lfs">Taille du texte : <span id="lfv"></span></label>
@@ -352,7 +352,7 @@
 <form method="dialog" class="row"><button id="dcc">Annuler</button><button id="dcs" type="button" class="primary">Enregistrer</button></form>
 </dialog>
 
-<dialog id="de" aria-labelledby="hde">
+<dialog id="de" data-garde aria-labelledby="hde">
 <h2 id="hde">Modifier le message</h2>
 <p id="den" class="note" hidden></p>
 <textarea id="et"></textarea>
