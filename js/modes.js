@@ -134,14 +134,14 @@ export const modesTail = s => {
   if (linksOn(s)) {
     const { v } = linksOf(s.messages);
     t +=
-      '\n\n<liens>\n' +
+      '\n\n<liens_actuels>\n' +
       [...v]
         .map(([k, x]) => {
           const st = stepsOf(k, x);
           return k + ' : ' + signed(x) + (st.length ? ' (palier atteint : ' + st.map(p => p.text).join(' ; ') + ')' : '');
         })
         .join('\n') +
-      '\n</liens>';
+      '\n</liens_actuels>';
   }
   return t;
 };

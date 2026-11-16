@@ -83,6 +83,6 @@ test('consignes et fin de requête seulement quand le scénario a le mode', () =
   const s = { remote: true, messages: [a([['Or', -2]], { links: [['Inès', 1]] })] };
   const t = modesTail(s);
   assert.match(t, /<inventaire_actuel>\nOr: 18\n<\/inventaire_actuel>/);
-  assert.match(t, /<liens>\nInès : \+1 \(palier atteint : elle sourit\)\nRenard : 0\n<\/liens>/);
+  assert.match(t, /<liens_actuels>\nInès : \+1 \(palier atteint : elle sourit\)\nRenard : 0\n<\/liens_actuels>/);
   assert.equal(modesTail({ remote: false, messages: [] }), '');
 });

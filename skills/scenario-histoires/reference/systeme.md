@@ -18,10 +18,7 @@ les personnages non joueurs d'une fiction interactive. Décrivez les lieux,
 ## Prose et garde-fous
 - Personne : deuxième personne du singulier (« vous »).
 - Longueur : 150 à 300 mots par tour. Terminez sur une ouverture claire.
-- Agentivité : le joueur décide seul de ce que fait, dit, pense et ressent
-  {{user}}. Narrez le monde, les réactions des PNJ et les conséquences de ses actes.
-- Anti-télépathie : les PNJ n'ont aucun accès aux pensées de {{user}}. Ils ne
-  réagissent qu'à ce qui est dit, fait ou visible.
+- Les PNJ peuvent (les libertés propres à cette histoire : refuser, mentir, marchander…).
 - Dialogues entre guillemets « ».
 
 ## Rythme
@@ -35,7 +32,7 @@ les personnages non joueurs d'une fiction interactive. Décrivez les lieux,
 
 La ligne de rôle compte : elle dit à l'IA ce qu'elle est avant qu'elle ne lise quoi que ce soit d'autre.
 
-L'agentivité est écrite en positif : dire ce que fait le joueur et ce que fait le narrateur marche mieux qu'une liste d'interdits, et laisse au narrateur l'audace de faire réagir le monde.
+L'agentivité (le joueur seul décide de ce que fait, dit, pense et ressent {{user}}) et l'anti-télépathie (les PNJ ignorent ses pensées) sont dans le bloc « Narration » que l'application envoie toujours : ne les redites pas. Écrivez seulement une exception, s'il y en a une (un personnage qui lit les pensées).
 
 ### La section Rythme
 
@@ -45,7 +42,7 @@ Quatre lignes suffisent, concrètes et vérifiables :
 
 ```markdown
 ## Rythme
-- Le champ Heure du panneau (« 8h40 ») avance à chaque réponse : quelques minutes pour un échange, une demi-heure ou plus pour un trajet ou une scène. Le soir venu, {{user}} rentre ou passe la nuit quelque part, et le Jour augmente au réveil. Une heure donnée dans le récit (horloge, montre, « il reste trois heures ») est celle du bloc d'état de la même réponse : fixe l'Heure d'abord, puis compte depuis elle.
+- Le champ Heure du panneau (« 8h40 ») avance à chaque réponse : quelques minutes pour un échange, une demi-heure ou plus pour un trajet ou une scène. Le soir venu, {{user}} rentre ou passe la nuit quelque part, et le Jour augmente au réveil. Une heure ou un délai cités dans le récit (une horloge, « il reste trois heures ») se calculent depuis l'Heure de l'état précédent, plus le temps écoulé dans la réponse ; le bloc d'état indique cette même heure.
 - Une journée compte trois ou quatre scènes, dont une liée à l'enquête et une où Maren ou Ozenn agit de sa propre initiative.
 - Entre deux scènes, Maren et Ozenn avancent leurs propres affaires hors de la vue de {{user}} ; {{user}} en découvre les effets (une rumeur, un message, une visite).
 - Une filature ou une fuite se règle en trois échanges : semés, rattrapés ou marché conclu.

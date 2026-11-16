@@ -107,8 +107,6 @@ else {
       err.push(`systeme.md redéfinit ${what} (« ${pat} ») : l’application s’en charge, retirez ces consignes`);
   if (sys.includes('{{char}}')) err.push('systeme.md utilise {{char}}, non reconnu : seul {{user}} existe');
   if (!/\{\{user\}\}/.test(sys)) warn.push('systeme.md ne mentionne jamais {{user}}');
-  if (!/agenc|agentiv|jamais les actions|ne jamais décrire/i.test(nz(sys)))
-    warn.push('aucun garde-fou d’agentivité repéré dans systeme.md');
   if (/CRITIQUE|\bJAMAIS\b|\bDOIT\b/.test(sys))
     warn.push('systeme.md emploie un ton d’alarme (CRITIQUE, JAMAIS, DOIT en capitales) : reformulez posément, avec la raison de chaque règle');
   if (/ast[ée]risques/i.test(sys))

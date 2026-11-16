@@ -33,13 +33,13 @@ N'écrivez pas dans `systeme.md` de consignes sur :
 - la forme du bloc `<choix>` ou le nombre de propositions → c'est un réglage du scénario dans l'application
 - la syntaxe `{{img::...}}` ou la liste des codes d'images → l'application les injecte seule
 - les gestes entre astérisques → l'application le demande, sauf si la case « Demander les gestes entre astérisques » du scénario est décochée
-- les conseils généraux de narration → l'application envoie un bloc « Narration » commun : personnages qui agissent sans attendre le joueur et réagissent entre eux, une voix par personnage, détails concrets, retour de ce qui a déjà eu lieu, première phrase sur ce que provoque l'action du joueur, scène de cinq ou six échanges puis ellipse
+- les conseils généraux de narration → l'application envoie un bloc « Narration » commun : agentivité du joueur, pensées de {{user}} inaccessibles aux PNJ, personnages qui agissent sans attendre le joueur et réagissent entre eux, une voix par personnage, détails concrets, retour, des scènes plus tard, de ce qui a déjà eu lieu, première phrase sur ce que provoque l'action du joueur, scène de cinq ou six échanges puis ellipse
 - les dés, l'inventaire, les liens → `regles.md`, `inventaire.md`, `liens.md` (voir `reference/modes.md`) ; l'application en donne seule les règles
 - les notes de jeu dans le récit (« [Situation : …] », « [Action risquée : …] ») → l'état et les jets ont leurs blocs ; seuls les messages propres à la fiction (un Système, une technique) peuvent être entre crochets
 
 L'application génère ces consignes dans la partie fixe du prompt, les mêmes pour tous les modèles. Si le prompt système les redéfinit, l'IA reçoit deux versions du même format et arbitre mal. L'application affiche d'ailleurs un avertissement à l'ouverture du scénario quand elle détecte `<choix>`, `<etat>` ou `{{img::` dans le prompt système.
 
-Ce qui reste au scénario : le monde, le ton, la voix, le **rythme propre à l'histoire** (ce que contient une journée, qui agit hors champ), la longueur des réponses, la personne grammaticale, les garde-fous d'agentivité, les règles de fiction.
+Ce qui reste au scénario : le monde, le ton, la voix, le **rythme propre à l'histoire** (ce que contient une journée, qui agit hors champ), la longueur des réponses, la personne grammaticale, les règles de fiction et leurs exceptions.
 
 ## Déroulé
 

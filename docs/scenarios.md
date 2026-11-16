@@ -148,7 +148,7 @@ Inès, à +2 : elle vous confie qu'elle a déserté l'Ordre
 Renard, à −2 : il vous dénonce au guet
 ```
 
-- Le narrateur reçoit les liens actuels et les paliers atteints (`<liens>`, en fin de requête), et signale un changement par `<lien>Inès +1</lien>`, seulement pour un geste qui compte. Un nom qui ne désigne aucun personnage à fiche est ignoré.
+- Le narrateur reçoit les liens actuels et les paliers atteints (`<liens_actuels>`, en fin de requête), et signale un changement par `<lien>Inès +1</lien>`, seulement pour un geste qui compte. Un nom qui ne désigne aucun personnage à fiche est ignoré.
 - La fenêtre Personnages montre la jauge sous chaque personnage, avec les paliers atteints ; la ligne sous la réponse dit qui a changé.
 - Un palier positif est atteint à cette valeur ou au-dessus, un palier négatif à cette valeur ou au-dessous.
 
@@ -175,13 +175,12 @@ L'application rattrape les écarts courants :
 
 Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/protocol.js`). Le scénario donne le monde et le ton, ce bloc le mouvement :
 
-- le joueur seul décide de ce que fait, dit, pense et ressent son personnage : ce qu'il écrit est une tentative, dont le narrateur raconte le résultat et les réactions ; seules les propositions de choix le font agir ou parler ;
-- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées ;
+- le joueur seul décide de ce que fait, dit, pense et ressent son personnage : ce qu'il écrit est une tentative, dont le narrateur raconte le résultat et les réactions, sans lui prêter de geste ni de réplique ; seules les propositions de choix le font agir ou parler ;
 - la réponse s'ouvre sur ce que provoque l'action du joueur, sans la raconter de nouveau ; sa dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes ;
-- les personnages agissent sans attendre le joueur et réagissent entre eux ; chacun a sa voix, et ne répète pas le même comportement d'une réponse à l'autre ;
-- des détails concrets plutôt que des adjectifs ; un détail déjà décrit ne revient que s'il a changé ; ce qui a déjà eu lieu (objet, promesse, blessure) revient ;
-- les émotions se montrent par des gestes ; pas de didascalie vide (« Un temps. », « Silence. ») ;
-- ce qui se répète (entraînement, trajet, attente) se résume pour avancer jusqu'au prochain moment qui compte ; une scène tient en cinq ou six échanges, puis le narrateur la fait aboutir et propose d'en sortir.
+- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées ;
+- le monde vit sans attendre le joueur ; chaque personnage a sa voix, et son attitude évolue au lieu de se répéter ;
+- montrer plutôt que nommer : détails concrets, émotions par les gestes, pas de didascalie vide (« Un temps. », « Silence. ») ; un détail déjà décrit ne revient que s'il a changé, et ce qui a eu lieu (objet, promesse, phrase) revient des scènes plus tard ;
+- ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte.
 
 Les choix par défaut en proposent deux qui poursuivent la scène, dans des registres différents, et un troisième qui la quitte (autre lieu, saut dans le temps, question tranchée).
 

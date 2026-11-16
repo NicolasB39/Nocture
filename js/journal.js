@@ -38,6 +38,8 @@ const TAGS = {
   personnages: 'Fiches des personnages en scène',
   passages_anciens: 'Passages anciens retrouvés',
   etat_precedent: 'État précédent',
+  inventaire_actuel: 'Inventaire',
+  liens_actuels: 'Liens',
   indication: 'Indication'
 };
 // Fin de requête, hors cache : le dernier message, découpé en blocs ajoutés par l'application, en tokens estimés.

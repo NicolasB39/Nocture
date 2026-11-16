@@ -105,7 +105,7 @@ const memBlock = s => {
   // Tous les souvenirs gardés (MEM_MAX au plus, memory.js) : ils sont en cache avec le reste de la mémoire.
   const mm = s.mem.memories || [];
   if (mm.length)
-    t += '\n\n<long_term_memory>\n' + mm.map(x => '- ' + x).join('\n') + '\n</long_term_memory>';
+    t += '\n\n<long_term_memory>\n(Faits passés ; l’état précédent et le scénario priment sur eux.)\n' + mm.map(x => '- ' + x).join('\n') + '\n</long_term_memory>';
   const rl = Object.entries(s.mem.relations || {});
   if (rl.length)
     t +=

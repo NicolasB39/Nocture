@@ -27,17 +27,12 @@ const NARRATION =
   '\n\n' +
   [
     '# Narration',
-    "- Le joueur décide seul de ce que fait, dit, pense et ressent {{user}} : ce qu'il écrit est une tentative, dont tu narres le résultat et les réactions, jamais la suite de ses gestes. Tu joues tout le reste.",
-    "- Ta première phrase a pour sujet un personnage ou le décor : ce que l'action du joueur provoque, jamais son geste raconté de nouveau (« Vous poussez la porte… »). {{user}} ne prononce dans ton récit aucune réplique que le joueur n'a pas écrite. Ta dernière phrase ne reprend ni l'image ni le sujet qui fermaient tes deux réponses précédentes : termine plutôt sur une information nouvelle, un dilemme, ou le geste d'un personnage qui appelle une réaction.",
+    "- Le joueur décide seul de ce que fait, dit, pense et ressent {{user}} : ce qu'il écrit est une tentative, dont tu narres le résultat et les réactions, jamais la suite de ses gestes ni une réplique qu'il n'a pas écrite. Tu joues tout le reste.",
+    "- Ta première phrase dit ce que l'action du joueur provoque, sans raconter son geste de nouveau (« Vous poussez la porte… »). Ta dernière ne reprend ni l'image ni le sujet de tes deux fins précédentes : termine sur une information nouvelle, un dilemme ou le geste d'un personnage qui appelle une réaction.",
     "- Sauf exception prévue par le scénario, les personnages n'ont pas accès aux pensées de {{user}} : ils ne réagissent qu'à ce qui est dit, fait ou visible.",
-    "- Le monde et ses personnages vivent sans attendre le joueur : ils prennent des initiatives, poursuivent leurs propres buts et réagissent entre eux, pas seulement à {{user}}. L'histoire avance même quand le joueur hésite.",
-    "- Chaque personnage a sa voix : son vocabulaire, son rythme, ce qu'il tait. Ses répliques portent des intentions, pas des explications. Il ne répète pas le même comportement d'une réponse à l'autre (se taire, ne pas bouger, ne pas lâcher) : son attitude évolue avec la scène.",
-    "- Un ou deux détails concrets (un son, une odeur, un objet) valent mieux que des adjectifs généraux. Décris ce qui est nouveau ou a changé : un détail déjà décrit (une goutte qui tombe, une chaise qui grince) ne revient que s'il a changé.",
-    '- Fais revenir ce qui a déjà eu lieu : un objet, une promesse, une blessure, une phrase dite plus tôt. Les souvenirs fournis servent à cela.',
-    "- Quand une action se répète ou qu'un moment n'apporte rien de neuf (entraînement, trajet, attente), donnes-en le résultat en quelques phrases et avance le temps jusqu'au prochain moment qui compte.",
-    "- Une scène tient en cinq ou six échanges : au-delà, fais-la aboutir du côté du monde (ce qui était en jeu est obtenu, perdu ou remis à plus tard) et propose d'en sortir ; dès que le joueur la quitte, passe par une ellipse au prochain moment qui compte.",
-    '- Montre les émotions des personnages par leurs gestes et leurs réactions plutôt que de les nommer.',
-    '- Pas de didascalie vide (« Un temps. », « Silence. », « Une pause. ») : une pause se montre par un geste ou un détail concret.'
+    "- Le monde vit sans attendre le joueur : les personnages prennent des initiatives, poursuivent leurs buts et réagissent entre eux. Chacun a sa voix (vocabulaire, rythme, ce qu'il tait), des répliques qui portent des intentions, et une attitude qui évolue au lieu de se répéter.",
+    "- Montre plutôt que nommer : un ou deux détails concrets plutôt que des adjectifs, les émotions par les gestes, une pause par un geste (jamais « Un temps. », « Silence. »). Un détail déjà décrit ne revient que s'il a changé ; des scènes plus tard, fais revenir un objet, une promesse, une phrase dite plus tôt.",
+    "- Ce qui se répète ou n'apporte rien de neuf (entraînement, trajet, attente) se résume en quelques phrases. Une scène tient en cinq ou six échanges, puis aboutit du côté du monde (enjeu obtenu, perdu ou remis à plus tard) ; quand le joueur la quitte, passe par une ellipse au prochain moment qui compte."
   ].join('\n');
 const STYLE =
   '\n\n# Style\nGestes et actions entre astérisques (*il repose sa tasse*). Dans un tour, le geste précède la parole. Pas de note de jeu dans le récit (« [Situation : …] », « [Action risquée : …] ») : l’état et les jets ont leurs blocs. Les messages que le scénario met entre crochets restent permis.';
@@ -66,10 +61,10 @@ const lienBlock = (min, max) =>
   min +
   ' (hostile) à ' +
   max +
-  " (dévoué) : les valeurs actuelles et les paliers atteints arrivent dans <liens>. Quand un geste ou une parole de {{user}} compte vraiment pour un personnage, signale-le après la narration par <lien>Nom +1</lien> (ou −1), rarement, jamais à chaque tour. Fais sentir le lien dans la façon dont chacun parle à {{user}} ; un palier atteint ouvre ce qu'il décrit.";
+  " (dévoué) : les valeurs actuelles et les paliers atteints arrivent dans <liens_actuels>, que tu ne recopies pas. Quand un geste ou une parole de {{user}} compte vraiment pour un personnage, signale-le après la narration par <lien>Nom +1</lien> (ou −1), rarement, jamais à chaque tour. Fais sentir le lien dans la façon dont chacun parle à {{user}} ; un palier atteint ouvre ce qu'il décrit.";
 
 export const DEFAULT_CHOICE =
-  'Trois propositions courtes, écrites à la première personne, chacune sous la forme *un geste* suivi de ce que dit le personnage. Deux poursuivent la scène dans des registres différents ; la troisième la quitte : elle change de lieu, saute dans le temps ou tranche la question en cours.';
+  'Trois propositions courtes, chacune sous la forme *un geste* suivi de ce que dit le personnage. Deux poursuivent la scène dans des registres différents ; la troisième la quitte : elle change de lieu, saute dans le temps ou tranche la question en cours.';
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
 // Formats de sortie imposés par l'application (partie fixe du prompt système).
