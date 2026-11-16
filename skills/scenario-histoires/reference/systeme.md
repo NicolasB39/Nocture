@@ -45,7 +45,7 @@ Quatre lignes suffisent, concrètes et vérifiables :
 
 ```markdown
 ## Rythme
-- Le champ Heure du panneau (« 8h40 ») avance à chaque réponse : quelques minutes pour un échange, une demi-heure ou plus pour un trajet ou une scène. Le soir venu, {{user}} rentre ou passe la nuit quelque part, et le Jour augmente au réveil.
+- Le champ Heure du panneau (« 8h40 ») avance à chaque réponse : quelques minutes pour un échange, une demi-heure ou plus pour un trajet ou une scène. Le soir venu, {{user}} rentre ou passe la nuit quelque part, et le Jour augmente au réveil. Une heure donnée dans le récit (horloge, montre, « il reste trois heures ») est celle du bloc d'état de la même réponse : fixe l'Heure d'abord, puis compte depuis elle.
 - Une journée compte trois ou quatre scènes, dont une liée à l'enquête et une où Maren ou Ozenn agit de sa propre initiative.
 - Entre deux scènes, Maren et Ozenn avancent leurs propres affaires hors de la vue de {{user}} ; {{user}} en découvre les effets (une rumeur, un message, une visite).
 - Une filature ou une fuite se règle en trois échanges : semés, rattrapés ou marché conclu.
