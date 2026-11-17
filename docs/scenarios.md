@@ -180,7 +180,7 @@ Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/pr
 - sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées ;
 - le monde vit sans attendre le joueur ; chaque personnage a sa voix, et son attitude évolue au lieu de se répéter ;
 - montrer plutôt que nommer : détails concrets, émotions par les gestes, pas de didascalie vide (« Un temps. », « Silence. ») ; un détail déjà décrit ne revient que s'il a changé, et ce qui a eu lieu (objet, promesse, phrase) revient des scènes plus tard ;
-- ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte.
+- ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte ; quand le joueur veut partir, il part (un personnage peut le retenir une fois, pas davantage).
 
 Les choix par défaut en proposent deux qui poursuivent la scène, dans des registres différents, et un troisième qui la quitte (autre lieu, saut dans le temps, question tranchée).
 

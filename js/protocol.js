@@ -9,7 +9,7 @@ export const modelOf = (s = app.cur) => s?.model || S.model || API.m;
 const lieuBlock = fields => {
   const f = fields.match(/(?:^|,\s*)((?:lieu|endroit|localisation|position)[^,]*)/i)?.[1].trim();
   return f
-    ? '\nQuand le lieu change, ouvre ta réponse par <lieu>nouveau lieu</lieu> seul sur sa ligne (même valeur que le champ ' + f + ') ; sinon, pas de balise.'
+    ? '\nQuand le lieu change, ouvre ta réponse par <lieu>nouveau lieu</lieu> seul sur sa ligne (même valeur que le champ ' + f + ') ; sinon, pas de balise ni de mention du lieu.'
     : '';
 };
 const stateBlock = (fields, choices) =>
@@ -32,7 +32,7 @@ const NARRATION =
     "- Sauf exception prévue par le scénario, les personnages n'ont pas accès aux pensées de {{user}} : ils ne réagissent qu'à ce qui est dit, fait ou visible.",
     "- Le monde vit sans attendre le joueur : les personnages prennent des initiatives, poursuivent leurs buts et réagissent entre eux. Chacun a sa voix (vocabulaire, rythme, ce qu'il tait), des répliques qui portent des intentions, et une attitude qui évolue au lieu de se répéter.",
     "- Montre plutôt que nommer : un ou deux détails concrets plutôt que des adjectifs, les émotions par les gestes, une pause par un geste (jamais « Un temps. », « Silence. »). Un détail déjà décrit ne revient que s'il a changé ; des scènes plus tard, fais revenir un objet, une promesse, une phrase dite plus tôt.",
-    "- Ce qui se répète ou n'apporte rien de neuf (entraînement, trajet, attente) se résume en quelques phrases. Une scène tient en cinq ou six échanges, puis aboutit du côté du monde (enjeu obtenu, perdu ou remis à plus tard) ; quand le joueur la quitte, passe par une ellipse au prochain moment qui compte."
+    "- Ce qui se répète ou n'apporte rien de neuf (entraînement, trajet, attente) se résume en quelques phrases. Une scène tient en cinq ou six échanges, puis aboutit du côté du monde (enjeu obtenu, perdu ou remis à plus tard) ; quand le joueur la quitte, passe par une ellipse au prochain moment qui compte. Quand le joueur veut partir, il part : un personnage peut le retenir une fois, pas davantage, puis le suivre ou le relancer plus tard."
   ].join('\n');
 const STYLE =
   '\n\n# Style\nGestes et actions entre astérisques (*il repose sa tasse*). Dans un tour, le geste précède la parole. Pas de note de jeu dans le récit (« [Situation : …] », « [Action risquée : …] ») : l’état et les jets ont leurs blocs. Les messages que le scénario met entre crochets restent permis.';
