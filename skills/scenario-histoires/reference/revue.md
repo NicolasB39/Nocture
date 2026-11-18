@@ -21,7 +21,7 @@ Chercher dans `systeme.md` : `<choix>`, `<etat>`, `{{img::`, « trois propositio
 
 ## Fiction
 
-- Le prompt redit-il ce que le bloc « Narration » de l'application envoie déjà (agentivité, anti-télépathie, personnages qui vivent sans le joueur, ellipse d'une journée sans enjeu) ? Retirer la redite, garder la nuance propre à l'histoire.
+- Le prompt redit-il ce que le bloc « Narration » de l'application envoie déjà (agentivité, anti-télépathie, personnages qui ne savent que ce qu'ils ont vu ou appris, ni adulation ni haine sans raison, personnages qui vivent sans le joueur, nouvelles par rumeur ou message, ellipse d'une journée sans enjeu) ? Retirer la redite, garder la nuance propre à l'histoire.
 - Le ton des consignes est-il posé ? Repérer « CRITIQUE », « DIRECTIVE », « JAMAIS » ou « DOIT » en capitales : reformuler chaque règle calmement, avec sa raison. Un prompt alarmé donne une narration timide.
 - Les PNJ importants ont-ils un but à eux (« Ce qu'il veut ») ? Sans lui, ils attendent le joueur au lieu d'agir.
 - Est-il dit quelque part que les PNJ peuvent refuser, mentir ou être en désaccord ?

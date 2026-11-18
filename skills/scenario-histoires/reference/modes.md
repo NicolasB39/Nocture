@@ -54,6 +54,7 @@ Kaël, à +2 : il retient enfin votre nom
 - Le nom d'un palier est celui du dossier du personnage (ou un nom approchant) ; un nom sans fiche est ignoré.
 - Un palier positif est atteint à cette valeur ou au-dessus, un négatif à cette valeur ou au-dessous. Le narrateur reçoit les paliers atteints : écrivez-les comme ce qu'ils **ouvrent** dans l'histoire (une confidence, une trahison, une aide), pas comme un sentiment.
 - Deux ou trois paliers par personnage important suffisent, dans les deux sens.
+- Le narrateur ne bouge un lien que pour un acte qui compte (aide réelle, promesse tenue ou trahie, risque pris), jamais pour un compliment ou un service isolé : placez les paliers en conséquence, un +2 se gagne sur plusieurs scènes.
 
 ## Intro : intro.md
 

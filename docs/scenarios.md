@@ -149,7 +149,7 @@ Inès, à +2 : elle vous confie qu'elle a déserté l'Ordre
 Renard, à −2 : il vous dénonce au guet
 ```
 
-- Le narrateur reçoit les liens actuels et les paliers atteints (`<liens_actuels>`, en fin de requête), et signale un changement par `<lien>Inès +1</lien>`, seulement pour un geste qui compte. Un nom qui ne désigne aucun personnage à fiche est ignoré.
+- Le narrateur reçoit les liens actuels et les paliers atteints (`<liens_actuels>`, en fin de requête), et signale un changement par `<lien>Inès +1</lien>`, seulement pour un acte qui compte (aide réelle, promesse tenue ou trahie, risque pris), jamais pour un compliment ou un service isolé. Un nom qui ne désigne aucun personnage à fiche est ignoré.
 - La fenêtre Personnages montre la jauge sous chaque personnage, avec les paliers atteints ; la ligne sous la réponse dit qui a changé.
 - Un palier positif est atteint à cette valeur ou au-dessus, un palier négatif à cette valeur ou au-dessous.
 
@@ -178,8 +178,9 @@ Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/pr
 
 - le joueur seul décide de ce que fait, dit, pense et ressent son personnage : ce qu'il écrit est une tentative, dont le narrateur raconte le résultat et les réactions, sans lui prêter de geste ni de réplique ; seules les propositions de choix le font agir ou parler ;
 - la réponse s'ouvre sur ce que provoque l'action du joueur, sans la raconter de nouveau ; sa dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes ;
-- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées ;
-- le monde vit sans attendre le joueur ; chaque personnage a sa voix, et son attitude évolue au lieu de se répéter ;
+- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées et ne savent que ce qu'ils ont vu ou appris ;
+- personne n'admire le personnage du joueur, ne lui obéit ni ne le hait sans raison : ses actes changent peu à peu sa réputation, et chacun y réagit à sa façon ;
+- le monde vit sans attendre le joueur, et ce qui arrive hors de sa vue lui parvient par une nouvelle, une rumeur, un message ou une visite ; chaque personnage a sa voix, et son attitude évolue au lieu de se répéter ;
 - montrer plutôt que nommer : détails concrets, émotions par les gestes, pas de didascalie vide (« Un temps. », « Silence. ») ; un détail déjà décrit ne revient que s'il a changé, et ce qui a eu lieu (objet, promesse, phrase) revient des scènes plus tard ;
 - ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte ; quand le joueur veut partir, il part (un personnage peut le retenir une fois, pas davantage).
 

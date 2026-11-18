@@ -49,7 +49,8 @@ Quatre lignes suffisent, concrètes et vérifiables :
 ```
 
 - **Nommez les personnages** qui doivent agir : « les PNJ prennent des initiatives » reste lettre morte, « Dussault, Inès ou Kaël agit de sa propre initiative » les fait entrer en scène.
-- **Le hors-champ** est ce qui fait vivre le monde : un personnage qui a avancé ses affaires pendant que le joueur était ailleurs arrive avec du neuf.
+- **Le hors-champ** est ce qui fait vivre le monde : un personnage qui a avancé ses affaires pendant que le joueur était ailleurs arrive avec du neuf. Le bloc « Narration » demande déjà que ces nouvelles arrivent par une rumeur, un message ou une visite ; le scénario dit **par où** dans ce monde (les alertes d'une agence, la gazette, le port) et quels événements y circulent sans le joueur, de préférence dans une entrée de lorebook « toujours ».
+- **La réputation** : le bloc « Narration » interdit qu'on adule ou qu'on haïsse {{user}} sans raison. Si l'histoire la suit de près, décrivez-en les paliers et ce qu'ils changent ; sinon, rien à écrire.
 - **Une récompense concrète** (un niveau, un objet nommé, un chiffre) vaut mieux qu'une promesse vague, que l'IA oublie.
 - Pas de « Pas de téléportation : décrivez le trajet » : c'est l'inverse qui manque presque toujours. Un trajet tient en une phrase.
 
