@@ -117,7 +117,7 @@ Les crochets délimitent sans ambiguïté. Utile pour les événements à retard
 - **Pas de hasard.** L'IA ne tire pas de nombres aléatoires : elle imite le hasard, avec des biais visibles. Remplacez « 30 % de chances que le garde vous repère » par une condition explicite sur l'état du monde.
 - **Pas de comptabilité fine.** Multiplicateurs, points de vie au point près, économies chiffrées : elle dérive. Préférez des paliers qualitatifs (« épuisé, fatigué, dispos ») que le panneau d'état suit très bien.
 - **Oui aux conséquences.** Elle excelle à relier un choix ancien à une scène présente, surtout si le fait est dans les souvenirs ou le panneau d'état.
-- **Oui aux PNJ qui résistent.** Dites explicitement qu'ils peuvent refuser, mentir, être en désaccord. Sans cela, ils cèdent à tout.
+- **Oui aux PNJ qui résistent.** Le bloc « Narration » leur demande déjà de défendre leurs intérêts et de ne pas céder parce que le joueur insiste. Dites ce que ceux de cette histoire font de plus (mentir, trahir, se moquer, tenir tête), en une ligne.
 - **Oui aux PNJ qui veulent quelque chose.** Le bloc « Narration » de l'application leur demande de prendre des initiatives ; c'est le « Ce qu'il veut » de leur fiche qui leur en donne la matière.
 - **Oui au monde qui bouge hors champ.** Des événements à retardement (`SI … ALORS`, de préférence dans le lorebook) font avancer l'histoire même quand le joueur hésite.
 

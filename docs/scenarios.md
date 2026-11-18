@@ -177,9 +177,9 @@ L'application rattrape les écarts courants :
 Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/protocol.js`). Le scénario donne le monde et le ton, ce bloc le mouvement :
 
 - le joueur seul décide de ce que fait, dit, pense et ressent son personnage : ce qu'il écrit est une tentative, dont le narrateur raconte le résultat et les réactions, sans lui prêter de geste ni de réplique ; seules les propositions de choix le font agir ou parler ;
-- la réponse s'ouvre sur ce que provoque l'action du joueur, sans la raconter de nouveau ; sa dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes ;
-- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées et ne savent que ce qu'ils ont vu ou appris ;
-- personne n'admire le personnage du joueur, ne lui obéit ni ne le hait sans raison : ses actes changent peu à peu sa réputation, et chacun y réagit à sa façon ;
+- la réponse s'ouvre sur ce que provoque l'action du joueur, sans redire son geste ni ses paroles ; sa dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes ;
+- sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées et ne savent que ce qu'ils ont vu ou appris : ils doutent des rumeurs et peuvent se tromper ;
+- personne n'admire le personnage du joueur, ne lui obéit ni ne le hait sans raison : ses actes changent peu à peu sa réputation, et chacun y réagit à sa façon ; chacun défend ses intérêts et ne change d'avis que sur un argument ou un fait nouveau, pas parce que le joueur insiste ;
 - le monde vit sans attendre le joueur, et ce qui arrive hors de sa vue lui parvient par une nouvelle, une rumeur, un message ou une visite ; chaque personnage a sa voix, et son attitude évolue au lieu de se répéter ;
 - montrer plutôt que nommer : détails concrets, émotions par les gestes, pas de didascalie vide (« Un temps. », « Silence. ») ; un détail déjà décrit ne revient que s'il a changé, et ce qui a eu lieu (objet, promesse, phrase) revient des scènes plus tard ;
 - ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte ; quand le joueur veut partir, il part (un personnage peut le retenir une fois, pas davantage).

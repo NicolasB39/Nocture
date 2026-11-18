@@ -21,10 +21,10 @@ Chercher dans `systeme.md` : `<choix>`, `<etat>`, `{{img::`, « trois propositio
 
 ## Fiction
 
-- Le prompt redit-il ce que le bloc « Narration » de l'application envoie déjà (agentivité, anti-télépathie, personnages qui ne savent que ce qu'ils ont vu ou appris, ni adulation ni haine sans raison, personnages qui vivent sans le joueur, nouvelles par rumeur ou message, ellipse d'une journée sans enjeu) ? Retirer la redite, garder la nuance propre à l'histoire.
+- Le prompt redit-il ce que le bloc « Narration » de l'application envoie déjà (agentivité, anti-télépathie, personnages qui ne savent que ce qu'ils ont vu ou appris, ni adulation ni haine sans raison, personnages qui ne cèdent pas facilement, personnages qui vivent sans le joueur, nouvelles par rumeur ou message, ellipse d'une journée sans enjeu) ? Retirer la redite, garder la nuance propre à l'histoire.
 - Le ton des consignes est-il posé ? Repérer « CRITIQUE », « DIRECTIVE », « JAMAIS » ou « DOIT » en capitales : reformuler chaque règle calmement, avec sa raison. Un prompt alarmé donne une narration timide.
 - Les PNJ importants ont-ils un but à eux (« Ce qu'il veut ») ? Sans lui, ils attendent le joueur au lieu d'agir.
-- Est-il dit quelque part que les PNJ peuvent refuser, mentir ou être en désaccord ?
+- Est-il dit ce que les PNJ de cette histoire font quand ils résistent (mentir, trahir, se moquer) ? Ne pas céder au joueur qui insiste est déjà dans le bloc « Narration ».
 - Le scénario demande-t-il du hasard, des pourcentages ou des calculs ? À remplacer par des conditions explicites ou des paliers qualitatifs.
 - La longueur de réponse est-elle cadrée ? Sans consigne, le modèle part trop long et le panneau d'état se fait couper.
 - Y a-t-il une section **Rythme** qui dit ce que contient une journée, qui agit hors champ (personnages nommés) et comment l'heure avance ? C'est le premier remède à un récit qui piétine.
