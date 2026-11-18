@@ -28,5 +28,5 @@ PWA de fiction interactive avec Claude : JavaScript en modules ES, sans framewor
 ## Outils
 
 - Journal d'appels exporté par l'app : `node tools/mesure-journal.mjs journal.json` mesure la dernière séance (le journal garde les 100 derniers appels, souvent de plusieurs séances).
-- Images PNG ajoutées à un scénario (décor, couverture, téléversées sur GitHub) : `npm run webp` les convertit toutes en WebP (dix fois plus légères, mêmes codes) et retire les PNG.
+- Images PNG ajoutées à un scénario : la publication les convertit en WebP toute seule (étape webp, `tools/webp-ci.sh`, commit « Images des scénarios converties en WebP » à récupérer) ; en local, `npm run webp` fait la même chose avant le commit.
 - Planche d'expressions d'un personnage : `node tools/planche.mjs planche.png "scenarios/<Nom>/personnages/<Perso>" nom_neutre nom_sourire nom_ferme` découpe, montre un aperçu sur fond sombre et écrit les WebP.

@@ -163,6 +163,7 @@ tools/css.mjs       classes CSS sans usage apparent (npm run css)
 tools/mesure-journal.mjs  mesures d'un journal d'appels exporté, dernière séance
 tools/planche.mjs   planche d'expressions → images WebP détourées d'un personnage
 tools/webp.mjs      images PNG des scénarios → WebP, PNG retirés (npm run webp)
+tools/webp-ci.sh    la même conversion à la publication, avec cwebp, pour les images téléversées sur GitHub
 test/               tests unitaires (node --test), sans aucune dépendance
 test/e2e.mjs        test de bout en bout dans Chromium (API Claude et GitHub simulées)
 .claude/agents/     relecteur.md : agent Claude Code qui relit une modification selon les règles ci-dessous ;

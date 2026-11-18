@@ -11,12 +11,33 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  # Images PNG téléversées dans scenarios/ : converties en WebP et enregistrées dans le dépôt avant les tests et la
+  # publication. Seule étape qui peut écrire dans le dépôt, et sans npm (tools/webp-ci.sh : cwebp d'Ubuntu). Son
+  # commit ne relance pas de publication (GitHub ne déclenche rien sur un push fait par la publication elle-même).
+  webp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash tools/webp-ci.sh
+      - name: Enregistrer les WebP
+        run: |
+          git diff --cached --quiet && exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898283+github-actions[bot]@users.noreply.github.com'
+          git commit -q -m 'Images des scénarios converties en WebP'
+          git push -q origin "HEAD:$GITHUB_REF_NAME"
   # Tests unitaires puis de bout en bout dans Chromium, sur les fichiers tels qu'ils seront publiés.
   # Job à part : node_modules et le navigateur ne partent pas dans l'artefact du site.
+  # Les deux étapes suivantes partent de la branche telle qu'après webp (ref), WebP compris.
   test:
+    needs: webp
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -40,6 +61,8 @@ jobs:
       url: ${{ steps.d.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
