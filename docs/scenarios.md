@@ -108,9 +108,10 @@ Vigueur, Adresse, Esprit, Présence, Volonté
 
 L'IA ne lance jamais les dés : un modèle ne sait pas tirer au hasard et choisit presque toujours le résultat qui arrange l'histoire. Elle désigne seulement le jet, et l'application le lance (`js/dice.js`) :
 
-- dans ses choix, une action risquée se termine par sa caractéristique et sa difficulté : « Je force le cadenas (Adresse, difficile) ». L'application l'affiche en étiquette, avec la chance de réussite d'après la fiche (« Adresse · difficile · 50 % », en rouge sous 35 %) ; toucher le choix lance un d20, ajoute le bonus de la fiche et envoie le résultat avec le message ;
+- dans ses choix, une action risquée se termine par sa caractéristique et sa difficulté : « Je force le cadenas (Adresse, difficile) ». Face à un danger, un des choix, et un seul, en porte une. L'application l'affiche en étiquette, avec la chance de réussite d'après la fiche (« Adresse · difficile · 50 % », en rouge sous 35 %) ; toucher le choix lance un d20, ajoute le bonus de la fiche et envoie le résultat avec le message ;
 - quand le joueur écrit lui-même une action risquée, l'IA montre l'instant d'avant et finit par `<jet>Adresse, difficile</jet>` : un bouton « Lancer le dé », avec la même chance de réussite, apparaît, et le tour suivant part avec le résultat (et avec le brouillon en cours, s'il y en a un) ;
 - le résultat s'écrit dans le message du joueur, `<jet>Adresse, difficile (13) : 14 + 2 = 16, réussite</jet>`, affiché en carte. L'IA raconte l'issue sans la contredire. Un 20 naturel est une réussite critique, un 1 naturel un échec critique.
+- un jet raté peut être relancé une fois par jour de fiction : tant que la réponse qui l'a raconté est la dernière, un bouton « Relancer le dé » sous la conversation relance la même caractéristique et refait la réponse. Le jour est lu dans le champ Jour ou Date de l'état ; sans ce champ, la relance revient tous les 20 messages.
 
 Seule l'application lance les dés : un résultat que le narrateur écrirait lui-même est retiré de sa réponse. Une demande de jet mal formée garde son bouton (caractéristique inconnue : bonus nul ; difficulté inconnue : moyen). Une marque placée au milieu d'un choix, avant une réplique ou une ponctuation, est reconnue aussi.
 
@@ -182,7 +183,7 @@ Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/pr
 - montrer plutôt que nommer : détails concrets, émotions par les gestes, pas de didascalie vide (« Un temps. », « Silence. ») ; un détail déjà décrit ne revient que s'il a changé, et ce qui a eu lieu (objet, promesse, phrase) revient des scènes plus tard ;
 - ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte ; quand le joueur veut partir, il part (un personnage peut le retenir une fois, pas davantage).
 
-Les choix par défaut en proposent deux qui poursuivent la scène, dans des registres différents, et un troisième qui la quitte (autre lieu, saut dans le temps, question tranchée).
+Les choix par défaut en proposent deux qui poursuivent la scène, dans des registres différents, et un troisième qui la quitte (autre lieu, saut dans le temps, question tranchée). Chacun commence par un geste, avec une réplique seulement quand elle sert ; face à un danger, l'un d'eux est une action physique risquée.
 
 ### Préambule commun
 

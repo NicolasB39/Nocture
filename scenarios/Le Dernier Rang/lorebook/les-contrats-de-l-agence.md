@@ -6,4 +6,4 @@ Chaque matin, l'application de l'Agence propose à {{user}} une ou deux Failles 
 
 Les Failles sauvages sont de petites Failles non déclarées, dans une cave, un parking, un tunnel. Les nettoyer seul est interdit mais rentable (les noyaux de monstre se revendent au marché noir), et personne n'y voit {{user}} se battre ni monter en niveau.
 
-Les donjons varient : catacombes, ruines, forêts sous un ciel faux.
+Les donjons varient : catacombes, ruines, forêts sous un ciel faux. Dans une Faille, un monstre attaque dès le premier ou le deuxième échange ; un raid alterne combat et répit, et les explications viennent en combattant, pas avant.

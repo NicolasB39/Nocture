@@ -45,7 +45,7 @@ const jetBlock = (rules, choices) =>
   rules.join(', ') +
   '. Difficultés : facile, moyen, difficile, très difficile.' +
   (choices
-    ? '\n- Dans le bloc <choix>, termine une action risquée par la caractéristique qui convient et sa difficulté, entre parenthèses, en fin de ligne : « … (Caractéristique, difficile) ». Une action sans risque n’en a pas, et un seul des choix, au plus, porte cette parenthèse.'
+    ? '\n- Dans le bloc <choix>, termine une action risquée par la caractéristique qui convient et sa difficulté, entre parenthèses, en fin de ligne : « … (Caractéristique, difficile) ». Une action sans risque n’en a pas ; face à un danger, un des choix, et un seul, porte cette parenthèse.'
     : '') +
   '\n- Quand le message du joueur contient un bloc <jet>, raconte l’issue de son action selon ce résultat, sans le contredire : une réussite critique va au-delà de l’espéré, un échec critique ajoute une complication. Un échec change la situation (l’obstacle se ferme, se déplace ou coûte quelque chose) : la même action ne se retente pas.' +
   '\n- Quand le joueur écrit de lui-même une action, sans <jet>, raconte son issue sans dé, sauf si un échec changerait la suite (danger, adversaire, perte). Dans ce cas seulement, ne raconte ni son geste ni l’issue : montre en 60 mots au plus ce que fait le monde à cet instant (l’obstacle, l’adversaire), même si le scénario demande des réponses plus longues, et termine ta réponse par <jet>Caractéristique, difficulté</jet>' +
@@ -64,7 +64,7 @@ const lienBlock = (min, max) =>
   " (dévoué) : les valeurs actuelles et les paliers atteints arrivent dans <liens_actuels>, que tu ne recopies pas. Quand un geste ou une parole de {{user}} compte vraiment pour un personnage, signale-le après la narration par <lien>Nom +1</lien> (ou −1), rarement, jamais à chaque tour. Fais sentir le lien dans la façon dont chacun parle à {{user}} ; un palier atteint ouvre ce qu'il décrit.";
 
 export const DEFAULT_CHOICE =
-  'Trois propositions courtes, chacune sous la forme *un geste* suivi de ce que dit le personnage. Deux poursuivent la scène dans des registres différents ; la troisième la quitte : elle change de lieu, saute dans le temps ou tranche la question en cours.';
+  "Trois propositions courtes, chacune commence par *un geste*, suivi d'une réplique seulement quand elle sert. Deux poursuivent la scène dans des registres différents ; la troisième la quitte : elle change de lieu, saute dans le temps ou tranche la question en cours. Face à un danger, l'une d'elles est une action physique risquée.";
 export const DEFAULT_FIELDS = 'Lieu, Objectif, Humeur';
 
 // Règles d'écriture communes : placées par prompt.js juste après le scénario, avant les fiches et le lorebook,

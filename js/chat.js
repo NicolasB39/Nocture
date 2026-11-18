@@ -6,14 +6,14 @@ import { conflicts } from './protocol.js';
 import { passageOff } from './passage.js';
 import { recap } from './recap.js';
 import { loadCtx, TERR } from './scenarios.js';
-import { zoomScene } from './scene.js';
+import { dayKey, zoomScene } from './scene.js';
 import { openSheet } from './sheet.js';
-import { noRolls, roll, sheetOf, withRoll } from './dice.js';
+import { noRolls, rerollOf, roll, sheetOf, withRoll } from './dice.js';
 import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx, playerName } from './state.js';
 import { statFields, statOn } from './prompt.js';
 import { forkOf, getOne, save } from './store.js';
-import { $, dlg, err, fit, LS, plain, smooth, toast, uid, vt } from './util.js';
+import { $, dlg, err, fit, isRoll, JET, LS, plain, smooth, toast, uid, vt } from './util.js';
 import { readPos, render } from './view.js';
 
 // Conversation : ouverture d'une histoire et actions sur les messages (variantes, modification,
@@ -129,6 +129,18 @@ async function delFrom(i) {
     }
   );
 }
+// Relance d'un jet raté (dice.js, rerollOf) : le dernier résultat du tour du joueur est remplacé par un nouveau
+// lancer de la même caractéristique, marqué du jour pour n'en permettre qu'une par jour, et la réponse est refaite.
+async function reroll() {
+  const c = app.cur,
+    r = !app.busy && rerollOf(c.messages, dayKey);
+  if (!r) return;
+  const m = c.messages[r.i],
+    k = [...m.content.matchAll(JET)].filter(x => isRoll(x[1])).at(-1);
+  m.rr = r.day || '-';
+  app.thrown = { i: r.i, at: Date.now() };
+  await resendFrom(r.i, m.content.slice(0, k.index) + roll(r, sheetOf(c)) + m.content.slice(k.index + k[0].length));
+}
 // Modifier un tour du joueur et relancer : la suite est remplacée par une nouvelle réponse.
 async function resendFrom(i, t) {
   const c = app.cur;
@@ -230,6 +242,10 @@ $('#msgs').onclick = e => {
   }
   if (b.classList.contains('shb')) {
     openSheet();
+    return;
+  }
+  if (b.classList.contains('rr')) {
+    reroll();
     return;
   }
   if (b.classList.contains('rla')) {

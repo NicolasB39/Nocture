@@ -22,6 +22,8 @@ const one = (m, loose) => {
   if (c.length) Object.assign(r, { choices: c, content: m.role == 'assistant' ? dropDup(r.content, c) : r.content });
   else if (m.role == 'assistant' && loose) Object.assign(r, looseChoices(r.content));
   if (t.length) r.state = t;
+  // Jet relancé (dice.js, rerollOf) : le jour de fiction de la relance, pour n'en permettre qu'une par jour.
+  if (typeof m.rr == 'string') r.rr = m.rr.slice(0, 40);
   // Changements de l'inventaire et des liens (modes.js) : [nom, entier].
   for (const k of ['inv', 'links']) {
     const a = (Array.isArray(m[k]) ? m[k] : []).filter(e => Array.isArray(e) && typeof e[0] == 'string' && Number.isInteger(e[1])).slice(0, 12);

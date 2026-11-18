@@ -105,6 +105,22 @@ export const chance = ({ k, d }, sheet = {}) => {
   for (let n = 2; n < 20; n++) if (n + (sheet[k] || 0) >= DIFF[d]) c++;
   return c * 5;
 };
+// Relance : le jet raté du dernier tour du joueur, déjà raconté par le narrateur, peut être relancé une fois par
+// jour de fiction (dayOf : le jour lu dans l'état de la réponse, '' sans champ Jour : une fois par 20 messages).
+// Rend { i, k, d, day } (i : le message du joueur), ou null.
+export const rerollOf = (ms, dayOf) => {
+  const i = ms.length - 2,
+    u = ms[i],
+    a = ms[i + 1];
+  if (u?.role != 'user' || a?.role != 'assistant') return null;
+  const j = [...u.content.matchAll(JET)].map(m => m[1]).filter(isRoll).at(-1),
+    p = j && rollParts(j);
+  if (!p?.ko) return null;
+  const day = dayOf(a.state) || '';
+  if (day ? ms.some(m => m.rr == day) : ms.slice(-20).some(m => m.rr)) return null;
+  const [k, d] = p.what.split(' · ');
+  return { i, k, d, day };
+};
 // Message du joueur de l'histoire s prêt à partir : la marque d'un choix remplacée par le résultat du jet.
 export const withRoll = (t, s) => {
   const c = checkOf(t, rulesOf(s));

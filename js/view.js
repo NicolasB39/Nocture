@@ -4,12 +4,12 @@ import { invOf, invOn, invText, linkText, linksOf, linksOn } from './modes.js';
 import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
-import { askOf, chance, checkOf, rulesOf, sheetOf } from './dice.js';
+import { askOf, chance, checkOf, rerollOf, rulesOf, sheetOf } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
-import { decorFor, decorNow, decorsOf, lieuOf, momentsOf, scenesOf } from './scene.js';
+import { dayKey, decorFor, decorNow, decorsOf, lieuOf, momentsOf, scenesOf } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
 import { $, el, ic, LS, smooth } from './util.js';
 
@@ -389,7 +389,9 @@ export function render(sc) {
   headDecor(decorNow(ms) || coverOf(app.cur));
   if (LIVE?.id == app.cur.id && $('#live')) liveApply();
   const R = rulesOf(app.cur),
-    rq = lm?.role == 'assistant' && askOf(lm.content, R);
+    rq = lm?.role == 'assistant' && askOf(lm.content, R),
+    // Jet raté du dernier tour, relançable une fois par jour de fiction (chat.js, reroll). Pas pendant une réponse.
+    rr = R.length && !LIVE && rerollOf(ms, dayKey);
   const pr = inScene(ms.slice(-6));
   castView(pr);
   sideView(pr);
@@ -419,6 +421,13 @@ export function render(sc) {
   const it = !n && parseIntro(app.cur.remote ? ctx.intro : app.cur.intro);
   foot.replaceChildren(
     ...[
+      rr &&
+        el(
+          'button',
+          { class: 'rla rr' },
+          ic('dice', 18),
+          el('span', null, 'Relancer le dé', el('small', { text: ' ' + rr.k + ' · ' + rr.d + ' · une fois par jour' }))
+        ),
       cs.length && chList(cs),
       rq &&
         el(

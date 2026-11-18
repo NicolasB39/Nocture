@@ -1,7 +1,8 @@
 import './stub.js';
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { askOf, chance, checkOf, noRolls, roll, rollParts, sheetOf, spent, withRoll } from '../js/dice.js';
+import { askOf, chance, checkOf, noRolls, rerollOf, roll, rollParts, sheetOf, spent, withRoll } from '../js/dice.js';
+import { dayKey } from '../js/scene.js';
 import { protocol } from '../js/protocol.js';
 import { buildInfo } from '../js/prompt.js';
 import { clean } from '../js/store.js';
@@ -139,4 +140,21 @@ test('relecture Fable : demandes et marques de jet sous d’autres formes, fiche
   assert.match(e.content, /<jet>Adresse, difficile<\/jet>$/);
   assert.deepEqual(parseEtat('<etat>\nOr: 3\n</etat>'), [['Or', '3']]);
   assert.equal(clean({ id: 'x', messages: [{ role: 'assistant', content: 'a', state: [[1, 2]] }] }).messages[0].state, undefined);
+});
+
+test('relance : le jet raté du dernier tour, une fois par jour de fiction', () => {
+  const ko = '*Je saute.*\n\n<jet>Adresse, difficile (13) : 6 + 0 = 6, échec</jet>',
+    ok = '<jet>Adresse, difficile (13) : 15 + 0 = 15, réussite</jet>',
+    rep = (j, extra = {}) => ({ role: 'assistant', content: 'Vous tombez.', state: [['Jour', j]], ...extra });
+  const ms = [{ role: 'user', content: ko }, rep('3')];
+  assert.deepEqual(rerollOf(ms, dayKey), { i: 0, k: 'Adresse', d: 'difficile', day: '3' });
+  // Une réussite ne se relance pas, ni un jet suivi d'autres tours.
+  assert.equal(rerollOf([{ role: 'user', content: ok }, rep('3')], dayKey), null);
+  assert.equal(rerollOf([...ms, { role: 'user', content: 'Je repars.' }], dayKey), null);
+  // Déjà une relance ce jour-là : non ; le lendemain : oui. Un champ Date garde seulement le jour.
+  assert.equal(rerollOf([{ role: 'user', content: ok, rr: '3' }, rep('3'), ...ms], dayKey), null);
+  assert.ok(rerollOf([{ role: 'user', content: ok, rr: '2' }, rep('2'), ...ms], dayKey));
+  assert.equal(dayKey([['Date', 'J+3, 14h, pluie']]), 'J+3');
+  // La marque survit à l'enregistrement.
+  assert.equal(clean({ id: 'x', messages: [{ role: 'user', content: ok, rr: '3' }] }).messages[0].rr, '3');
 });
