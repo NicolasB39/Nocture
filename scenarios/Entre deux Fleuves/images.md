@@ -5,12 +5,17 @@ Fichier ignoré par l'application. Il garde le bloc de style et les prompts, pou
 ## Bloc de style (en tête de chaque prompt)
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces,
-believable anatomy, realistic materials and lighting, soft painterly shading,
-warm French city palette, river teal and slate blue, terracotta rooftops, golden lamplight, soft magical glow
+dark fantasy manhwa illustration style, polished anime key art, sharp expressive faces with luminous detailed eyes,
+crisp black ink linework, hard cel shading with deep shadows, glossy highlights on hair and eyes, high contrast,
+dramatic lighting, vivid neon magic effects that glow against the dark (glowing runes, sparks, light trails, floating particles),
+dusky city palette, deep navy and charcoal shadows, saturated accents of river teal, copper and violet, warm lamplight
 ```
 
-Négatif : `chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border`
+Négatif : `chibi, pastel colors, soft blurry shading, washed-out colors, photorealistic, 3d render, text, watermark, signature, frame, border`
+
+Ce style est plus sombre et plus contrasté que celui des autres scénarios : gardez-le pour toutes les images de celui-ci, personnages, décors et couverture, pour qu'elles restent cohérentes entre elles.
+
+Chaque personnage porte une petite touche de magie lumineuse (fils, runes, ombres, gouttes), qui donne l'éclat du style. Sur une planche, elle reste près des mains ou de l'épaule : un effet qui déborde vers la silhouette voisine empêche la découpe. Aucune n'est verte, pour ne pas disparaître avec le fond d'incrustation.
 
 ## Personnages (une planche par personnage, puis découpe)
 
@@ -39,17 +44,17 @@ both shoulders and upper arms of every figure entirely visible, with green backg
 a wide green gap between figures and a green margin on the left and right edges of the image,
 no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
-no text, no labels, no frames or dividing lines, soft even lighting from the left,
+no text, no labels, no frames or dividing lines, strong key light from the left with deep shadows on the right side,
 wide horizontal format 3:2.
 ```
 
-- `Margaux` : `a 29-year-old French woman civil servant, slim, dark brown hair in a tight bun with one loose strand, round glasses, navy blue skirt suit, crooked ID badge on the lapel, a pen tucked behind her ear` · `[SOURIRE]` : `flustered blushing smile, eyes looking aside` · `[FERME]` : `stern disapproving look over her glasses, lips pressed`
-- `Gilles` : `a 54-year-old broad-shouldered French craftsman, salt-and-pepper beard, thin thread-like scars on his forearms, blue work jacket with rolled sleeves, leather apron, reading glasses pushed up on his forehead` · `[SOURIRE]` : `big warm laugh, eyes crinkled` · `[FERME]` : `grim frown, heavy brows lowered, arms crossed`
-- `Lena` : `a 24-year-old French woman, chestnut bob haircut with one copper-dyed strand, defiant green eyes, black motorcycle jacket over a knitted workshop sweater, spools of glowing thread on her belt, plasters on her fingertips` · `[SOURIRE]` : `cocky grin, chin raised` · `[FERME]` : `pouting, cheeks slightly red, looking away`
-- `Ilan` : `a 31-year-old tall French man, messy curly black hair a bit too long, light stubble, tired eyes with dark circles, long grey coat over a black turtleneck, ink-stained fingers, an old pocket watch in hand` · `[SOURIRE]` : `smug knowing half-smile, one eyebrow raised` · `[FERME]` : `cold condescending stare, head tilted back`
-- `Jo` : `a 27-year-old French woman, black hair braided with red strands, eyebrow piercing, oversized black leather jacket, fingerless gloves, a bulging belt bag` · `[SOURIRE]` : `wide mischievous grin, winking` · `[FERME]` : `annoyed glare, mouth twisted, hand on her hip`
+- `Margaux` : `a 29-year-old French woman civil servant, slim, dark brown hair in a tight bun with one loose strand, round glasses, navy blue skirt suit, crooked ID badge on the lapel, a pen tucked behind her ear, a small glowing pale-blue square rune hovering above one palm` · `[SOURIRE]` : `flustered blushing smile, eyes looking aside` · `[FERME]` : `stern disapproving look over her glasses, lips pressed`
+- `Gilles` : `a 54-year-old broad-shouldered French craftsman, salt-and-pepper beard, thin thread-like scars on his forearms, blue work jacket with rolled sleeves, leather apron, reading glasses pushed up on his forehead, glowing golden threads wound around his fingers` · `[SOURIRE]` : `big warm laugh, eyes crinkled` · `[FERME]` : `grim frown, heavy brows lowered, arms crossed`
+- `Lena` : `a 24-year-old French woman, chestnut bob haircut with one copper-dyed strand, defiant green eyes, black motorcycle jacket over a knitted workshop sweater, spools of glowing copper thread on her belt, plasters on her fingertips, a taut glowing copper thread between her hands` · `[SOURIRE]` : `cocky grin, chin raised` · `[FERME]` : `pouting, cheeks slightly red, looking away`
+- `Iris` : `a 31-year-old tall French woman, messy curly black hair tied in a loose low bun with strands falling out, tired eyes with dark circles, long grey coat over a black turtleneck, ink-stained fingers, an old pocket watch in hand, a small glowing violet glyph circle near her shoulder` · `[SOURIRE]` : `smug knowing half-smile, one eyebrow raised` · `[FERME]` : `cold condescending stare, head tilted back`
+- `Jo` : `a 27-year-old French woman, black hair braided with red strands, eyebrow piercing, oversized black leather jacket, fingerless gloves, a bulging belt bag, wisps of dark purple shadow curling around her hands` · `[SOURIRE]` : `wide mischievous grin, winking` · `[FERME]` : `annoyed glare, mouth twisted, hand on her hip`
 - `Lucienne` : `a 68-year-old short and stout French woman, cropped white hair, strong forearms, red-checkered apron over a dark dress, a star-shaped scar on the back of her neck` · `[SOURIRE]` : `gentle motherly smile, eyes half-closed` · `[FERME]` : `quiet severe look that would silence a room`
-- `Ondine` : `a young woman who looks 26, long black hair always slightly wet, pale skin, grey-blue eyes, half-open black wetsuit over an oversized pale sweatshirt, a shell necklace` · `[SOURIRE]` : `soft dreamy smile, head tilted with curiosity` · `[FERME]` : `distant sad expression, eyes lowered, a faint cold mist around her hands`
+- `Ondine` : `a young woman who looks 26, long black hair always slightly wet, pale skin, grey-blue eyes, half-open black wetsuit over an oversized pale sweatshirt, a shell necklace, a few glowing blue water droplets floating around her fingers` · `[SOURIRE]` : `soft dreamy smile, head tilted with curiosity` · `[FERME]` : `distant sad expression, eyes lowered, a faint cold mist around her hands`
 
 Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, captions, labels, grid lines, panels`
 
