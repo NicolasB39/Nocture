@@ -82,7 +82,9 @@ test('consignes et fin de requête seulement quand le scénario a le mode', () =
   Object.assign(ctx, { inv: parseInv('Or: 20'), liens: parseLiens('Inès, à +1 : elle sourit') });
   const s = { remote: true, messages: [a([['Or', -2]], { links: [['Inès', 1]] })] };
   const t = modesTail(s);
-  assert.match(t, /<inventaire_actuel>\nOr: 18\n<\/inventaire_actuel>/);
+  // La réponse précédente a dépensé 2 Or : rappelé comme déjà compté, pour que le narrateur ne le signale pas deux fois.
+  assert.match(t, /<inventaire_actuel>\nOr: 18\n\(Déjà compté : −2 Or, signalé dans ta réponse précédente\.\)\n<\/inventaire_actuel>/);
+  assert.doesNotMatch(modesTail({ remote: true, messages: [a([])] }), /Déjà compté/);
   assert.match(t, /<liens_actuels>\nInès : \+1 \(palier atteint : elle sourit\)\nRenard : 0\n<\/liens_actuels>/);
   assert.equal(modesTail({ remote: false, messages: [] }), '');
 });

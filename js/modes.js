@@ -129,8 +129,16 @@ export const stepsOf = (name, val, L = ctx.liens, chars = ctx.chars || []) =>
 // Blocs de fin de requête (buildInfo) : l'inventaire exact et les liens actuels, hors cache.
 export const modesTail = s => {
   let t = '';
-  if (invOn(s))
-    t += '\n\n<inventaire_actuel>\n' + (invOf(s.messages).items.map(invLine).join('\n') || '(vide)') + '\n</inventaire_actuel>';
+  if (invOn(s)) {
+    // Changements de la réponse précédente, déjà comptés : le narrateur ne voit pas ses anciens blocs <inventaire>
+    // dans l'historique et redéclarait un gain tant que l'objet restait dans le récit (200 € comptés trois fois).
+    const pv = s.messages.findLast(m => m.role == 'assistant')?.inv;
+    t +=
+      '\n\n<inventaire_actuel>\n' +
+      (invOf(s.messages).items.map(invLine).join('\n') || '(vide)') +
+      (pv?.length ? '\n(Déjà compté : ' + invText(pv) + ', signalé dans ta réponse précédente.)' : '') +
+      '\n</inventaire_actuel>';
+  }
   if (linksOn(s)) {
     const { v } = linksOf(s.messages);
     t +=

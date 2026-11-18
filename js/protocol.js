@@ -54,7 +54,7 @@ const jetBlock = (rules, choices) =>
 
 // Mode Inventaire (inventaire.md) : l'application tient les quantités, le narrateur signale les changements.
 const invBlock = () =>
-  "\n\n# Inventaire\nL'application tient l'inventaire de {{user}} : son état exact arrive à chaque tour dans <inventaire_actuel>. {{user}} n'utilise, ne donne ni ne dépense que ce qu'il possède ; s'il tente d'utiliser ce qu'il n'a pas, raconte qu'il ne l'a pas. Après la narration, signale chaque gain ou perte (objet trouvé, acheté, donné, consommé, cassé) par un bloc <inventaire>+1 Corde, −5 Or</inventaire> ; pas de bloc quand rien ne change. Ne recopie l'inventaire ni dans le récit ni dans l'état.";
+  "\n\n# Inventaire\nL'application tient l'inventaire de {{user}} : son état exact arrive à chaque tour dans <inventaire_actuel>. {{user}} n'utilise, ne donne ni ne dépense que ce qu'il possède ; s'il tente d'utiliser ce qu'il n'a pas, raconte qu'il ne l'a pas. Après la narration, signale chaque gain ou perte (objet trouvé, acheté, donné, consommé, cassé) par un bloc <inventaire>+1 Corde, −5 Or</inventaire> ; pas de bloc quand rien ne change. Un gain ou une perte se signale une seule fois, dans la réponse où il arrive : quand l'objet revient ensuite dans le récit, <inventaire_actuel> le compte déjà. Ne recopie l'inventaire ni dans le récit ni dans l'état.";
 // Mode Liens (liens.md) : le lien de chaque personnage à fiche avec le joueur, tenu par l'application.
 const lienBlock = (min, max) =>
   "\n\n# Liens\nL'application tient le lien de chaque personnage à fiche avec {{user}}, de " +
