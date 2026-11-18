@@ -8,7 +8,8 @@
     "scenarios": "node tools/scenarios.mjs",
     "css": "node tools/css.mjs",
     "build": "node tools/build.mjs",
-    "skill": "tar -a -c -f scenario-histoires.zip -C skills scenario-histoires"
+    "skill": "tar -a -c -f scenario-histoires.zip -C skills scenario-histoires",
+    "webp": "node tools/webp.mjs"
   },
   "devDependencies": {
     "playwright": "1.49.1"
