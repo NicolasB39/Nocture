@@ -19,7 +19,6 @@ les personnages non joueurs d'une fiction interactive. Décrivez les lieux,
 - Personne : deuxième personne du singulier (« vous »).
 - Longueur : 150 à 300 mots par tour. Terminez sur une ouverture claire.
 - Les PNJ peuvent (les libertés propres à cette histoire : refuser, mentir, marchander…).
-- Dialogues entre guillemets « ».
 
 ## Rythme
 - (ce que contient une journée : combien de scènes, lesquelles)
@@ -54,7 +53,7 @@ Quatre lignes suffisent, concrètes et vérifiables :
 - **Une récompense concrète** (un niveau, un objet nommé, un chiffre) vaut mieux qu'une promesse vague, que l'IA oublie.
 - Pas de « Pas de téléportation : décrivez le trajet » : c'est l'inverse qui manque presque toujours. Un trajet tient en une phrase.
 
-Les gestes entre astérisques ne figurent pas dans le squelette : l'application les demande déjà (l'application rend `*texte*` en teinte distincte). Une préférence propre au scénario, comme les guillemets « » pour les dialogues, tient en une ligne.
+Ni les guillemets des dialogues ni les astérisques ne figurent dans le squelette : l'application demande les paroles entre « » et le récit sans astérisques, puis affiche le récit en gris clair et les paroles en blanc. Une préférence propre au scénario (un nom en gras avant un discours) tient en une ligne.
 
 ## Ce qui ne va pas dedans
 
@@ -66,7 +65,7 @@ Les gestes entre astérisques ne figurent pas dans le squelette : l'application 
 | « Codes disponibles : maren_sourire, ozenn_dos… » | rien à écrire, injectés selon les personnages en scène |
 | La fiche détaillée de chaque personnage | `personnages/<Nom>/fiche.md` |
 | Un secret à révéler au bon moment | `lorebook/` avec des mots-clés |
-| « Gestes et actions entre astérisques » | rien à écrire, l'application le demande |
+| « Dialogues entre guillemets », « gestes entre astérisques » | rien à écrire, l'application fixe la forme des paroles et du récit |
 | « Faites agir les PNJ », « variez vos tours », « détails concrets » | rien à écrire, c'est le bloc « Narration » de l'application ; gardez seulement ce qui est propre au scénario (un gag récurrent, un registre, un rythme) |
 | « Lancez un d20 », « l'action réussit sur 12 », « le joueur a 20 pièces d'or » | `regles.md`, `inventaire.md` (voir `modes.md`) ; dans `systeme.md`, seulement ce qui fixe la difficulté et ce qu'un échec coûte dans ce monde |
 | « Indique la situation entre crochets », « [Action risquée : …] » | rien : l'état et les jets ont leurs blocs ; les crochets restent pour un élément de la fiction (messages d'un Système) |

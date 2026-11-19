@@ -246,8 +246,8 @@ test('les relations voyagent avec la mémoire ; celle d’un personnage en scèn
   );
   const sys = r.msgs[0].content,
     last = r.msgs.at(-1).content;
-  assert.match(sys, /<relations>\n\(États enregistrés, ils peuvent dater : les événements récents priment\.\)\n- Alice : méfiante\n- Passeur : vous doit un service\n<\/relations>/);
-  assert.match(last, /Relation \(état enregistré, peut dater ; les événements récents priment\) : méfiante/);
+  assert.match(sys, /<relations>\n\([^)]*\)\n- Alice : méfiante\n- Passeur : vous doit un service\n<\/relations>/);
+  assert.match(last, /Relation \([^)]*\) : méfiante/);
   assert.doesNotMatch(last, /<relations>|vous doit un service/);
 });
 

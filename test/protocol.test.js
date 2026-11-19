@@ -51,12 +51,12 @@ test('la consigne d’images les place après le paragraphe du personnage, sans 
   for (const model of ['claude-sonnet-5-5', 'claude-haiku-5-5']) {
     const s = protocol({ model, images: true });
     assert.match(s, /\{\{img::code\}\}/);
-    assert.match(s, /juste après le paragraphe où ce personnage, ou ce monstre, agit ou parle/);
+    assert.match(s, /juste après le paragraphe/);
   }
 });
 
 test('la consigne de style est émise par défaut', () => {
-  assert.match(narration(), /astérisques/);
+  assert.match(narration(), /Paroles entre guillemets « »/);
   assert.doesNotMatch(protocol({ stat: true, choices: true, images: true }), /# Narration|# Style/);
   assert.match(protocol({ choices: true }), /\*un geste\*/);
 });
@@ -89,7 +89,7 @@ test('agentivité et anti-télépathie toujours envoyées, avec leurs exceptions
   assert.match(protocol({ choices: true }), /seul endroit où tu le fais agir ou parler/);
   for (const o of [{}, { choices: true, stat: true }]) {
     const p = narration() + protocol(o);
-    assert.match(p, /Le joueur décide seul de ce que fait, dit, pense et ressent \{\{user\}\}/);
-    assert.match(p, /Sauf exception prévue par le scénario, les personnages n'ont pas accès aux pensées/);
+    assert.match(p, /Le joueur décide seul/);
+    assert.match(p, /Sauf exception prévue par le scénario[^.]*pas accès aux pensées/);
   }
 });

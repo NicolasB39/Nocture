@@ -111,8 +111,8 @@ let delay = 0,
   pg = null,
   antFail = false,
   antN = 0;
-// PW_CHANNEL=msedge (ou chrome) : navigateur déjà installé, sans le Chromium de Playwright.
-const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
+// PW_CHANNEL=msedge (ou chrome) : navigateur déjà installé, sans le Chromium de Playwright ; sans lui, le Chrome installé.
+const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}).catch(() => chromium.launch({ channel: 'chrome' }));
 const errors = [];
 const watch = pg => pg.on('pageerror', e => errors.push(e.message));
 const step = async (name, fn) => {

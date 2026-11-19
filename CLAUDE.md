@@ -13,7 +13,7 @@ PWA de fiction interactive avec Claude : JavaScript en modules ES, sans framewor
 ## Vérifier
 
 - `npm test` : tests unitaires (node:test).
-- `npm run test:e2e` : bout en bout dans Chromium ; en local sans le Chromium de Playwright, `PW_CHANNEL=chrome npm run test:e2e`.
+- `npm run test:e2e` : bout en bout dans Chromium ; sans le Chromium de Playwright, il prend le Chrome installé.
 - `npm run build` : numéros de version, service worker ; échoue sur un id dupliqué, un `label for` orphelin, un import circulaire.
 - `npm run css` : classes CSS sans usage apparent.
 - `npm run scenarios` : vérifie tous les scénarios (aussi en CI) ; un seul : `node skills/scenario-histoires/scripts/verifier.mjs "scenarios/<Nom>"`.

@@ -19,7 +19,7 @@ if (!files.length) {
   console.log('Aucune image PNG.');
   process.exit(0);
 }
-const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
+const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}).catch(() => chromium.launch({ channel: 'chrome' }));
 const page = await browser.newPage();
 let before = 0,
   after = 0;

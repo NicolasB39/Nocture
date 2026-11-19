@@ -24,7 +24,7 @@ const tmp = mkdtempSync(join(tmpdir(), 'planche-'));
 try {
   execFileSync(process.execPath, ['skills/scenario-histoires/scripts/decouper.mjs', src, tmp, ...names], { stdio: 'inherit' });
   const pngs = names.map(n => 'data:image/png;base64,' + readFileSync(join(tmp, n + '.png')).toString('base64'));
-  const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {});
+  const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}).catch(() => chromium.launch({ channel: 'chrome' }));
   const page = await browser.newPage();
   const { apercu, webps } = await page.evaluate(async urls => {
     const ims = await Promise.all(

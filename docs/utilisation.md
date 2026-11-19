@@ -6,7 +6,7 @@ L'interface, les réglages, la sauvegarde. Retour au [README](../README.md). Le 
 
 Thème sombre inspiré des applications de fiction interactive : fond noir, accent laiton, cartes de scénarios avec couverture, recherche, carte « Reprendre » pour la dernière histoire, suggestions de réponse numérotées et feuilles de réglages qui montent du bas.
 
-La conversation **n'utilise pas de bulles** : chaque réponse occupe la largeur de la colonne, pour qu'une longue partie se lise comme une page plutôt que comme une messagerie. Le texte entre astérisques (`*un geste*`) s'affiche en gris, la parole en blanc, dans le récit comme dans les suggestions.
+La conversation **n'utilise pas de bulles** : chaque réponse occupe la largeur de la colonne, pour qu'une longue partie se lise comme une page plutôt que comme une messagerie. Dans les réponses du narrateur, le récit s'affiche en gris clair et les paroles en blanc : l'application repère elle-même ce qui est entre guillemets « », sans dépendre des astérisques du narrateur ; un terme cité (« phénomène saisonnier », un surnom) reste du récit. Dans vos messages et les suggestions, le geste entre astérisques (`*un geste*`) est en gris, le reste en blanc.
 
 Le laiton `#e8b45c` est réservé aux **actions** : « Reprendre », boutons Enregistrer. Les **états** (badge « Nouveau », avertissement) n'en prennent qu'une version teintée, bordée, sur fond sombre, pour qu'un badge ne pèse pas autant qu'un bouton. Le rouge `#ff6b6b` reste réservé aux erreurs et aux actions destructrices. Les contrôles (champ de saisie, listes, choix) portent une bordure plus claire que les simples séparateurs, pour rester visibles en plein soleil.
 

@@ -49,12 +49,30 @@ test('heures, adresses et texte déjà composé restent intacts', () => {
   assert.equal(fr(once), once, 'appliquer deux fois ne change rien');
 });
 
-test('les gestes et le gras survivent à la typographie, dans le récit comme dans les choix', () => {
-  const k = body('*Il sourit.* "Entrez!" dit-il. **Vite**: la nuit tombe.')[0].kids,
-    t = k.map(x => (typeof x == 'string' ? x : x.textContent)).join('');
+const txt = x => (typeof x == 'string' ? x : x.kids.length ? x.kids.map(txt).join('') : x.textContent);
+
+test('les gestes et le gras survivent à la typographie, dans les messages du joueur comme dans les choix', () => {
+  const k = body('*Il sourit.* "Entrez!" dit-il. **Vite**: la nuit tombe.', null, true)[0].kids,
+    t = k.map(txt).join('');
   assert.equal(k[0].className, 'act');
   assert.equal(k[0].textContent, 'Il sourit.');
   assert.ok(k.some(x => x.tagName == 'B' && x.textContent == 'Vite'));
   assert.equal(t, 'Il sourit. «' + NB + 'Entrez' + FN + '!' + NB + '» dit-il. Vite' + NB + ': la nuit tombe.');
-  assert.equal(line('*Je recule.* Non!').map(x => (typeof x == 'string' ? x : x.textContent)).join(''), 'Je recule. Non' + FN + '!');
+  assert.equal(line('*Je recule.* Non!').map(txt).join(''), 'Je recule. Non' + FN + '!');
+});
+
+test('les paroles sont repérées pour s’afficher en clair, le récit autour non', () => {
+  const says = t => body(t)[0].kids.filter(x => x.className == 'say').map(txt);
+  assert.deepEqual(says('Elle lève les yeux. « Dix minutes. » Puis elle sourit.'), ['«' + NB + 'Dix minutes.' + NB + '»']);
+  assert.deepEqual(says('"Entrez", dit-il, "et fermez."'), ['«' + NB + 'Entrez' + NB + '»', '«' + NB + 'et fermez.' + NB + '»'], 'guillemets droits');
+  assert.deepEqual(says('Il hésite. « Je ne sais pas…'), ['«' + NB + 'Je ne sais pas…'], 'réplique non fermée : jusqu’à la fin du paragraphe');
+  assert.deepEqual(says('Trois contrats :\n- Rue Pinel, rang D\n- Quai de l’Aubre, rang E'), [], 'une liste à puces reste du récit');
+  assert.deepEqual(says('Le Bureau parle de « phénomène saisonnier », et la « Mère » Lucienne rit.'), [], 'un terme cité reste du récit');
+  assert.deepEqual(says('« Treize heures trente et une », dit-elle.'), ['«' + NB + 'Treize heures trente et une' + NB + '»'], 'réplique sans ponctuation finale, assez longue');
+  assert.equal(line('*Je recule.* « Non ! »').filter(x => x.className == 'say').length, 1, 'même règle dans l’aperçu et les choix');
+  const n = body('*Le papier dit : « Sortie refusée. » Le tampon est frais.* **Vite**', null)[0].kids.map(txt).join('');
+  assert.ok(!n.includes('*'), 'narrateur : astérisques d’une paire coupée par une réplique retirés');
+  assert.match(n, /Vite$/, 'le gras reste');
+  const u = body('*Je recule.* « Non. »', null, true)[0].kids;
+  assert.equal(u[0].className, 'act', 'joueur : le geste garde son rendu');
 });

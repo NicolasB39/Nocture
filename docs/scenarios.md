@@ -165,7 +165,7 @@ L'application est propriétaire du **protocole** : les formats du bloc `<etat>`,
 
 Le protocole demande notamment :
 
-- **les gestes entre astérisques et les paroles en texte simple**, dans la narration comme dans les choix, le geste avant la parole ; pas de note de jeu entre crochets dans le récit (« [Situation : …] ») ;
+- **les paroles entre guillemets « » et le reste du récit en texte simple, sans astérisques**, le geste avant la parole ; l'application affiche le récit du narrateur en gris clair et les paroles en blanc. Dans les choix, le geste reste entre astérisques ; pas de note de jeu entre crochets dans le récit (« [Situation : …] ») ;
 - trois choix numérotés dans le bloc `<choix>`, à la première personne (« Je… »), seul endroit où le personnage du joueur agit ou parle, sans les recopier en liste dans le récit ;
 - quand le panneau d'état suit un champ « Lieu » (ou Endroit, Localisation, Position), une ligne `<lieu>Nouveau lieu</lieu>` en tête de la réponse quand le lieu change. Cette ligne n'est ni affichée ni gardée : elle installe tout de suite l'intertitre, la lettrine et le décor, alors que l'état n'arrive qu'en fin de réponse.
 
@@ -183,7 +183,7 @@ Un court bloc « Narration » part pour tous les scénarios (`NARRATION`, `js/pr
 - le joueur seul décide de ce que fait, dit, pense et ressent son personnage : ce qu'il écrit est une tentative, dont le narrateur raconte le résultat et les réactions, sans lui prêter de geste ni de réplique ; seules les propositions de choix le font agir ou parler ;
 - la réponse s'ouvre sur ce que provoque l'action du joueur, sans redire son geste ni ses paroles ; sa dernière phrase ne reprend pas l'image ou le sujet des deux fins précédentes ;
 - sauf exception prévue par le scénario, les autres personnages n'ont pas accès à ses pensées et ne savent que ce qu'ils ont vu ou appris : ils doutent des rumeurs et peuvent se tromper ;
-- personne n'admire le personnage du joueur, ne lui obéit ni ne le hait sans raison : ses actes changent peu à peu sa réputation, et chacun y réagit à sa façon ; chacun défend ses intérêts et ne change d'avis que sur un argument ou un fait nouveau, pas parce que le joueur insiste ;
+- personne n'admire le personnage du joueur, ne lui obéit ni ne le hait sans raison : ses actes changent peu à peu sa réputation, et chacun y réagit à sa façon ; chacun défend ses intérêts et ne change pas d'avis parce que le joueur insiste, mais sur un argument, un fait nouveau ou un jet réussi ;
 - le monde vit sans attendre le joueur, et ce qui arrive hors de sa vue lui parvient par une nouvelle, une rumeur, un message ou une visite ; chaque personnage a sa voix, et son attitude évolue au lieu de se répéter ;
 - montrer plutôt que nommer : détails concrets, émotions par les gestes, pas de didascalie vide (« Un temps. », « Silence. ») ; un détail déjà décrit ne revient que s'il a changé, et ce qui a eu lieu (objet, promesse, phrase) revient des scènes plus tard ;
 - ce qui se répète (entraînement, trajet, attente) se résume ; une scène tient en cinq ou six échanges, puis aboutit, et une ellipse mène au prochain moment qui compte ; quand le joueur veut partir, il part (un personnage peut le retenir une fois, pas davantage).

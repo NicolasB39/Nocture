@@ -1,5 +1,6 @@
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs';
 import { join, basename } from 'node:path';
+import { IMG, codeOf, nz } from './regles.mjs';
 
 const dir = process.argv[2];
 if (!dir) {
@@ -10,14 +11,8 @@ if (!dir) {
 const err = [],
   warn = [],
   info = [];
-const nz = s =>
-  String(s)
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase();
 const read = p => readFileSync(p, 'utf8');
 const ls = p => (existsSync(p) ? readdirSync(p) : []);
-const IMG = /\.(webp|png|jpe?g|gif)$/i;
 
 const dims = p => {
   const b = readFileSync(p);
@@ -110,7 +105,9 @@ else {
   if (/CRITIQUE|\bJAMAIS\b|\bDOIT\b/.test(sys))
     warn.push('systeme.md emploie un ton d’alarme (CRITIQUE, JAMAIS, DOIT en capitales) : reformulez posément, avec la raison de chaque règle');
   if (/ast[ée]risques/i.test(sys))
-    warn.push('systeme.md demande les astérisques : l’application le fait déjà, retirez la consigne');
+    warn.push('systeme.md parle des astérisques : l’application fixe déjà la forme des paroles et du récit, retirez la consigne');
+  if (/^\*[\p{L}«]/mu.test(sys))
+    warn.push('systeme.md a du récit entre astérisques (un exemple de ton ?) : le narrateur l’imiterait, écrivez-le en texte simple');
   if (sys.length > 6000)
     warn.push(`systeme.md fait ${sys.length} caractères : déplacez ce qui est situationnel vers le lorebook`);
   if (sys.length < 600) warn.push(`systeme.md fait ${sys.length} caractères, c’est très court`);
@@ -146,11 +143,8 @@ const pdir = join(dir, 'personnages');
 const chars = ls(pdir).filter(d => statSync(join(pdir, d)).isDirectory());
 if (!chars.length) info.push('aucun personnage déclaré');
 let fiches = 0;
-// Codes d'images, comme l'application (js/util.js ikey, js/scenarios.js codeOf) : préfixe_fichier, sans doubler un
-// préfixe que le fichier porte déjà.
-const ikey = s => nz(s).replace(/[\s_.\-]+/g, '_').replace(/^_+|_+$/g, ''),
-  codeOf = (n, f) => (ikey(f).startsWith(ikey(n) + '_') ? '' : ikey(n) + '_') + ikey(f),
-  taken = new Set();
+// Codes d'images déjà pris (règles.mjs : comme l'application).
+const taken = new Set();
 for (const c of chars) {
   const files = ls(join(pdir, c));
   const imgs = files.filter(f => IMG.test(f));

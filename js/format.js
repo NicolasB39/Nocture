@@ -260,6 +260,29 @@ const inline = (s, out) => {
   }
   if (i < s.length) out.push(s.slice(i));
 };
+// Paroles : le texte entre « », affiché en clair, le récit autour en gris clair (style.css) ; l'application les
+// repère elle-même, sans compter sur les astérisques du narrateur. Une réplique non fermée court jusqu'à la fin du
+// paragraphe. Un terme cité (« phénomène saisonnier », un surnom) reste du récit : moins de quatre mots, sans
+// ponctuation et sans incise (« Entrez », dit-il). Pas de tiret de dialogue : fr() change aussi les puces « - » en
+// tirets.
+const SAY = /«[^»]*(?:»|$)/g;
+const INCISE = /[\s,]*(dit|demande|répond|lance|souffle|murmure|lâche|ajoute|reprend|crie|chuchote|grogne|soupire|fait|coupe|répète|insiste)\b/iy;
+const said = (q, s, at) =>
+  !q.endsWith('»') || /[.!?…]/.test(q) || (q.match(/[\p{L}\d’'-]+/gu) || []).length >= 4 || ((INCISE.lastIndex = at), INCISE.test(s));
+const speech = (s, out) => {
+  let i = 0,
+    m;
+  SAY.lastIndex = 0;
+  while ((m = SAY.exec(s))) {
+    if (!said(m[0], s, SAY.lastIndex)) continue;
+    if (m.index > i) inline(s.slice(i, m.index), out);
+    const c = [];
+    inline(m[0], c);
+    out.push(el('span', { class: 'say' }, c));
+    i = SAY.lastIndex;
+  }
+  if (i < s.length) inline(s.slice(i), out);
+};
 const blocks = (s, out) => {
   let buf = [],
     q = false;
@@ -270,7 +293,7 @@ const blocks = (s, out) => {
     q = false;
     if (!t.trim()) return;
     const c = [];
-    inline(fr(t), c);
+    speech(fr(t), c);
     out.push(el('p', k ? { class: 'q' } : null, c));
   };
   for (const ln of s.split('\n')) {
@@ -292,7 +315,7 @@ const blocks = (s, out) => {
 };
 export const line = t => {
   const out = [];
-  inline(fr(t), out);
+  speech(fr(t), out);
   return out;
 };
 export const settled = (v, from = 0) => {
@@ -371,7 +394,11 @@ export const body = (t, d, user) => {
             .replace(/\{\{user\}\}/gi, playerName(app.cur) || 'Joueur')
             .replace(/\s*\{\{[^}]*$/, '')
             .split(/\{\{img::([^}]*)\}\}/g)
-            .forEach((x, i) => (i % 2 ? out.push(imgNode(x, d)) : blocks(x.replace(/^\n+|\n+$/g, ''), out)))
+            // Réponse du narrateur : ses astérisques simples (gestes) sont retirés, le geste se lit comme le récit.
+            // Gardés, une paire qui entoure une réplique serait coupée aux guillemets et s'afficherait telle quelle.
+            .forEach((x, i) =>
+              i % 2 ? out.push(imgNode(x, d)) : blocks((user ? x : x.replace(/(?<!\*)\*(?!\*)/g, '')).replace(/^\n+|\n+$/g, ''), out)
+            )
     );
   return out.filter(Boolean);
 };

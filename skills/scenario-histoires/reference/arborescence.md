@@ -130,7 +130,7 @@ Connaître cet ordre change la façon d'écrire. Deux zones, séparées par l'hi
 2. le préambule commun de l'utilisateur, s'il en a défini un
 3. le casting : une ligne par personnage, le `résumé:` de chaque fiche
 4. les fiches et le lorebook `toujours` (ou tous, s'ils sont modestes), et la liste des codes d'images
-5. le protocole généré par l'application : conseils de narration, gestes entre astérisques, images, état, choix, et les règles des modes actifs (dés, inventaire, liens)
+5. le protocole généré par l'application : conseils de narration, forme des paroles, images, état, choix, et les règles des modes actifs (dés, inventaire, liens)
 6. `avatar.md`
 7. la mémoire : résumé de l'histoire, lignes récentes, souvenirs, relations, note
 

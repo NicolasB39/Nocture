@@ -4,7 +4,7 @@ Lancer d'abord `node scripts/verifier.mjs "scenarios/<Nom>"`, qui attrape tout c
 
 ## Conflits de protocole
 
-Chercher dans `systeme.md` : `<choix>`, `<etat>`, `{{img::`, « trois propositions », « fin de chaque réponse », « format suivant ». Chaque occurrence est une consigne qui fait doublon avec celle que l'application injecte. Même chose pour « entre astérisques » et pour les conseils généraux de narration (varier les tours, faire agir les PNJ, détails concrets), déjà dans le bloc « Narration » : ne garder que ce qui est propre au scénario. Les retirer, en déplaçant ce qui doit l'être vers `etat.md` ou vers les réglages du scénario.
+Chercher dans `systeme.md` : `<choix>`, `<etat>`, `{{img::`, « trois propositions », « fin de chaque réponse », « format suivant ». Chaque occurrence est une consigne qui fait doublon avec celle que l'application injecte. Même chose pour « entre astérisques », « dialogues entre guillemets » et pour les conseils généraux de narration (varier les tours, faire agir les PNJ, détails concrets), déjà dans le bloc « Narration » : ne garder que ce qui est propre au scénario. Les retirer, en déplaçant ce qui doit l'être vers `etat.md` ou vers les réglages du scénario.
 
 ## Budget
 

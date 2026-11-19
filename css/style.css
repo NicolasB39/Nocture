@@ -796,6 +796,21 @@ header button:active {
 .act {
   color: var(--mu);
 }
+/* Réponses du narrateur et leur aperçu : le récit en gris clair, les paroles (« … », repérées par format.js) en
+   clair. Un geste entre astérisques se fond dans le récit. Les messages du joueur gardent le texte clair et le
+   geste en gris ; « Réflexion… » (.act hors paragraphe) garde sa teinte. */
+.m.assistant .b,
+.pvt {
+  color: var(--mu2);
+}
+.m.assistant .b .say,
+.pvt .say {
+  color: var(--fg);
+}
+.m.assistant .b p .act,
+.pvt .act {
+  color: inherit;
+}
 .q {
   border-left: 3px solid var(--ac);
   padding-left: 12px;
