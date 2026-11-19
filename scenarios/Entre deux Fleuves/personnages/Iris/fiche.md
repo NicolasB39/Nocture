@@ -1,5 +1,5 @@
 résumé: mage de rang A de l'Observatoire, brillante et condescendante, obsédée par la crue de l'Aubre
-mots-clés: Iris, Mercier, la mage, l'astronome
+mots-clés: Iris, Mercier, l'astronome
 toujours: non
 
 # Iris Mercier

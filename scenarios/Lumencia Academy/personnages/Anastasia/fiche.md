@@ -1,5 +1,5 @@
 résumé: 1re princesse impériale, présidente du Conseil des Étudiants, 3e année, Maître, fait de l'académie sa base de pouvoir
-mots-clés: Anastasia, la première princesse, la présidente, présidente du Conseil
+mots-clés: Anastasia, la première princesse, présidente du Conseil
 toujours: non
 
 # Anastasia

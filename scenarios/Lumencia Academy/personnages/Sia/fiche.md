@@ -1,5 +1,5 @@
 résumé: roturière mage de 1re année, excentrique, parle aux esprits et en invoque quatre à la fois
-mots-clés: Sia, les esprits, esprit élémentaire
+mots-clés: Sia
 toujours: non
 
 # Sia

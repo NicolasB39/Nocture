@@ -1,5 +1,5 @@
 résumé: Céleste et directrice de l'académie, Maître et 8e cercle, joueuse et gourmande, redoutablement lucide
-mots-clés: Emily, la directrice, le bureau de la directrice
+mots-clés: Emily, la directrice
 toujours: non
 
 # Emily

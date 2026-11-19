@@ -1,5 +1,5 @@
 résumé: Céleste, Maîtresse de la Tour, 9e cercle, roturière arrogante qui lit dans les pensées de qui lui parle
-mots-clés: Ethera, la Maîtresse de la Tour, la Tour, la Tour de Magie
+mots-clés: Ethera, la Maîtresse de la Tour
 toujours: non
 
 # Ethera

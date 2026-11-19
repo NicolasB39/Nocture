@@ -1,5 +1,5 @@
 résumé: Céleste, commandante de la Garde Impériale, Maître au sommet, glaciale, seule à voir le meurtre comme un art
-mots-clés: Carne, la commandante, la Garde Impériale, Ridel
+mots-clés: Carne, la commandante, Ridel
 toujours: non
 
 # Carne Valenheart

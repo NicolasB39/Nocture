@@ -1,5 +1,5 @@
 résumé: benjamine des Valenheart, chevalière de 1re année, cheveux rouges, cherche la force pure, pas l'honneur
-mots-clés: Lilia, Valenheart, la cadette Valenheart
+mots-clés: Lilia, la cadette Valenheart
 toujours: non
 
 # Lilia Valenheart

@@ -1,5 +1,5 @@
 résumé: chef des Tisseurs, rang A, bourru et protecteur, ne pardonne pas une trahison
-mots-clés: Gilles, Rouvière, le chef des Tisseurs
+mots-clés: Gilles, le chef des Tisseurs, le père Rouvière
 toujours: non
 
 # Gilles Rouvière

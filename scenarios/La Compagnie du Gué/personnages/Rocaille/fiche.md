@@ -1,5 +1,5 @@
 résumé: cheffe des Sangliers Gris, bandits de la forêt, grand-mère redoutable et bonne cuisinière
-mots-clés: Rocaille, Ma Rocaille, la Mère Rocaille, les Sangliers Gris, bandit*
+mots-clés: Rocaille, Ma Rocaille, la Mère Rocaille
 toujours: non
 
 # Ma Rocaille

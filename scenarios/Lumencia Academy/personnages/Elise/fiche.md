@@ -1,5 +1,5 @@
 résumé: fille Reihart, vice-présidente de la Rose Blanche, 2e année, toutes les rumeurs de l'académie passent par elle
-mots-clés: Elise, Reihart, les rumeurs
+mots-clés: Elise, Reihart
 toujours: non
 
 # Elise Reihart

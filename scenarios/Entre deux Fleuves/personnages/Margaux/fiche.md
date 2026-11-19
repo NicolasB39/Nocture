@@ -1,5 +1,5 @@
 résumé: contrôleuse de rang B au guichet 4 du Bureau des Brèches, tatillonne et drôle malgré elle
-mots-clés: Margaux, Delorme, la contrôleuse, guichet
+mots-clés: Margaux, Delorme, la contrôleuse
 toujours: non
 
 # Margaux Delorme
