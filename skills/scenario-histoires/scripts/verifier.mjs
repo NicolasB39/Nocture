@@ -204,7 +204,8 @@ for (const c of chars) {
 // --- monstres : images à plat, code monstre_<fichier>, sans fiche ---
 const mdir = join(dir, 'monstres');
 let monstres = 0;
-for (const f of ls(mdir)) {
+// Les fichiers cachés (.gitkeep, qui garde le dossier vide dans Git) sont ignorés.
+for (const f of ls(mdir).filter(f => !f.startsWith('.'))) {
   const code = codeOf('monstre', f.replace(IMG, ''));
   if (statSync(join(mdir, f)).isDirectory()) warn.push(`monstres/${f}/ : les sous-dossiers ne sont pas lus`);
   else if (!IMG.test(f)) warn.push(`monstres/${f} n’est pas une image : ignoré`);
