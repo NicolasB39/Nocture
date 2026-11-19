@@ -45,6 +45,8 @@ const unq = p => {
   }
   return new TextDecoder().decode(new Uint8Array(b));
 };
+// Image à plat dans un dossier : nom sans extension en groupe 1.
+const IMGF = /^([^/]+)\.(webp|png|jpe?g|gif)$/i;
 const txt = p =>
   fetch(encodeURI(p), { cache: 'no-cache' })
     .then(r => (r.ok ? r.text() : ''))
@@ -138,7 +140,7 @@ export async function loadCtx() {
   const g = ++gen,
     im = Object.create(null);
   for (const k in IMG) delete IMG[k];
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '', rules: [], inv: [], liens: null, decors: [], decorDef: '', intro: '', iv: imgVer({}) });
+  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], monsters: [], stat: '', rules: [], inv: [], liens: null, decors: [], decorDef: '', intro: '', iv: imgVer({}) });
   if (!app.cur.remote) return;
   const base = 'scenarios/' + app.cur.folder + '/',
     pb = base + 'personnages/';
@@ -161,22 +163,26 @@ export async function loadCtx() {
   }
   const images = [],
     fp = [];
+  // Code d'une image : préfixe_fichier (dossier du personnage, ou « monstre »), sans répéter le préfixe quand le
+  // fichier commence déjà par lui (maelys/maelys_joie.png → maelys_joie). L'ancien code doublé (maelys_maelys_joie)
+  // reste reconnu, pour les messages déjà écrits. Si un autre fichier a déjà pris le code court (joie.png et
+  // maelys_joie.png), celui-ci garde le code doublé.
+  const codeOf = (n, b) => (ikey(b).startsWith(ikey(n) + '_') && !im[b] ? b : (n + '_' + b).toLowerCase());
+  // Un code d'image : son URL, sa forme tolérante (ikey) et sa place dans la liste des images détectées.
+  const add = (c, p) => {
+    im[c] = encodeURI(p);
+    im[ikey(c)] ??= im[c];
+    images.push({ code: c, url: im[c] });
+  };
   for (const [n, files] of Object.entries(ch)) {
     const own = [];
     for (const f of files) {
-      const m = f.match(/^(.+)\.(webp|png|jpe?g|gif)$/i);
+      const m = f.match(IMGF);
       if (m) {
-        // Code : dossier_fichier, sans répéter le nom quand le fichier commence déjà par lui (maelys/maelys_joie.png
-        // → maelys_joie). L'ancien code doublé (maelys_maelys_joie) reste reconnu, pour les messages déjà écrits.
-        // Si un autre fichier du dossier a déjà pris ce code (joie.png et maelys_joie.png), celui-ci garde le
-        // code doublé.
         const b = m[1].toLowerCase(),
-          d = (n + '_' + m[1]).toLowerCase(),
-          c = ikey(b).startsWith(ikey(n) + '_') && !im[b] ? b : d;
-        im[c] = encodeURI(pb + n + '/' + f);
-        im[ikey(c)] ??= im[c];
+          c = codeOf(n, b);
+        add(c, pb + n + '/' + f);
         if (c == b) im[ikey(n + '_' + b)] ??= im[c];
-        images.push({ code: c, url: im[c] });
         own.push(c);
       }
     }
@@ -205,6 +211,23 @@ export async function loadCtx() {
           keys: [kre(nz(n))].filter(Boolean)
         })
       );
+  }
+  // Monstres : images à plat dans monstres/, sans fiche ni réglage, code monstre_<fichier>, proposées à l'IA sur
+  // une ligne à part de <images_disponibles>.
+  const mb = base + 'monstres/',
+    monsters = [];
+  for (const p of T) {
+    const m = p.startsWith(mb) && p.slice(mb.length).match(IMGF);
+    if (!m) continue;
+    const c = codeOf('monstre', m[1].toLowerCase());
+    // Code déjà pris (un personnage « Monstre », le même nom dans deux formats) : le premier reste, le vérificateur
+    // du skill le signale.
+    if (im[c]) {
+      console.warn(p + ' : le code ' + c + ' est déjà pris, image ignorée');
+      continue;
+    }
+    add(c, p);
+    monsters.push(c);
   }
   const charsP = Promise.all(fp);
   const lb = base + 'lorebook/';
@@ -237,7 +260,7 @@ export async function loadCtx() {
   images.sort((x, y) => x.code.localeCompare(y.code));
   const db = base + 'decors/',
     allP = Promise.all(
-      T.filter(p => p.startsWith(db) && !p.slice(db.length).includes('/') && /\.(webp|png|jpe?g|gif)$/i.test(p)).map(
+      T.filter(p => p.startsWith(db) && IMGF.test(p.slice(db.length))).map(
         async p => {
           const n = p.slice(db.length).replace(/\.[^.]+$/, ''),
             md = db + n + '.md',
@@ -273,5 +296,5 @@ export async function loadCtx() {
   ].slice(0, 8);
   if (g !== gen) return;
   Object.assign(IMG, im);
-  Object.assign(ctx, { system, avatar, chars, lore, images, stat, rules, inv, liens, decors, decorDef, intro, iv: imgVer(im) });
+  Object.assign(ctx, { system, avatar, chars, lore, images, monsters, stat, rules, inv, liens, decors, decorDef, intro, iv: imgVer(im) });
 }

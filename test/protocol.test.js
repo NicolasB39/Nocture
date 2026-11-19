@@ -51,7 +51,7 @@ test('la consigne d’images les place après le paragraphe du personnage, sans 
   for (const model of ['claude-sonnet-5-5', 'claude-haiku-5-5']) {
     const s = protocol({ model, images: true });
     assert.match(s, /\{\{img::code\}\}/);
-    assert.match(s, /juste après le paragraphe où ce personnage agit ou parle/);
+    assert.match(s, /juste après le paragraphe où ce personnage, ou ce monstre, agit ou parle/);
   }
 });
 

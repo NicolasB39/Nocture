@@ -19,6 +19,8 @@ scenarios/
       Alice/
         fiche.md            fiche du personnage
         sourire.webp        image, code : alice_sourire
+    monstres/               images de monstres, sans fiche (optionnel, voir plus bas)
+      noye.webp             code : monstre_noye
     decors/                 décors des scènes (optionnel, voir plus bas)
     lorebook/
       dragon.md
@@ -44,7 +46,7 @@ Tant que l'ensemble des fiches tient dans un budget de 8 000 tokens environ, auc
 
 Au-delà du budget, la **fiche complète** n'est envoyée que lorsque le personnage est en scène : son nom ou un de ses mots-clés apparaît dans les six derniers messages ou dans le panneau d'état. `toujours: oui` force l'envoi permanent, pour un compagnon de route par exemple : la fiche passe alors dans la partie fixe et n'est jamais envoyée une seconde fois quand le personnage est en scène.
 
-Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie fixe, avec la consigne de n'utiliser que ceux d'un personnage présent dans la scène, et de ne pas en inventer pour un personnage qui n'a pas d'image. L'IA peut ainsi montrer un personnage dès son entrée.
+Les codes d'images de tous les personnages sont envoyés en permanence, regroupés par personnage, dans la partie fixe, avec ceux des monstres (voir Images), et la consigne de n'utiliser que ceux d'un personnage ou d'un monstre présent dans la scène, et de ne pas en inventer pour ce qui n'a pas d'image. L'IA peut ainsi montrer un personnage dès son entrée.
 
 ### Images
 
@@ -53,6 +55,8 @@ Les images de `personnages/<Nom>/` (formats `.png`, `.webp`, `.jpg`, `.jpeg`, `.
 L'application affiche l'image **là où le modèle l'écrit**, en tête, au milieu ou à la fin. Le protocole demande de la placer juste après le paragraphe où le personnage agit ou parle. Si un scénario demande lui-même « commence par l'image » dans son prompt système, cette phrase l'emporte.
 
 La reconnaissance du code est tolérante : majuscules, accents, espaces, tirets et tirets bas sont équivalents (`alice_sourire heureux`, `alice_sourire_heureux` et `Alice-Sourire-Heureux` désignent le même fichier), et le nom du fichier seul suffit s'il est unique (`sourire_heureux`). Quand un code ne correspond à aucune image, un repère « image introuvable : code » s'affiche à la place.
+
+Les images de `monstres/`, à plat, n'ont ni fiche ni réglage : `monstres/noye.webp` donne le code `monstre_noye`. Elles sont proposées à l'IA sur une ligne « Monstres » de la liste des codes, et n'apparaissent pas dans la feuille Personnages. Une image de monstre à fond plein s'affiche seule, en pleine largeur, avec son propre décor ; détourée, elle est posée sur le décor du lieu comme un personnage.
 
 Après avoir renommé des images :
 

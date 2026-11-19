@@ -91,7 +91,7 @@ function imgView() {
   $('#simn').textContent =
     (im.length
       ? im.length + (im.length > 1 ? ' images détectées.' : ' image détectée.')
-      : 'Aucune image détectée dans personnages/<Nom>/.') + (TERR ? ' Index : ' + TERR + '.' : '');
+      : 'Aucune image détectée dans personnages/<Nom>/ ni monstres/.') + (TERR ? ' Index : ' + TERR + '.' : '');
   $('#simg').replaceChildren(
     ...im.map(i =>
       el(

@@ -85,6 +85,35 @@ light coming from the left, widescreen cinematic 16:9 format.
 
 Négatif en plus : `people, person, character, figure, silhouette, crowd`
 
+## Monstres (scène complète en 16/9, avec fond)
+
+À ranger dans `monstres/` sous le nom indiqué : `monstres/noye.webp` donne le code `monstre_noye`. Une image à fond plein s'affiche seule, en pleine largeur.
+
+Partie commune, à la suite de chaque description :
+
+```
+the monster large and fully visible in the center of the frame,
+dramatic lighting, strong silhouette readable on a phone screen,
+no people, no humans, no text, widescreen cinematic 16:9 format.
+```
+
+Cour des Eaux :
+- `noye` : `[STYLE]. Monster illustration: a drowned humanoid with pale bloated skin, white glowing eyes, long black hair and torn clothes dripping water, reaching forward, rising from flooded stone stairs under a city bridge at night, teal glow, [PARTIE COMMUNE]`
+- `anguille` : `[STYLE]. Monster illustration: a giant eel as long as a tram, black glistening skin with glowing teal lines, jaws wide open, bursting out of a dark river beside stone quays, spray and droplets, [PARTIE COMMUNE]`
+- `crabe` : `[STYLE]. Monster illustration: a huge mud crab the size of a car, shell crusted with river mud, shells and rusted bicycles, raised claws, in a flooded underground parking, dim teal light reflecting on the water, [PARTIE COMMUNE]`
+
+Cour des Forges :
+- `automate` : `[STYLE]. Monster illustration: a tall cast-iron automaton with a furnace glowing in its open chest, riveted plates, heavy hammer arm raised, in a street with torn-up tram rails, orange embers and ash, [PARTIE COMMUNE]`
+- `chien_scories` : `[STYLE]. Monster illustration: a hound made of cooling slag and molten cracks, glowing orange eyes, snarling, crouched to leap, in an abandoned metal workshop, sparks in the air, [PARTIE COMMUNE]`
+- `ouvrier` : `[STYLE]. Monster illustration: a faceless worker of dull grey iron in a scorched work overall, smooth blank face, holding a giant wrench, standing still and calculating, on a cold blast-furnace plain under an ash sky, [PARTIE COMMUNE]`
+
+Cour des Racines :
+- `ronce` : `[STYLE]. Monster illustration: a writhing mass of living brambles with thorns like daggers and a pulsing dark green heart, lashing out, overgrowing a ruined public garden, floating spores, [PARTIE COMMUNE]`
+- `cerf` : `[STYLE]. Monster illustration: a towering stag made of bark and roots, antlers like dead branches with glowing violet fungi, hollow eyes, in a skyless forest growing through city ruins, [PARTIE COMMUNE]`
+- `spores` : `[STYLE]. Monster illustration: a drifting swarm of glowing violet spores forming a vague giant face, inside an abandoned overgrown building, beams of dim light, eerie and silent, [PARTIE COMMUNE]`
+
+Négatif en plus : `people, person, human, character, crowd, multiple monsters`
+
 ## Couverture (3/4, sujet centré)
 
 ```

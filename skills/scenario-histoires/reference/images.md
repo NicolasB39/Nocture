@@ -156,6 +156,22 @@ Les points qui comptent :
 
 Pour une variante (nuit, tempête), générez le même lieu avec le même prompt en ne changeant que `[HEURE ET MÉTÉO]`, et donnez-lui ses propres mots-clés (voir `decors.md`).
 
+## Monstres : une scène complète, en 16/9
+
+Une image de `monstres/` à fond plein s'affiche seule, en pleine largeur, sans décor derrière : elle porte le sien. Le monstre y est le sujet, dans le lieu où on le rencontre.
+
+```
+[BLOC DE STYLE].
+Monster illustration: [MONSTRE : silhouette, matière, taille, détails], [ATTITUDE : menaçante, à l'affût, en pleine attaque],
+in [LIEU : son environnement typique], the monster large and fully visible in the center of the frame,
+dramatic lighting, strong silhouette readable on a phone screen,
+no people, no humans, no text, widescreen cinematic 16:9 format.
+```
+
+- Un seul monstre par image, entier, au centre : la scène est petite sur un téléphone.
+- Pas d'humain dans l'image : le joueur et les personnages sont racontés, pas peints à côté du monstre.
+- Même bloc de style que le reste du scénario.
+
 ## Couverture : 3/4, sujet centré
 
 ```

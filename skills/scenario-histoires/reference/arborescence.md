@@ -21,6 +21,8 @@ scenarios/
         colere.png           ← code image : maren_colere
       Ozenn/
         fiche.md
+    monstres/                ← optionnel : images de monstres, à plat, sans fiche
+      kraken.webp            ← code image : monstre_kraken
     decors/                  ← choisis par l'application d'après le lieu, jamais par l'IA
       phare.webp             ← 16/9, sans personnage
       phare.md               ← optionnel : « Mots-clés : phare, salle de veille »
@@ -39,6 +41,7 @@ scenarios/
 - Le lorebook ne lit que les `.md` directement dans `lorebook/`, pas dans des sous-dossiers.
 - Un dossier de personnage sans `fiche.md` mais avec des images est accepté : il n'apporte que ses codes d'images.
 - `decors/` ne lit que les images et les `.md` directement dedans. Un décor n'a pas de code d'image : l'IA ne le voit jamais.
+- `monstres/` ne lit que les images directement dedans, sans fiche ni mots-clés : `monstres/kraken.webp` donne `monstre_kraken`. L'IA reçoit ces codes sur une ligne « Monstres » et affiche l'image quand le monstre entre en scène ; la feuille Personnages ne les montre pas. Une image **à fond plein** (le monstre dans son décor, 16/9) s'affiche seule, en pleine largeur ; une image détourée est posée sur le décor du lieu. Deux ou trois monstres typiques par famille suffisent : l'IA en décrit d'autres en texte, sans image. Les monstres se décrivent dans le lorebook ou le prompt système, pas dans ce dossier.
 
 ## etat.md
 

@@ -38,7 +38,7 @@ const NARRATION =
 const STYLE =
   '\n\n# Style\nGestes et actions entre astérisques (*il repose sa tasse*). Dans un tour, le geste précède la parole. Pas de note de jeu dans le récit (« [Situation : …] », « [Action risquée : …] ») : l’état et les jets ont leurs blocs. Les messages que le scénario met entre crochets restent permis.';
 const IMAGES =
-  '\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la juste après le paragraphe où ce personnage agit ou parle.';
+  '\n\n# Images\nAffiche une image avec {{img::code}} seul sur sa ligne, codes listés dans <images_disponibles>. Place-la juste après le paragraphe où ce personnage, ou ce monstre, agit ou parle.';
 
 // Mode jeu de rôle (regles.md) : l'IA désigne les jets, l'application les lance (dice.js).
 const jetBlock = (rules, choices) =>

@@ -58,7 +58,9 @@ const charsFor = ms => {
 const permBlock = () => {
   const C = charsPerm(),
     all = loreAll(),
-    im = (ctx.chars || []).filter(c => c.images?.length);
+    im = (ctx.chars || []).filter(c => c.images?.length).map(c => '- ' + c.name + ' : ' + c.images.join(', '));
+  // Monstres (monstres/ du scénario) : une ligne à part, sans fiche.
+  if (ctx.monsters?.length) im.push('- Monstres : ' + ctx.monsters.join(', '));
   return (
     (C.length
       ? '\n\n<personnages>' + C.map(x => '\n\n## ' + x.name + '\n' + x.text).join('') + '\n</personnages>'
@@ -66,8 +68,8 @@ const permBlock = () => {
     loreTag((ctx.lore || []).filter(e => e.always || all).sort((x, y) => y.pr - x.pr)) +
     (im.length
       ? '\n\n<images_disponibles>\n' +
-        im.map(c => '- ' + c.name + ' : ' + c.images.join(', ')).join('\n') +
-        "\nN'utilise que ces codes, tels quels, et seulement pour un personnage présent dans la scène. Un personnage absent de cette liste n'a pas d'image : n'invente pas de code pour lui.\n</images_disponibles>"
+        im.join('\n') +
+        "\nN'utilise que ces codes, tels quels, et seulement pour un personnage ou un monstre présent dans la scène. Ce qui est absent de cette liste n'a pas d'image : n'invente pas de code.\n</images_disponibles>"
       : '')
   );
 };

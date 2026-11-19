@@ -146,9 +146,15 @@ const pdir = join(dir, 'personnages');
 const chars = ls(pdir).filter(d => statSync(join(pdir, d)).isDirectory());
 if (!chars.length) info.push('aucun personnage déclaré');
 let fiches = 0;
+// Codes d'images, comme l'application (js/util.js ikey, js/scenarios.js codeOf) : préfixe_fichier, sans doubler un
+// préfixe que le fichier porte déjà.
+const ikey = s => nz(s).replace(/[\s_.\-]+/g, '_').replace(/^_+|_+$/g, ''),
+  codeOf = (n, f) => (ikey(f).startsWith(ikey(n) + '_') ? '' : ikey(n) + '_') + ikey(f),
+  taken = new Set();
 for (const c of chars) {
   const files = ls(join(pdir, c));
   const imgs = files.filter(f => IMG.test(f));
+  for (const i of imgs) taken.add(codeOf(c, i.replace(IMG, '')));
   const fp = join(pdir, c, 'fiche.md');
   for (const f of files)
     if (!IMG.test(f) && f !== 'fiche.md')
@@ -181,7 +187,7 @@ for (const c of chars) {
   if (/<choix>|<etat>|\{\{img::/.test(body))
     err.push(`personnages/${c}/fiche.md redéfinit un format géré par l’application`);
   for (const i of imgs) {
-    const code = nz(c + '_' + i.replace(IMG, ''));
+    const code = codeOf(c, i.replace(IMG, ''));
     if (/[^a-z0-9_]/.test(code))
       info.push(`code d’image inhabituel : ${code} (espaces ou ponctuation dans le nom)`);
     const a = alpha(join(pdir, c, i)),
@@ -193,6 +199,21 @@ for (const c of chars) {
       info.push(`personnages/${c}/${i} est en paysage (${d[0]}×${d[1]}) : un personnage se livre en vertical 2:3`);
   }
   if (!imgs.length) info.push(`personnages/${c} : aucune image`);
+}
+
+// --- monstres : images à plat, code monstre_<fichier>, sans fiche ---
+const mdir = join(dir, 'monstres');
+let monstres = 0;
+for (const f of ls(mdir)) {
+  const code = codeOf('monstre', f.replace(IMG, ''));
+  if (statSync(join(mdir, f)).isDirectory()) warn.push(`monstres/${f}/ : les sous-dossiers ne sont pas lus`);
+  else if (!IMG.test(f)) warn.push(`monstres/${f} n’est pas une image : ignoré`);
+  else if (taken.has(code)) warn.push(`monstres/${f} : le code ${code} est déjà pris (personnage ou autre format du même nom), image ignorée`);
+  else {
+    taken.add(code);
+    monstres++;
+    if (/[^a-z0-9_]/.test(code)) info.push(`code d’image inhabituel : ${code} (espaces ou ponctuation dans le nom)`);
+  }
 }
 
 // --- décors ---
@@ -267,7 +288,7 @@ for (const f of entries) {
 
 const out = (lbl, arr) => arr.forEach(x => console.log(lbl + ' ' + x));
 console.log(
-  `\n${name} — ${chars.length} personnage(s), ${fiches} fiche(s), ${dimgs.length} décor(s), ${entries.length} entrée(s) de lorebook\n`
+  `\n${name} — ${chars.length} personnage(s), ${fiches} fiche(s), ${dimgs.length} décor(s), ${monstres} monstre(s), ${entries.length} entrée(s) de lorebook\n`
 );
 out('ERREUR  ', err);
 out('ATTENTION', warn);

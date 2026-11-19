@@ -9,7 +9,7 @@ const sc = (o = {}) =>
   clean({ id: 's', name: 'S', system: 'SYS', messages: [], ...o });
 
 beforeEach(() => {
-  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], stat: '' });
+  Object.assign(ctx, { system: '', avatar: '', chars: [], lore: [], images: [], monsters: [], stat: '' });
 });
 
 test('clean rejette ce qui n’est pas un scénario', () => {
@@ -97,6 +97,12 @@ test('le casting liste tous les personnages, les fiches ne suivent que les actif
   assert.doesNotMatch(last, /## Bob/);
   assert.doesNotMatch(last, /alice_x/);
   assert.match(r.msgs[0].blocks[0].text, /<images_disponibles>\n- Alice : alice_x\n/);
+  // Monstres (monstres/) : une ligne à part, sans fiche, même sans personnage illustré.
+  ctx.monsters = ['monstre_noye', 'monstre_anguille'];
+  const m = buildInfo(sc({ noChoices: true, remote: true, messages: [{ role: 'user', content: 'je parle à Alice' }] }));
+  assert.match(m.msgs[0].blocks[0].text, /- Alice : alice_x\n- Monstres : monstre_noye, monstre_anguille\n/);
+  ctx.chars = [];
+  assert.match(buildInfo(sc({ noChoices: true, remote: true, messages: [] })).msgs[0].blocks[0].text, /<images_disponibles>\n- Monstres : /);
 });
 
 test('les trois étages de mémoire vivent dans le préfixe, pas dans la queue', () => {
