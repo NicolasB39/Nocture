@@ -5,13 +5,16 @@ Fichier ignoré par l'application. Il garde le bloc de style et les prompts, pou
 ## Bloc de style (en tête de chaque prompt)
 
 ```
-dark fantasy manhwa illustration style, polished anime key art, sharp expressive faces with luminous detailed eyes,
-crisp black ink linework, hard cel shading with deep shadows, glossy highlights on hair and eyes, high contrast,
-dramatic lighting, vivid neon magic effects that glow against the dark (glowing runes, sparks, light trails, floating particles),
-dusky city palette, deep navy and charcoal shadows, saturated accents of river teal, copper and violet, warm lamplight
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, slender elegant figures,
+beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart,
+rich painterly shading with smooth gradients, glossy highlights on hair, strong rim light, cinematic lighting with deep shadows,
+moody dark atmosphere, high contrast, glowing magic accents in the character's own color,
+dusky palette, deep navy and charcoal shadows, saturated accents of river teal, copper and violet, warm lamplight
 ```
 
-Négatif : `chibi, pastel colors, soft blurry shading, washed-out colors, photorealistic, 3d render, text, watermark, signature, frame, border`
+Négatif : `western cartoon, comic book style, american comic, thick outlines, bold black outlines, flat colors, flat shading, simple shading, cel shading, chibi, pastel colors, washed-out colors, photorealistic, 3d render, text, watermark, signature, frame, border`
+
+Si le générateur accepte une image en entrée (ChatGPT, Gemini, Midjourney avec `--sref`), joindre une image dont le style plaît et ajouter en tête du prompt : `Match the art style, rendering and lighting of the attached image, but draw a different character:`. C'est le moyen le plus sûr d'obtenir ce style, plus qu'une description.
 
 Ce style est plus sombre et plus contrasté que celui des autres scénarios : gardez-le pour toutes les images de celui-ci, personnages, décors et couverture, pour qu'elles restent cohérentes entre elles.
 
@@ -36,9 +39,10 @@ a different upper-body pose and gesture for each emotion (head tilt, shoulders, 
 arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: calm neutral expression, [SOURIRE], [FERME].
 [DESCRIPTION],
-waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+close waist-up portrait: the bottom edge of the image cuts every figure at the waist, no hips or thighs visible, head near the top edge,
 body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
-strong exaggerated anime facial expressions that read at a glance,
+strong expressive anime facial expressions that read at a glance,
+magic effects small and close to the hands, in the character's own color, never green or yellow-green, no sparks floating in the background,
 every figure the same size, each one fitting inside its own equal share of the image width,
 both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
 a wide green gap between figures and a green margin on the left and right edges of the image,
@@ -56,7 +60,7 @@ wide horizontal format 3:2.
 - `Lucienne` : `a 68-year-old short and stout French woman, cropped white hair, strong forearms, red-checkered apron over a dark dress, a star-shaped scar on the back of her neck` · `[SOURIRE]` : `gentle motherly smile, eyes half-closed` · `[FERME]` : `quiet severe look that would silence a room`
 - `Ondine` : `a young woman who looks 26, long black hair always slightly wet, pale skin, grey-blue eyes, half-open black wetsuit over an oversized pale sweatshirt, a shell necklace, a few glowing blue water droplets floating around her fingers` · `[SOURIRE]` : `soft dreamy smile, head tilted with curiosity` · `[FERME]` : `distant sad expression, eyes lowered, a faint cold mist around her hands`
 
-Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, legs, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, captions, labels, grid lines, panels`
+Négatif en plus : `background scenery, ground, cast shadow, cropped head, full body, hips, thighs, legs, green sparks, green particles, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, captions, labels, grid lines, panels`
 
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 
