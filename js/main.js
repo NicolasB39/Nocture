@@ -13,7 +13,7 @@ import './settings.js';
 import './journal.js';
 import './statview.js';
 
-const VERSION = '6121877472';
+const VERSION = 'd2f3a37986';
 const pv = document.querySelector('meta[name="app-version"]')?.content;
 if (pv !== VERSION)
   window.__boot?.warn(

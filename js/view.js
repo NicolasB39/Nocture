@@ -9,7 +9,7 @@ import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
-import { dayKey, decorFor, decorNow, decorsOf, lieuOf, momentsOf, scenesOf } from './scene.js';
+import { dayKey, decorFor, decorNow, decorsOf, head, heureOf, jourLabel, lieuOf, momentsOf, scenesOf } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
 import { $, el, ic, LS, smooth } from './util.js';
 
@@ -395,6 +395,7 @@ export function render(sc) {
   const pr = inScene(ms.slice(-6));
   castView(pr);
   sideView(pr);
+  ctxView();
   const chList = list =>
     el(
       'div',
@@ -574,6 +575,66 @@ function castView(pr) {
       : [ic('users')])
   );
 }
+// Message dont l'état est le dernier montré (-1 : aucun), pour l'en-tête et la colonne du grand écran.
+const stIdx = () => (statOn(app.cur) ? app.cur.messages.findLastIndex(m => m.role == 'assistant' && m.state?.length) : -1);
+// En-tête : lieu, jour et heure du dernier état sous le titre (#cx) ; un toucher déplie l'état complet par-dessus
+// le fil (#cxp), reconstruit seulement quand l'état change. Une autre histoire rouvre l'en-tête complet.
+let CXID = '';
+// Ouverture d'une histoire, même celle qu'on vient de quitter (chat.js) : le prochain rendu rouvre l'en-tête.
+export const hdReset = () => (CXID = '');
+const cxOpen = o => {
+  $('#cxp').hidden = !o;
+  $('#cx').setAttribute('aria-expanded', String(o));
+};
+function ctxView() {
+  const ms = app.cur.messages,
+    i = stIdx(),
+    st = i >= 0 ? ms[i].state : null,
+    // Le lieu et le jour jusqu'à leur première virgule (« Rue Pinel, cour de l'atelier » → « Rue Pinel ») : tout
+    // reste visible sur un téléphone ; l'intertitre du récit et l'état déplié donnent le lieu en entier.
+    t = st ? [head(lieuOf(st)), jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') : '',
+    s = $('#cx span');
+  if (CXID != app.cur.id) {
+    CXID = app.cur.id;
+    sy = 0;
+    fold(false);
+    cxOpen(false);
+  }
+  $('#cx').hidden = !t;
+  if (s.textContent != t) s.textContent = t;
+  // Plus d'état (réponse supprimée ou régénérée) : sans ligne de contexte, l'en-tête replié resterait vide.
+  if (!t) return cxOpen(false), fold(false);
+  const p = $('#cxp'),
+    k = i + sig(st);
+  if (!p.hidden && p.dataset.k !== k) {
+    p.dataset.k = k;
+    p.replaceChildren(stGrid(stRows(i, ms[i])));
+  }
+}
+// Replié, un toucher rouvre d'abord l'en-tête (retour, menu) ; déplié, il ouvre ou ferme l'état.
+$('#cx').onclick = () => {
+  if ($('#chat header').classList.contains('rd')) return fold(false);
+  cxOpen($('#cxp').hidden);
+  ctxView();
+};
+// Téléphone : l'en-tête se replie sur la ligne de contexte quand le joueur descend dans le fil, et revient dès
+// qu'il remonte. Seuls ses gestes comptent (gx : dernier toucher ou molette), pas le défilement de l'application
+// (ouverture, réponse qui s'écrit, flèches de tour). hdAt : moment du dernier repli ; le changement de hauteur
+// qu'il provoque n'est pris ni pour un geste ni pour le clavier (ResizeObserver plus bas).
+let hdAt = 0,
+  gx = 0,
+  sy = 0;
+function fold(f) {
+  const hd = $('#chat header');
+  if (hd.classList.contains('rd') == f) return;
+  // En lisant la fin, elle reste en vue quand l'en-tête reprend sa hauteur (fermeture du clavier, par exemple).
+  const end = !far(),
+    m = $('#msgs');
+  hd.classList.toggle('rd', f);
+  hdAt = Date.now();
+  if (end) m.scrollTop = m.scrollHeight;
+  if (f) cxOpen(false);
+}
 // Grand écran (ordinateur) : même seuil que les @media (min-width: 1200px) de style.css.
 export const WIDE = matchMedia('(min-width: 1200px)');
 // Grand écran : à droite, les personnages en scène et le dernier état, toujours visibles. Sans rien à
@@ -581,7 +642,7 @@ export const WIDE = matchMedia('(min-width: 1200px)');
 function sideView(pr) {
   if (!WIDE.matches) return;
   const ms = app.cur.messages,
-    i = statOn(app.cur) ? ms.findLastIndex(m => m.role == 'assistant' && m.state?.length) : -1,
+    i = stIdx(),
     sd = $('#side'),
     k = [app.cur.id, ctx.chars?.length, ctx.iv, pr.map(c => c.name).join('|'), i < 0 ? '' : i + sig(ms[i].state)].join(':');
   if (sd.dataset.k === k) return;
@@ -609,7 +670,11 @@ function sideView(pr) {
   sd.replaceChildren(...parts);
   $('#chat').classList.toggle('sd', parts.length > 0);
 }
-WIDE.onchange = () => app.cur && !$('#chat').hidden && sideView(inScene(app.cur.messages.slice(-6)));
+WIDE.onchange = () => {
+  if (!app.cur || $('#chat').hidden) return;
+  sideView(inScene(app.cur.messages.slice(-6)));
+  fold(false);
+};
 $('#tk').onclick = e => {
   const t = $('#tk');
   if (!e.target.closest('.tks, .tkl')) return;
@@ -670,9 +735,16 @@ export const navView = () => {
   if (!f || !unseen(tail())) $('#newm').hidden = true;
 };
 $('#msgs').addEventListener('pointerdown', navWake, { passive: true });
+for (const t of ['touchmove', 'wheel']) $('#msgs').addEventListener(t, () => (gx = Date.now()), { passive: true });
 $('#msgs').onscroll = () => {
   navWake();
   navView();
+  const y = $('#msgs').scrollTop,
+    dy = y - sy;
+  if (Math.abs(dy) < 24 && y >= 40) return;
+  sy = y;
+  const now = Date.now();
+  if (now - gx < 800 && now - hdAt > 400 && !WIDE.matches && !$('#cx').hidden) fold(y >= 40 && dy > 0);
 };
 // Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
 // bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Le rétrécissement ne déplace pas
@@ -682,7 +754,7 @@ let h0 = 0;
 new ResizeObserver(([e]) => {
   const h = e.contentRect.height,
     m = $('#msgs');
-  if (h0 && h < h0 && m.scrollHeight - m.scrollTop - h0 < 80) m.scrollTop = m.scrollHeight;
+  if (h0 && h < h0 && Date.now() - hdAt > 400 && m.scrollHeight - m.scrollTop - h0 < 80) m.scrollTop = m.scrollHeight;
   h0 = h;
 }).observe($('#msgs'));
 $('#newm').onclick = () => {

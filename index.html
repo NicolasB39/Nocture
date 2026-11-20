@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' https://api.anthropic.com https://api.github.com; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <script src="js/boot.js"></script>
-<meta name="app-version" content="6121877472">
+<meta name="app-version" content="d2f3a37986">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>Nocturne</title>
 <link rel="manifest" href="manifest.json">
@@ -93,12 +93,12 @@
 <main id="chat" hidden>
 <header>
 <button id="back" aria-label="Retour"><svg class="i"><use href="#i-back"/></svg></button>
-<h1 id="ct"></h1>
+<div id="ctw"><h1 id="ct"></h1><button id="cx" hidden aria-expanded="false" aria-controls="cxp"><span></span><svg class="i"><use href="#i-down"/></svg></button></div>
 <button id="sw" aria-label="Changer d'histoire" aria-haspopup="dialog"><svg class="i"><use href="#i-chevd"/></svg></button>
 <button id="pe" aria-label="Personnages"><svg class="i"><use href="#i-users"/></svg></button>
 <button id="mo" aria-label="Options de l'histoire"><svg class="i"><use href="#i-more"/></svg></button>
 </header>
-<div id="mw"><div id="msgs"><div id="mhead"></div><div id="mfoot"></div></div><div id="nav"><button id="nvp" aria-label="Tour précédent"><svg class="i rot"><use href="#i-down"/></svg></button><button id="nvn" aria-label="Tour suivant"><svg class="i"><use href="#i-down"/></svg></button></div><div id="err" role="status"></div><button id="newm" hidden></button></div>
+<div id="mw"><div id="cxp" role="region" aria-label="État" hidden></div><div id="msgs"><div id="mhead"></div><div id="mfoot"></div></div><div id="nav"><button id="nvp" aria-label="Tour précédent"><svg class="i rot"><use href="#i-down"/></svg></button><button id="nvn" aria-label="Tour suivant"><svg class="i"><use href="#i-down"/></svg></button></div><div id="err" role="status"></div><button id="newm" hidden></button></div>
 <p id="gst" class="sr" role="status"></p>
 <div id="tk"></div>
 <footer><div class="inb"><textarea id="inp" rows="1" placeholder="Votre tour" aria-label="Votre tour"></textarea><button id="ast" aria-label="Mettre en action">✱</button><button id="stop" hidden aria-label="Annuler"><svg class="i f"><use href="#i-stop"/></svg></button><button id="send" class="primary" aria-label="Envoyer"><svg class="i" style="stroke-width:2.6"><use href="#i-send"/></svg></button></div></footer>

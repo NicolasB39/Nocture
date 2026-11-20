@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { SA, decorFor, decorNow, decorsOf, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
+import { SA, decorFor, decorNow, decorsOf, head, heureOf, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
 import { ctx } from '../js/state.js';
 
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
@@ -104,4 +104,13 @@ test('moment de la journée : mots et heures reconnus, rien sans champ, le derni
   assert.equal(jourLabel('1/12'), 'Jour 1/12');
   assert.equal(momentNow(ms), '');
   assert.equal(momentNow(ms.slice(0, 3)), 'soir');
+});
+
+test('ligne de contexte de l’en-tête : première partie d’une valeur, heure sous ses trois noms', () => {
+  assert.equal(head("Rue Pinel, cour de l'atelier"), 'Rue Pinel');
+  assert.equal(head('J+3 (pluie)'), 'J+3');
+  assert.equal(head(''), '');
+  for (const k of ['Heure', 'Moment', 'Période']) assert.equal(heureOf([['Lieu', 'Quai'], [k, '14h03']]), '14h03', k);
+  assert.equal(heureOf([['Lieu', 'Quai']]), undefined);
+  assert.equal(momentOf([['Période', 'soir']]), 'soir', 'même champ pour la teinte des décors');
 });

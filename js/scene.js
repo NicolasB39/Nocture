@@ -4,14 +4,18 @@ import { el, hue, nz } from './util.js';
 export const lieuOf = st => (st || []).find(([k]) => /^(lieu|endroit|localisation|position)/.test(nz(k)))?.[1] || '';
 // Jour (ou Date) du récit : pas « Jours restants » ni « Journal ».
 export const jourOf = st => (st || []).find(([k]) => /^(jour|date)(\s|\(|$)/.test(nz(k).trim()))?.[1] || '';
-// Le jour seul, sans l'heure ni la météo qu'un champ Date porte souvent (« J+3, 14h, pluie » → « J+3 »).
-export const dayKey = st => jourOf(st).split(/[,(—–]/)[0].trim();
+// Première partie d'une valeur d'état, avant une virgule, une parenthèse ou un tiret (« J+3, 14h, pluie » → « J+3 »).
+export const head = v => String(v || '').split(/[,(—–]/)[0].trim();
+// Le jour seul, sans l'heure ni la météo qu'un champ Date porte souvent.
+export const dayKey = st => head(jourOf(st));
+// Heure du récit (champ Moment, Heure ou Période).
+export const heureOf = st => (st || []).find(([k]) => /^(moment|heure|periode)/.test(nz(k)))?.[1];
 // « Jour 2 » (ou « Jour 1/12 ») pour une valeur qui n'est qu'un nombre, sinon la valeur telle quelle (« 3 mai »).
 export const jourLabel = v => (/^\d+(\s*\/\s*\d+)?$/.test((v = String(v || '').trim())) ? 'Jour ' + v : v);
 // Moment de la journée d'un état (champ Moment, Heure ou Période) : aube, soir ou nuit teintent les décors
 // (style.css, [data-mo]) ; le jour ou une valeur inconnue, aucune teinte. null : l'état ne dit rien du moment.
 export const momentOf = st => {
-  const v = (st || []).find(([k]) => /^(moment|heure|periode)/.test(nz(k)))?.[1];
+  const v = heureOf(st);
   if (v == null) return null;
   const x = nz(v),
     h = x.match(/(\d{1,2}) ?h/);

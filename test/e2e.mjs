@@ -661,6 +661,7 @@ try {
       );
     const F = {
       'scenarios/demo/systeme.md': 'Narrateur.',
+      'scenarios/demo/etat.md': 'Lieu',
       'scenarios/demo/personnages/Alice/alice.png': await png(100, 200, 'cut'),
       'scenarios/demo/personnages/Bob/bob.png': await png(100, 200, 'flat'),
       'scenarios/demo/decors/taverne.png': await png(800, 450, '#a33'),
@@ -764,6 +765,29 @@ try {
       'lettrine au changement de lieu, pas à chaque réponse'
     );
     assert.deepEqual(await p3.locator('#msgs .scene').allTextContents(), ['Auberge du Pont', 'Volcan'], 'intertitres de lieu');
+    // En-tête : ligne de contexte du dernier état ; un toucher déplie l'état, un second le referme.
+    assert.equal(await p3.textContent('#cx span'), 'Volcan', 'ligne de contexte sous le titre');
+    await p3.click('#cx');
+    await p3.waitForSelector('#cxp:not([hidden]) .stg');
+    assert.match(await p3.textContent('#cxp'), /Volcan/, 'état déplié');
+    await p3.click('#cx');
+    await p3.waitForSelector('#cxp', { state: 'hidden' });
+    // Repli : la molette vers le bas replie l'en-tête sur la ligne de contexte, vers le haut le rouvre ; le
+    // défilement fait par l'application ne le replie pas.
+    await p3.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
+    await wait(500);
+    await p3.evaluate(() => (document.querySelector('#msgs').scrollTop = 400));
+    await wait(100);
+    assert.equal(await p3.getAttribute('#chat header', 'class'), 'dk', 'défilement de l’application : en-tête déplié');
+    await p3.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
+    await wait(500);
+    await p3.mouse.move(195, 500);
+    for (let i = 0; i < 4; i++) await p3.mouse.wheel(0, 150), await wait(120);
+    await p3.waitForSelector('#chat header.rd');
+    assert.ok(await p3.isHidden('#back'), 'replié : seule la ligne de contexte reste');
+    await wait(500);
+    for (let i = 0; i < 3; i++) await p3.mouse.wheel(0, -150), await wait(120);
+    await p3.waitForSelector('#chat header:not(.rd)');
     // Sommaire en frise : une entrée par lieu, la dernière en cours ; toucher une scène mène au récit.
     await p3.click('#mo');
     await p3.click('#msm');
