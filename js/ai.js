@@ -46,7 +46,7 @@ export const effortOk = model => {
 // qu'Anthropic choisit selon le motif du refus. Avec Sonnet 5.5, seuls les refus « cyber » et « frontier_llm »
 // sont relayés ; les autres (« general_harms », etc.) reviennent comme refus.
 export const FB_BETA = 'server-side-fallback-2026-07-01';
-export const fallbackOk = model => ['claude-fable-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5'].includes(base(model));
+export const fallbackOk = model => ['claude-fable-5-2', 'claude-fable-5-1', 'claude-opus-5-5', 'claude-opus-5', 'claude-sonnet-5-5'].includes(base(model));
 // En-tête bêta d'une requête Claude (le relais en cas de refus).
 export const antBetas = b => (b.fallbacks ? FB_BETA : '');
 // schema : réponse en JSON conforme à ce schéma (sorties structurées), garantie par l'API.

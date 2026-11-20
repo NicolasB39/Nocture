@@ -55,6 +55,7 @@ test('relais en cas de refus : demandé pour la narration sur les modèles qui l
   assert.ok(!('fallbacks' in req.b) && !req.h['anthropic-beta']);
   assert.ok(!('fallbacks' in toAnt(ms, { model: 'claude-haiku-5-5', fallback: true })));
   assert.equal(toAnt(ms, { model: 'claude-opus-5-5-20261001', fallback: true }).fallbacks, 'default');
+  assert.equal(toAnt(ms, { model: 'claude-fable-5-2', fallback: true }).fallbacks, 'default', 'Fable 5.2 relayé');
 });
 
 test('un refus en plein texte est une erreur, le texte reçu n’est pas gardé', async () => {

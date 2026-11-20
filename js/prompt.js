@@ -22,7 +22,7 @@ const textOf = ms =>
   );
 const loreTag = a => (a.length ? '\n\n<lorebook>\n' + a.map(e => e.text).join('\n\n') + '\n</lorebook>' : '');
 // La partie fixe du prompt est relue en cache à un dixième du prix d'entrée au plus (un vingtième sur Sonnet et
-// Opus 5.5, un quarantième sur Fable 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des
+// Opus 5.5, un quarantième sur Fable 5.2 et 5.1), alors que la fin de requête est payée plein tarif à chaque tour. Des
 // fiches et un lorebook modestes coûtent donc moins en entier dans la partie fixe que par morceaux en fin de
 // requête ; au-delà de CACHED_FREE tokens, seuls les actifs partent. Le seuil laisse de la marge aux scénarios
 // joués (les 19 fiches de Lumencia font environ 5 200 tokens) : une fiche ajoutée ne fait pas tout basculer.

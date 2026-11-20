@@ -46,7 +46,7 @@ beforeEach(() => {
 });
 
 test('effortOk : Opus et Sonnet 4.6 et suivants, Haiku 5.5, Fable ; pas Haiku 4.5', () => {
-  for (const m of ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-5-5', 'claude-fable-5-1', 'claude-sonnet-4-6', 'claude-opus-4-6', 'claude-opus-4-5'])
+  for (const m of ['claude-sonnet-5-5', 'claude-opus-5-5', 'claude-haiku-5-5', 'claude-fable-5-2', 'claude-fable-5-1', 'claude-sonnet-4-6', 'claude-opus-4-6', 'claude-opus-4-5'])
     assert.ok(effortOk(m), m);
   for (const m of ['claude-haiku-4-5', 'claude-haiku-4-5-20251001', 'claude-sonnet-4-5', 'claude-3-5-sonnet-20241022', 'llama', ''])
     assert.ok(!effortOk(m), m);

@@ -13,6 +13,7 @@ beforeEach(() => {
 test('priceOf : tarif public, y compris pour un identifiant daté', () => {
   assert.deepEqual(priceOf('claude-sonnet-5-5'), [2, 10, 0.1]);
   assert.deepEqual(priceOf('claude-haiku-4-5-20251001'), [1, 5, 0.1]);
+  assert.deepEqual(priceOf('claude-fable-5-2'), [8, 40, 0.2], 'Fable 5.2');
   assert.equal(priceOf('claude-inconnu-9'), null);
   assert.deepEqual(priceOf('claude-opus-5-5-20260101'), [4, 20, 0.2], 'pas confondu avec claude-opus-5');
   assert.equal(priceOf('claude-sonnet-5-7'), null, 'voisin d’un modèle connu : sans tarif');
