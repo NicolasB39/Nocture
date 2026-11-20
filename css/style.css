@@ -539,6 +539,14 @@ header > button:active {
 #chat header.rd #ctw {
   align-items: center;
 }
+/* Application installée en plein écran (manifest.json) : plus de barre d'état au-dessus, seule la marge de la
+   caméra (safe-area) reste en haut, sans marge fixe en plus. */
+@media (display-mode: fullscreen) {
+  header,
+  #chat header.rd {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
 #cxp {
   position: absolute;
   inset: 0 0 auto;
