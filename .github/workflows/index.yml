@@ -58,7 +58,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.d.outputs.page_url }}
+      url: ${{ steps.d.outputs.page_url || steps.d2.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -71,5 +71,14 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: .
+      # Le paquet du site vient d'être envoyé, mais il arrive que deploy-pages ne le trouve pas encore (« Found 0
+      # artifact(s) ») : on attend un peu et on réessaie une fois, dans la même exécution. Relancer l'étape depuis
+      # GitHub enverrait un second paquet du même nom, que deploy-pages refuse.
       - id: d
+        uses: actions/deploy-pages@v5
+        continue-on-error: true
+      - if: steps.d.outcome == 'failure'
+        run: sleep 30
+      - id: d2
+        if: steps.d.outcome == 'failure'
         uses: actions/deploy-pages@v5
