@@ -19,7 +19,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - run: bash tools/webp-ci.sh
       - name: Enregistrer les WebP
         run: |
@@ -35,12 +35,12 @@ jobs:
     needs: webp
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
       - run: npm install --no-audit --no-fund
       - run: npm test
       - run: npm run scenarios
@@ -48,7 +48,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-echec
           path: e2e-echec.png
@@ -60,16 +60,16 @@ jobs:
       name: github-pages
       url: ${{ steps.d.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.ref }}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 22
+          node-version: 26
       - run: npm run build
       - run: git -c core.quotepath=off ls-files scenarios | jq -R . | jq -s . > index.json
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: .
       - id: d
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -12,6 +12,6 @@
     "webp": "node tools/webp.mjs"
   },
   "devDependencies": {
-    "playwright": "1.49.1"
+    "playwright": "1.65.1"
   }
 }
