@@ -733,12 +733,6 @@ try {
     await say('J’entre.', 'Elle sourit.\n\n{{img::alice_alice}}\n\nLe comptoir brille.\n\n<etat>\nLieu: Auberge du Pont\n</etat>');
     let g = await last('cut');
     assert.match(g.dec, /decors\/taverne\.png$/, 'décor par mot-clé');
-    // L'image réellement utilisée par la feuille de style : une adresse relative y serait résolue depuis css/.
-    assert.equal(
-      await p3.evaluate(() => getComputedStyle(document.querySelector('#chat header.dk'), '::before').backgroundImage),
-      'url("' + base + '/scenarios/demo/decors/taverne.png")',
-      'en-tête teinté par le décor du moment'
-    );
     assert.equal(await p3.locator('#msgs .m.lt').count(), 1, 'lettrine sur la première réponse');
     assert.ok(Math.abs(g.ratio - 16 / 9) < 0.05, 'format de la scène : ' + g.ratio);
     assert.ok(g.full, 'scène pleine largeur');
@@ -780,7 +774,7 @@ try {
     await wait(500);
     await p3.evaluate(() => (document.querySelector('#msgs').scrollTop = 400));
     await wait(100);
-    assert.equal(await p3.getAttribute('#chat header', 'class'), 'dk', 'défilement de l’application : en-tête déplié');
+    assert.equal(await p3.locator('#chat header.rd').count(), 0, 'défilement de l’application : en-tête déplié');
     await p3.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
     await wait(500);
     await p3.mouse.move(195, 500);
@@ -881,6 +875,21 @@ try {
     await p4.waitForSelector('#chat:not([hidden])');
     const nav = () => p4.evaluate(() => !document.querySelector('#nav').hidden && +getComputedStyle(document.querySelector('#nav')).opacity);
     const gap = () => p4.evaluate(() => { const m = document.querySelector('#msgs'); return m.scrollHeight - m.scrollTop - m.clientHeight; });
+    // En-tête flottant : le fil commence sous lui ; un saut pose le début du message juste dessous, et ce message
+    // compte pour le premier visible.
+    const under = i =>
+      p4.evaluate(i => {
+        const h = document.querySelector('#chat header').getBoundingClientRect().bottom;
+        return document.querySelector('#msgs .m' + (i == null ? '' : '[data-i="' + i + '"]')).getBoundingClientRect().top - h;
+      }, i);
+    await p4.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
+    await wait(100);
+    assert.ok((await under()) >= 0, 'fil sous l’en-tête flottant');
+    await p4.evaluate(async () => (await import('/js/view.js')).jump(10));
+    await wait(900);
+    const d = await under(10);
+    assert.ok(d >= -1 && d < 30, 'saut : début du message sous l’en-tête (' + d + ')');
+    assert.equal(await p4.evaluate(async () => (await import('/js/view.js')).visibleStart()), 10, 'premier message visible sous l’en-tête');
     // Flèches : là au défilement, effacées ensuite ; le défilement simulé pendant l'écriture ne les rappelle pas.
     await p4.evaluate(() => (document.querySelector('#msgs').scrollTop = 300));
     await wait(300);

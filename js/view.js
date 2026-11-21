@@ -12,7 +12,6 @@ import { coverOf } from './scenarios.js';
 import {
   dayKey,
   decorFor,
-  decorNow,
   decorsOf,
   head,
   heureOf,
@@ -219,13 +218,6 @@ const titles = (sc, live = -1) => {
     );
   }
 };
-// En-tête teinté par le décor du moment, à défaut par la couverture, flouté et assombri en CSS. L'adresse
-// est rendue absolue : relative, la feuille de style qui lit la variable la résoudrait depuis css/.
-const headDecor = dn => {
-  const hd = $('#chat header');
-  hd.classList.toggle('dk', !!dn);
-  hd.style.setProperty('--hdi', dn ? 'url(' + JSON.stringify(new URL(dn, document.baseURI).href) + ')' : 'none');
-};
 // Lieu annoncé en tête de la réponse en cours (<lieu>, protocol.js) : intertitre, lettrine et en-tête prennent
 // tout de suite la place que leur donnera le rendu final. Rend le décor du lieu, pour les images de la réponse.
 // LIVE le retient pour qu'un render() pendant l'écriture (messages précédents, saut, réglages) le remette ;
@@ -245,9 +237,7 @@ const liveApply = fade => {
   lv?.classList.toggle('lt', sc.some(s => s.at == n));
   const t = lv?.previousElementSibling;
   if (fade && t?.matches('.scene')) t.classList.add('in');
-  const d = decorFor(LIVE.lieu);
-  headDecor(d || coverOf(app.cur));
-  return d;
+  return decorFor(LIVE.lieu);
 };
 // Chance de réussite d'un jet avec la fiche de l'histoire ouverte (dice.js).
 const pct = k => chance(k, sheetOf(app.cur));
@@ -399,7 +389,6 @@ export function render(sc) {
   titles(SC);
   const lm = ms.at(-1),
     cs = lm?.role == 'assistant' && !app.cur.noChoices ? lm.choices || [] : [];
-  headDecor(decorNow(ms) || coverOf(app.cur));
   if (LIVE?.id == app.cur.id && $('#live')) liveApply();
   const R = rulesOf(app.cur),
     rq = lm?.role == 'assistant' && askOf(lm.content, R),
@@ -678,20 +667,26 @@ $('#cx').onclick = () => {
 };
 // Téléphone : l'en-tête se replie sur la ligne de contexte quand le joueur descend dans le fil, et revient dès
 // qu'il remonte. Seuls ses gestes comptent (gx : dernier toucher ou molette), pas le défilement de l'application
-// (ouverture, réponse qui s'écrit, flèches de tour). hdAt : moment du dernier repli ; le changement de hauteur
-// qu'il provoque n'est pris ni pour un geste ni pour le clavier (ResizeObserver plus bas).
+// (ouverture, réponse qui s'écrit, flèches de tour). hdAt : moment du dernier repli, pour ne pas replier et
+// déplier en rafale.
 let hdAt = 0,
   gx = 0,
-  sy = 0;
+  sy = 0,
+  hh = '';
+// Téléphone : l'en-tête flotte sur le fil (style.css), qui part sous sa hauteur dépliée. Caché (liste des
+// histoires), il ne mesure rien : la hauteur gardée sert au retour.
+const hhSet = h => {
+  const v = h + 'px';
+  if (h && !$('#chat header').classList.contains('rd') && v != hh) $('#chat').style.setProperty('--hh', (hh = v));
+};
+new ResizeObserver(([e]) => hhSet(e.borderBoxSize[0].blockSize)).observe($('#chat header'), { box: 'border-box' });
+// Mesure immédiate, avant un saut dans le fil qui suit l'ouverture (chat.js) : l'observateur n'a pas encore parlé.
+export const hhNow = () => hhSet($('#chat header').getBoundingClientRect().height);
 function fold(f) {
   const hd = $('#chat header');
   if (hd.classList.contains('rd') == f) return;
-  // En lisant la fin, elle reste en vue quand l'en-tête reprend sa hauteur (fermeture du clavier, par exemple).
-  const end = !far(),
-    m = $('#msgs');
   hd.classList.toggle('rd', f);
   hdAt = Date.now();
-  if (end) m.scrollTop = m.scrollHeight;
   if (f) cxOpen(false);
 }
 // Grand écran (ordinateur) : même seuil que les @media (min-width: 1200px) de style.css.
@@ -753,10 +748,11 @@ export const far = () => {
   const m = $('#msgs');
   return m.scrollHeight - m.scrollTop - m.clientHeight >= 80;
 };
-// Premier message visible en haut du fil.
+// Premier message visible en haut du fil, sous l'en-tête quand il flotte dessus (téléphone) : même repère que
+// scrollIntoView, le haut du fil plus son scroll-padding.
 export const visibleStart = () => {
   const m = $('#msgs'),
-    top = m.getBoundingClientRect().top,
+    top = m.getBoundingClientRect().top + (parseFloat(getComputedStyle(m).scrollPaddingTop) || 0),
     els = [...m.querySelectorAll('.m')],
     e = els.find(x => x.getBoundingClientRect().bottom > top + 24) || els.at(-1);
   return e ? +e.dataset.i : 0;
@@ -808,14 +804,15 @@ $('#msgs').onscroll = () => {
 // Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
 // bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Le rétrécissement ne déplace pas
 // scrollTop : l'écart d'avant se lit avec l'ancienne hauteur. Rien depuis une hauteur nulle : à l'ouverture d'une
-// histoire (fil caché puis montré), la position de lecture reste.
+// histoire (fil caché puis montré), la position de lecture reste. Hauteur bordure comprise : le haut du fil,
+// sous l'en-tête flottant, est une marge intérieure qui change avec lui.
 let h0 = 0;
 new ResizeObserver(([e]) => {
-  const h = e.contentRect.height,
+  const h = e.borderBoxSize[0].blockSize,
     m = $('#msgs');
-  if (h0 && h < h0 && Date.now() - hdAt > 400 && m.scrollHeight - m.scrollTop - h0 < 80) m.scrollTop = m.scrollHeight;
+  if (h0 && h < h0 && m.scrollHeight - m.scrollTop - h0 < 80) m.scrollTop = m.scrollHeight;
   h0 = h;
-}).observe($('#msgs'));
+}).observe($('#msgs'), { box: 'border-box' });
 $('#newm').onclick = () => {
   const m = $('#msgs');
   $('#newm').hidden = true;

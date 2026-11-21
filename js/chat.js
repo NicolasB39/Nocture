@@ -14,7 +14,7 @@ import { app, ctx, playerName } from './state.js';
 import { statFields, statOn } from './prompt.js';
 import { forkOf, getOne, save } from './store.js';
 import { $, dlg, err, fit, isRoll, JET, LS, plain, smooth, toast, uid, vt } from './util.js';
-import { hdReset, readPos, render } from './view.js';
+import { hdReset, hhNow, readPos, render } from './view.js';
 
 // Conversation : ouverture d'une histoire et actions sur les messages (variantes, modification,
 // suppression, bifurcation, menus).
@@ -65,6 +65,7 @@ export async function openScenario(id) {
   if (back > 0) {
     const e = document.querySelector('#msgs .m[data-i="' + back + '"]');
     if (e) {
+      hhNow();
       e.scrollIntoView({ block: 'start' });
       toast('Reprise là où vous en étiez', {
         label: 'Aller en bas',
