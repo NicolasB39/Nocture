@@ -976,14 +976,14 @@ try {
     assert.deepEqual(a.pills, ['PV', 'Rang'], 'premier état : tout, sans lieu, jour ni heure');
     assert.equal(a.goal, 'Entrer');
     assert.deepEqual(b.pills, ['PV'], 'jauge et changements seulement : le rang inchangé disparaît');
-    assert.equal(b.goal, 'Savoir qui parle · Fermer la Brèche', 'étapes de l’objectif bout à bout');
+    assert.equal(b.goal, 'Savoir qui parle ; fermer la Brèche', 'objectif tel quel dans l’encart');
     assert.deepEqual(c.pills, ['PV'], 'rien de changé : la jauge reste');
     assert.equal(c.goal, '', 'objectif inchangé : pas d’encart');
     assert.ok(d.low && d.goal == '', 'jauge basse en rouge ; objectif vidé : pas d’encart');
     // Dépliée : jauges en tuiles, étapes en puces ; le choix vaut pour toutes les cartes.
     await p5.click('#msgs .m[data-i="3"] .stc');
     await p5.waitForSelector('#msgs .m[data-i="3"] .st.open .stx .stt');
-    assert.deepEqual(await p5.locator('#msgs .m[data-i="3"] .stx .sgp').allTextContents(), ['Savoir qui parle', 'Fermer la Brèche']);
+    assert.equal(await p5.textContent('#msgs .m[data-i="3"] .stx .sgo'), 'Savoir qui parle ; fermer la Brèche');
     assert.equal(await p5.locator('#msgs .st:not(.open)').count(), 0, 'toutes les cartes dépliées');
     await p5.click('#msgs .m[data-i="3"] .stl');
     await p5.waitForSelector('#msgs .m[data-i="3"] .st:not(.open)');

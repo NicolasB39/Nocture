@@ -2160,6 +2160,10 @@ dialog label:has(> input[type='checkbox']) {
 .stc > .i {
   grid-area: 1 / 2;
 }
+.stc > .sts,
+.stc > .sgo {
+  grid-column: 1;
+}
 .sts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2236,10 +2240,10 @@ dialog label:has(> input[type='checkbox']) {
   margin-top: 2px;
   color: var(--ac);
 }
-.sgt {
+.sgt,
+.sgl {
   flex: 1;
   min-width: 0;
-  display: grid;
 }
 .sgl {
   display: -webkit-box;
@@ -2247,37 +2251,9 @@ dialog label:has(> input[type='checkbox']) {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.sgo.many .sgl {
-  display: block;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-.sgo small {
-  margin-right: 5px;
-  color: var(--ac);
-  font: 600 9.5px/1.6 var(--sans);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.sgo > em {
-  flex: none;
-  color: var(--ac);
-  font: 600 11px/1.6 var(--sans);
-  font-style: normal;
-}
-.sgp {
-  position: relative;
-  padding: 2px 0 2px 12px;
-}
-.sgp::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10px;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--ac);
+/* Valeur en texte (pas un nombre) : la pastille prend la ligne, coupée seulement au bout. */
+.stp.wide {
+  grid-column: 1 / -1;
 }
 .stx {
   display: none;
@@ -2346,13 +2322,6 @@ dialog label:has(> input[type='checkbox']) {
 }
 .stx .sgo {
   margin-top: 10px;
-}
-.stx .sgo small {
-  display: block;
-  margin-top: 6px;
-}
-.stx .sgo small:first-child {
-  margin-top: 0;
 }
 .stg {
   display: grid;
@@ -2501,8 +2470,7 @@ dialog input[type='range'] {
 .stt,
 .kv,
 .cxl,
-.sgl,
-.sgp {
+.sgo {
   position: relative;
 }
 .kv {

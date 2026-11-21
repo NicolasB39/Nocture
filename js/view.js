@@ -165,22 +165,17 @@ const stGrid = rows =>
 const cxLine = r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r.d));
 // Carte sous la réponse. Les jauges (« 40/100 » : vie, mana, énergie…) toujours ; le reste seulement s'il a changé
 // depuis l'état précédent (tout, au premier état) ; jamais ce que l'en-tête montre déjà (lieu, jour, heure). Les
-// objectifs (Objectif, Quête, Mission, But) vont dans un encart doré, en étapes coupées à chaque « ; ». Repliée :
-// pastilles sur deux colonnes, puis l'encart ; dépliée : jauges en tuiles, valeurs en lignes, étapes en puces. Le
-// choix plié / déplié vaut pour toute l'appli (chat.js). Une jauge sous LOW % passe au rouge.
+// objectifs (Objectif, Quête, Mission, But) vont dans un encart doré chacun. Repliée : pastilles sur deux colonnes
+// (un texte, sur toute la largeur), puis les encarts sur deux lignes au plus ; dépliée : jauges en tuiles, valeurs
+// en lignes, objectifs en entier. Le choix plié / déplié vaut pour toute l'appli (chat.js). Une jauge sous LOW %
+// passe au rouge.
 const LOW = 30;
-const steps = v =>
-  String(v)
-    .split(';')
-    .map(s => s.trim())
-    .filter(Boolean)
-    .map(s => s[0].toUpperCase() + s.slice(1));
 const gauge = (r, p, cls) =>
   el('i', { class: 'bar ' + cls }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }));
 const stPill = r =>
   el(
     'span',
-    chg(r, 'stp' + (r.p != null && r.p < LOW ? ' low' : '')),
+    chg(r, 'stp' + (r.p != null ? (r.p < LOW ? ' low' : '') : numOf(r.v) ? '' : ' wide')),
     el('span', { class: 'stk', text: r.k }),
     el('b', { text: r.p != null ? String(r.v).split('/')[0].trim() : r.v }),
     r.p != null && gauge(r, r.p, 'mini'),
@@ -196,34 +191,15 @@ const stTile = r => {
     gauge(r, r.p, '')
   );
 };
-// Encart des objectifs : un seul, ses étapes bout à bout (replié) ou en puces (déplié) ; plusieurs, une ligne par
-// objectif avec son nom (replié, trois au plus) ou un bloc chacun (déplié).
-const stGoals = (goals, open) => {
-  const many = goals.length > 1;
-  return el(
-    'span',
-    { class: 'sgo' + (many ? ' many' : '') },
-    ic('target', 14),
-    el(
-      'span',
-      { class: 'sgt' },
-      open
-        ? goals.map(r => [
-            many && el('small', { text: r.k }),
-            steps(r.v).map(s => el('span', chg(r, 'sgp'), s))
-          ])
-        : goals.slice(0, 3).map(r => el('span', chg(r, 'sgl'), many && el('small', { text: r.k }), steps(r.v).join(' · ')))
-    ),
-    !open && goals.length > 3 && el('em', { text: '+' + (goals.length - 3) })
-  );
-};
+// Encart d'un objectif : sa valeur telle quelle, sur deux lignes au plus (replié) ou en entier (déplié).
+const stGoal = (r, open) => el('span', chg(r, 'sgo'), ic('target', 14), el('span', { class: open ? 'sgt' : 'sgl', text: r.v }));
 const stCard = (i, m) => {
   if (!m.state?.length || !statOn(app.cur)) return null;
   const hid = shownOf(m.state),
     first = !lastEtat(app.cur.messages, i),
     rows = stRows(i, m).filter(r => !hid.has(r.k) && (first || r.c || r.p != null)),
-    // Un objectif vidé (« », « ; ») n'a rien à montrer.
-    goals = rows.filter(r => isGoal(r.k) && steps(r.v).length),
+    // Un objectif sans lettre ni chiffre (« — », « ; ») n'a rien à montrer.
+    goals = rows.filter(r => isGoal(r.k) && /[\p{L}\p{N}]/u.test(r.v)),
     vals = rows.filter(r => !isGoal(r.k)),
     gs = vals.filter(r => r.p != null),
     open = LS.get('stOpen') == '1';
@@ -235,7 +211,7 @@ const stCard = (i, m) => {
       'button',
       { class: 'stc', 'aria-expanded': String(open) },
       vals.length > 0 && el('span', { class: 'sts' }, vals.map(stPill)),
-      goals.length > 0 && stGoals(goals, false),
+      goals.map(r => stGoal(r, false)),
       ic('chevd', 14)
     ),
     el(
@@ -244,7 +220,7 @@ const stCard = (i, m) => {
       el('button', { class: 'stl', 'aria-expanded': String(open) }, 'État', ic('chevd', 14)),
       gs.length > 0 && stGrid(gs),
       vals.filter(r => !gs.includes(r)).map(cxLine),
-      goals.length > 0 && stGoals(goals, true)
+      goals.map(r => stGoal(r, true))
     )
   );
 };
