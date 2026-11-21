@@ -937,6 +937,59 @@ try {
     await c4.close();
   });
 
+  await step('carte d’état : jauges toujours, autres valeurs si elles changent, objectifs en encart', async () => {
+    const c5 = await browser.newContext({ viewport: { width: 390, height: 900 }, serviceWorkers: 'block' }),
+      p5 = await c5.newPage();
+    watch(p5);
+    await c5.route(base + '/index.json', r => r.fulfill({ status: 200, contentType: 'application/json', body: '[]' }));
+    await p5.goto(base + '/index.html');
+    await until(p5, () => window.__started);
+    await until(p5, () => document.querySelector('#items').children.length > 0);
+    await p5.evaluate(async () => {
+      const ctx = [['Lieu', 'Hangar'], ['Jour', '1'], ['Heure', '14h']],
+        st = (pv, rang, obj) => [...ctx, ['PV', pv], ['Rang', rang], ['Objectif', obj]],
+        ms = [
+          ['80/100', 'Novice', 'Entrer'],
+          ['68/100', 'Novice', 'Savoir qui parle ; fermer la Brèche'],
+          ['68/100', 'Novice', 'Savoir qui parle ; fermer la Brèche'],
+          ['20/100', 'Éveillée', ';']
+        ].flatMap(([pv, rang, obj], i) => [
+          { role: 'user', content: 'Tour ' + i },
+          { role: 'assistant', content: 'Réponse ' + i, state: st(pv, rang, obj) }
+        ]);
+      await (await import('/js/store.js')).put({ id: 'st', name: 'État', updated: Date.now(), system: 'Narrateur.', avatar: '', stat: true, messages: ms });
+      await (await import('/js/bus.js')).emit('open', 'st');
+    });
+    await p5.waitForSelector('#chat:not([hidden]) .st');
+    const cards = () =>
+      p5.evaluate(() =>
+        [1, 3, 5, 7].map(i => {
+          const c = document.querySelector('#msgs .m[data-i="' + i + '"] .st');
+          return c && {
+            pills: [...c.querySelectorAll('.stc .stp .stk')].map(e => e.textContent),
+            goal: c.querySelector('.stc .sgo')?.textContent || '',
+            low: !!c.querySelector('.stc .stp.low')
+          };
+        })
+      );
+    const [a, b, c, d] = await cards();
+    assert.deepEqual(a.pills, ['PV', 'Rang'], 'premier état : tout, sans lieu, jour ni heure');
+    assert.equal(a.goal, 'Entrer');
+    assert.deepEqual(b.pills, ['PV'], 'jauge et changements seulement : le rang inchangé disparaît');
+    assert.equal(b.goal, 'Savoir qui parle · Fermer la Brèche', 'étapes de l’objectif bout à bout');
+    assert.deepEqual(c.pills, ['PV'], 'rien de changé : la jauge reste');
+    assert.equal(c.goal, '', 'objectif inchangé : pas d’encart');
+    assert.ok(d.low && d.goal == '', 'jauge basse en rouge ; objectif vidé : pas d’encart');
+    // Dépliée : jauges en tuiles, étapes en puces ; le choix vaut pour toutes les cartes.
+    await p5.click('#msgs .m[data-i="3"] .stc');
+    await p5.waitForSelector('#msgs .m[data-i="3"] .st.open .stx .stt');
+    assert.deepEqual(await p5.locator('#msgs .m[data-i="3"] .stx .sgp').allTextContents(), ['Savoir qui parle', 'Fermer la Brèche']);
+    assert.equal(await p5.locator('#msgs .st:not(.open)').count(), 0, 'toutes les cartes dépliées');
+    await p5.click('#msgs .m[data-i="3"] .stl');
+    await p5.waitForSelector('#msgs .m[data-i="3"] .st:not(.open)');
+    await c5.close();
+  });
+
   assert.deepEqual(errors, []);
   console.log('tous les tests de bout en bout sont passés');
 } catch (e) {

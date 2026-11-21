@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { SA, decorFor, decorNow, decorsOf, head, heureOf, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
+import { SA, decorFor, decorNow, decorsOf, head, heureOf, isGoal, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
 import { ctx } from '../js/state.js';
 
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
@@ -113,4 +113,9 @@ test('ligne de contexte de l’en-tête : première partie d’une valeur, heure
   for (const k of ['Heure', 'Moment', 'Période']) assert.equal(heureOf([['Lieu', 'Quai'], [k, '14h03']]), '14h03', k);
   assert.equal(heureOf([['Lieu', 'Quai']]), undefined);
   assert.equal(momentOf([['Période', 'soir']]), 'soir', 'même champ pour la teinte des décors');
+});
+
+test('isGoal reconnaît les objectifs, pas le butin', () => {
+  for (const k of ['Objectif', 'Objectifs', 'Quête secondaire', 'Mission', 'But', 'Quête en cours']) assert.ok(isGoal(k), k);
+  for (const k of ['Butin', 'Questions', 'Rang', 'Missionnaire']) assert.ok(!isGoal(k), k);
 });

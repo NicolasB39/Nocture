@@ -15,6 +15,7 @@ import {
   decorsOf,
   head,
   heureOf,
+  isGoal,
   isHeure,
   isJour,
   isLieu,
@@ -123,14 +124,13 @@ const numOf = v => {
   return m ? { n: +m[1].replace(',', '.'), u: m[2].trim() } : null;
 };
 const sig = st => (st || []).map(x => x[0] + '=' + x[1]).join('|');
-// Panneau d'état : une rangée de pastilles (les premières valeurs, avec leur variation), dépliée d'un toucher
-// en grille détaillée avec les jauges. Le choix plié / déplié vaut pour toute l'appli.
-const ST_N = 3;
 // Valeurs de l'état du message i, avec leur variation depuis l'état précédent. c : valeur nouvelle ou changée
-// (rien au premier état) ; p0 : remplissage de la jauge avant le changement.
+// (rien au premier état) ; p : remplissage de la jauge (valeur « 40/100 », maximum non nul), p0 : le même avant
+// le changement.
 const pctOf = v => {
-  const r = String(v).match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/);
-  return r ? Math.max(0, Math.min(100, (+r[1].replace(',', '.') / +r[2].replace(',', '.')) * 100)) : null;
+  const r = String(v).match(/^(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)$/),
+    max = r && +r[2].replace(',', '.');
+  return max ? Math.max(0, Math.min(100, (+r[1].replace(',', '.') / max) * 100)) : null;
 };
 const stRows = (i, m) => {
   const pm = new Map(lastEtat(app.cur.messages, i) || []);
@@ -138,7 +138,7 @@ const stRows = (i, m) => {
     const a = numOf(v),
       b = pm.has(k) ? numOf(pm.get(k)) : null,
       d = a && b && a.u == b.u && a.n !== b.n ? a.n - b.n : null;
-    return { k, v, d, c: pm.size > 0 && pm.get(k) !== v, p0: pctOf(pm.get(k)) };
+    return { k, v, d, c: pm.size > 0 && pm.get(k) !== v, p: pctOf(v), p0: pctOf(pm.get(k)) };
   });
 };
 // Attributs d'une valeur changée : sa variation, qui s'envole quand la réponse arrive (render, app.fresh).
@@ -152,47 +152,99 @@ const dl = (d, short) =>
     class: 'dl ' + (d > 0 ? 'up' : 'dn'),
     text: (d > 0 ? (short ? '▲' : '▲ +') : short ? '▼' : '▼ ') + Math.round(Math.abs(d) * 100) / 100
   });
-// Grille détaillée : une case par valeur, avec une jauge pour les valeurs « 40/100 ».
+// Grille détaillée : une case par valeur, une tuile à jauge (stTile) pour les valeurs « 40/100 ».
 const stGrid = rows =>
   el(
     'div',
     { class: 'stg' },
-    rows.map(r => {
-      const p = pctOf(r.v);
-      return el(
-        'div',
-        chg(r, 'kv'),
-        el('span', { text: r.k }),
-        el('b', null, r.v, dl(r.d)),
-        p != null && el('i', { class: 'bar' }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }))
-      );
-    })
+    rows.map(r =>
+      r.p != null ? stTile(r) : el('div', chg(r, 'kv'), el('span', { text: r.k }), el('b', null, r.v, dl(r.d)))
+    )
   );
-// Carte sous la réponse : seulement ce qui a changé depuis l'état précédent (tout, au premier état), sans ce que
-// l'en-tête montre déjà (lieu, jour, heure). Rien de changé : pas de carte.
+// Ligne « Clé : valeur » (panneau de l'en-tête, carte dépliée).
+const cxLine = r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r.d));
+// Carte sous la réponse. Les jauges (« 40/100 » : vie, mana, énergie…) toujours ; le reste seulement s'il a changé
+// depuis l'état précédent (tout, au premier état) ; jamais ce que l'en-tête montre déjà (lieu, jour, heure). Les
+// objectifs (Objectif, Quête, Mission, But) vont dans un encart doré, en étapes coupées à chaque « ; ». Repliée :
+// pastilles sur deux colonnes, puis l'encart ; dépliée : jauges en tuiles, valeurs en lignes, étapes en puces. Le
+// choix plié / déplié vaut pour toute l'appli (chat.js). Une jauge sous LOW % passe au rouge.
+const LOW = 30;
+const steps = v =>
+  String(v)
+    .split(';')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(s => s[0].toUpperCase() + s.slice(1));
+const gauge = (r, p, cls) =>
+  el('i', { class: 'bar ' + cls }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }));
+const stPill = r =>
+  el(
+    'span',
+    chg(r, 'stp' + (r.p != null && r.p < LOW ? ' low' : '')),
+    el('span', { class: 'stk', text: r.k }),
+    el('b', { text: r.p != null ? String(r.v).split('/')[0].trim() : r.v }),
+    r.p != null && gauge(r, r.p, 'mini'),
+    dl(r.d, true)
+  );
+const stTile = r => {
+  const [n, max] = String(r.v).split('/');
+  return el(
+    'div',
+    chg(r, 'stt' + (r.p < LOW ? ' low' : '')),
+    el('span', { class: 'stk' }, r.k, r.p < LOW && el('em', { class: 'stw', text: 'Bas' })),
+    el('b', null, n.trim(), el('small', { text: '/' + max.trim() }), dl(r.d)),
+    gauge(r, r.p, '')
+  );
+};
+// Encart des objectifs : un seul, ses étapes bout à bout (replié) ou en puces (déplié) ; plusieurs, une ligne par
+// objectif avec son nom (replié, trois au plus) ou un bloc chacun (déplié).
+const stGoals = (goals, open) => {
+  const many = goals.length > 1;
+  return el(
+    'span',
+    { class: 'sgo' + (many ? ' many' : '') },
+    ic('target', 14),
+    el(
+      'span',
+      { class: 'sgt' },
+      open
+        ? goals.map(r => [
+            many && el('small', { text: r.k }),
+            steps(r.v).map(s => el('span', chg(r, 'sgp'), s))
+          ])
+        : goals.slice(0, 3).map(r => el('span', chg(r, 'sgl'), many && el('small', { text: r.k }), steps(r.v).join(' · ')))
+    ),
+    !open && goals.length > 3 && el('em', { text: '+' + (goals.length - 3) })
+  );
+};
 const stCard = (i, m) => {
   if (!m.state?.length || !statOn(app.cur)) return null;
   const hid = shownOf(m.state),
     first = !lastEtat(app.cur.messages, i),
-    rows = stRows(i, m).filter(r => !hid.has(r.k) && (first || r.c)),
-    open = LS.get('stOpen') == '1',
-    more = rows.length - ST_N;
-  if (!rows.length) return null;
+    rows = stRows(i, m).filter(r => !hid.has(r.k) && (first || r.c || r.p != null)),
+    // Un objectif vidé (« », « ; ») n'a rien à montrer.
+    goals = rows.filter(r => isGoal(r.k) && steps(r.v).length),
+    vals = rows.filter(r => !isGoal(r.k)),
+    gs = vals.filter(r => r.p != null),
+    open = LS.get('stOpen') == '1';
+  if (!vals.length && !goals.length) return null;
   return el(
     'div',
     { class: 'st' + (open ? ' open' : '') },
     el(
       'button',
       { class: 'stc', 'aria-expanded': String(open) },
-      rows.slice(0, ST_N).map(r => el('span', chg(r, 'stp'), el('span', { text: r.k }), ' ' + r.v, dl(r.d, true))),
-      more > 0 && el('span', { class: 'stp stm' + (rows.slice(ST_N).some(r => r.c) ? ' nv' : ''), text: '+' + more }),
-      ic('down', 14)
+      vals.length > 0 && el('span', { class: 'sts' }, vals.map(stPill)),
+      goals.length > 0 && stGoals(goals, false),
+      ic('chevd', 14)
     ),
     el(
       'div',
       { class: 'stx' },
-      el('button', { class: 'stl', 'aria-expanded': String(open) }, 'État', ic('down', 14)),
-      stGrid(rows)
+      el('button', { class: 'stl', 'aria-expanded': String(open) }, 'État', ic('chevd', 14)),
+      gs.length > 0 && stGrid(gs),
+      vals.filter(r => !gs.includes(r)).map(cxLine),
+      goals.length > 0 && stGoals(goals, true)
     )
   );
 };
@@ -604,9 +656,9 @@ const shownOf = st => {
 // Le panneau : le reste de l'état, les valeurs en lignes « Clé : valeur », les jauges (« 40/100 ») dans la grille.
 const cxBody = (i, m, hid) => {
   const rows = stRows(i, m).filter(r => !hid.has(r.k)),
-    g = rows.filter(r => pctOf(r.v) != null);
+    g = rows.filter(r => r.p != null);
   return [
-    ...rows.filter(r => !g.includes(r)).map(r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r.d))),
+    ...rows.filter(r => !g.includes(r)).map(cxLine),
     g.length > 0 && stGrid(g)
   ].filter(Boolean);
 };

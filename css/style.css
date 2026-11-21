@@ -2133,48 +2133,149 @@ dialog label:has(> input[type='checkbox']) {
   color: var(--ac);
   font-weight: 700;
 }
+/* Carte d'état sous la réponse (view.js, stCard) : filet doré ; repliée, pastilles sur deux colonnes (nom,
+   valeur, jauge, variation) puis l'encart des objectifs ; dépliée, jauges en tuiles, valeurs en lignes, étapes
+   en puces. Une jauge basse (low) passe au rouge. */
 .st {
+  position: relative;
   margin-top: 10px;
+  padding: 7px 8px 8px 12px;
+  border: 1px solid var(--bd);
+  border-radius: 14px;
+  background: var(--s1);
+  box-shadow: inset 3px 0 0 var(--ac);
   text-align: left;
 }
 .stc {
-  display: flex;
-  flex-wrap: wrap;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 7px 4px;
   padding: 0;
   border-radius: 0;
   color: var(--mu);
   text-align: left;
 }
-.stp {
-  display: inline-flex;
-  max-width: 100%;
-  align-items: baseline;
+.stc > .i {
+  grid-area: 1 / 2;
+}
+.sts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px;
-  padding: 4px 10px;
+}
+.stp {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 4px 4px 4px 9px;
   border: 1px solid var(--bd);
   border-radius: 999px;
-  background: var(--s1);
+  background: var(--s2);
   color: var(--fg);
-  font-size: 13px;
-}
-.stp > span {
-  color: var(--mu);
   font-size: 12px;
+  white-space: nowrap;
+}
+.stp:not(:has(.dl)) {
+  padding-right: 9px;
+}
+.stk {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--mu);
+  font-size: 11.5px;
+}
+.stp b {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
 }
 .stp .dl {
-  margin-left: 0;
+  flex: none;
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-size: 10.5px;
 }
-.stm {
-  color: var(--mu);
+.bar.mini {
+  flex: 1 1 12px;
+  min-width: 12px;
+  height: 4px;
+}
+.stp.low,
+.stt.low {
+  border-color: color-mix(in srgb, var(--dg) 45%, var(--bd));
+}
+.low .bar u {
+  background: var(--dg);
+}
+.sgo {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--ac) 35%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ac) 8%, transparent);
+  color: var(--fg);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.sgo > .i {
+  flex: none;
+  margin-top: 2px;
+  color: var(--ac);
+}
+.sgt {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+.sgl {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sgo.many .sgl {
+  display: block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.sgo small {
+  margin-right: 5px;
+  color: var(--ac);
+  font: 600 9.5px/1.6 var(--sans);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.sgo > em {
+  flex: none;
+  color: var(--ac);
+  font: 600 11px/1.6 var(--sans);
+  font-style: normal;
+}
+.sgp {
+  position: relative;
+  padding: 2px 0 2px 12px;
+}
+.sgp::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ac);
 }
 .stx {
   display: none;
-  padding: 11px 14px 14px;
-  border: 1px solid var(--bd);
-  border-radius: 16px;
-  background: var(--s1);
 }
 .st.open .stc {
   display: none;
@@ -2183,17 +2284,70 @@ dialog label:has(> input[type='checkbox']) {
   display: block;
 }
 .stl {
+  width: 100%;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
   padding: 0;
   border-radius: 0;
   color: var(--mu);
-  font-size: 12px;
-  font-weight: 700;
+  font: 600 10px/1.6 var(--sans);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 .st.open .stl .i {
   transform: rotate(180deg);
+}
+.stx .stg {
+  gap: 6px;
+}
+.stt {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--bd);
+  border-radius: 11px;
+  background: var(--s2);
+}
+.stt .stk {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stw {
+  padding: 0 6px;
+  border: 1px solid color-mix(in srgb, var(--dg) 50%, transparent);
+  border-radius: 999px;
+  color: var(--dg);
+  font: 600 9.5px/1.5 var(--sans);
+  font-style: normal;
+}
+.stt b {
+  display: flex;
+  align-items: baseline;
+  font-size: 17px;
+  font-weight: 600;
+}
+.stt small {
+  color: var(--mu);
+  font-size: 10.5px;
+  font-weight: 400;
+}
+.stt .dl {
+  margin-left: auto;
+}
+.stx .cxl {
+  margin: 8px 0 0;
+}
+.stx .sgo {
+  margin-top: 10px;
+}
+.stx .sgo small {
+  display: block;
+  margin-top: 6px;
+}
+.stx .sgo small:first-child {
+  margin-top: 0;
 }
 .stg {
   display: grid;
@@ -2339,7 +2493,11 @@ dialog input[type='range'] {
    s'envole au-dessus, la jauge glisse de l'ancienne valeur à la nouvelle. --dt reprend l'animation en cours
    quand le message est reconstruit. */
 .stp,
-.kv {
+.stt,
+.kv,
+.cxl,
+.sgl,
+.sgp {
   position: relative;
 }
 .kv {

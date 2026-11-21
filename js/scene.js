@@ -6,6 +6,8 @@ import { el, hue, nz } from './util.js';
 export const isLieu = k => /^(lieu|endroit|localisation|position)/.test(nz(k));
 export const isJour = k => /^(jour|date)(\s|\(|$)/.test(nz(k).trim());
 export const isHeure = k => /^(moment|heure|periode)/.test(nz(k));
+// Objectifs (Objectif, Quête, Mission, But ; pas « Butin ») : encart doré de la carte d'état (view.js).
+export const isGoal = k => /^(objectifs?|quetes?|missions?|buts?)(\s|$)/.test(nz(k));
 export const lieuOf = st => (st || []).find(([k]) => isLieu(k))?.[1] || '';
 export const jourOf = st => (st || []).find(([k]) => isJour(k))?.[1] || '';
 // Première partie d'une valeur d'état, avant une virgule, une parenthèse ou un tiret (« J+3, 14h, pluie » → « J+3 »).
