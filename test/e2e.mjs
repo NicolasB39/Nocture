@@ -885,8 +885,11 @@ try {
     await p4.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
     await wait(100);
     assert.ok((await under()) >= 0, 'fil sous l’en-tête flottant');
+    // Saut sans défilement doux (animations réduites) : la position se lit tout de suite, même sur une CI lente.
+    await p4.emulateMedia({ reducedMotion: 'reduce' });
     await p4.evaluate(async () => (await import('/js/view.js')).jump(10));
-    await wait(900);
+    await wait(200);
+    await p4.emulateMedia({ reducedMotion: null });
     const d = await under(10);
     assert.ok(d >= -1 && d < 30, 'saut : début du message sous l’en-tête (' + d + ')');
     assert.equal(await p4.evaluate(async () => (await import('/js/view.js')).visibleStart()), 10, 'premier message visible sous l’en-tête');
