@@ -139,7 +139,7 @@ Rations: 3, −1 par jour
 - À chaque tour, le narrateur reçoit l'inventaire exact (`<inventaire_actuel>`, en fin de requête) avec la règle que {{user}} n'utilise que ce qu'il possède. Les changements de la réponse précédente y sont rappelés comme déjà comptés, et la consigne demande de signaler un gain ou une perte une seule fois.
 - Il signale chaque gain ou perte par `<inventaire>+1 Corde, −5 Or</inventaire>` après la narration. L'application l'applique : jamais sous zéro ni au-dessus de la borne, une dépense impossible est ignorée, un objet nouveau s'ajoute.
 - La baisse par jour suit le champ « Jour » du panneau d'état (`etat.md`) : quand il passe de 2 à 4, les rations perdent 2. Sans champ Jour, rien ne baisse tout seul.
-- La feuille « Inventaire » (menu « … » de la conversation) montre les quantités et les derniers changements ; une ligne discrète sous chaque réponse dit ce qu'elle a changé.
+- La feuille « Inventaire » (menu « … » de la conversation) montre les quantités et les derniers changements ; la carte d'état sous chaque réponse dit ce qu'elle a changé et, dépliée, montre l'inventaire (sans panneau d'état, une ligne discrète sous la réponse).
 
 Chaque réponse garde ses propres changements, et l'inventaire se recalcule depuis le départ (`js/modes.js`) : supprimer, régénérer, modifier une réponse ou bifurquer le corrige de lui-même. L'application ne lit pas le texte du joueur : c'est le narrateur qui refuse un objet qu'on n'a pas, d'après la liste exacte qu'il reçoit.
 
@@ -154,7 +154,7 @@ Renard, à −2 : il vous dénonce au guet
 ```
 
 - Le narrateur reçoit les liens actuels et les paliers atteints (`<liens_actuels>`, en fin de requête), et signale un changement par `<lien>Inès +1</lien>`, seulement pour un acte qui compte (aide réelle, promesse tenue ou trahie, risque pris), jamais pour un compliment ou un service isolé. Un nom qui ne désigne aucun personnage à fiche est ignoré.
-- La fenêtre Personnages montre la jauge sous chaque personnage, avec les paliers atteints ; la ligne sous la réponse dit qui a changé.
+- La fenêtre Personnages montre la jauge sous chaque personnage, avec les paliers atteints ; la carte d'état sous la réponse (ou, sans panneau d'état, une ligne discrète) dit qui a changé.
 - Un palier positif est atteint à cette valeur ou au-dessus, un palier négatif à cette valeur ou au-dessous.
 
 Comme l'inventaire, les liens se recalculent depuis le départ. Les deux modes sont réservés aux scénarios GitHub ; leurs consignes partent dans la partie fixe du prompt, en cache, et seuls l'inventaire et les liens actuels (quelques lignes) partent à chaque tour.

@@ -661,7 +661,7 @@ try {
       );
     const F = {
       'scenarios/demo/systeme.md': 'Narrateur.',
-      'scenarios/demo/etat.md': 'Lieu, Objectif',
+      'scenarios/demo/etat.md': 'Lieu, Jour, Objectif',
       'scenarios/demo/personnages/Alice/alice.png': await png(100, 200, 'cut'),
       'scenarios/demo/personnages/Bob/bob.png': await png(100, 200, 'flat'),
       'scenarios/demo/decors/taverne.png': await png(800, 450, '#a33'),
@@ -749,7 +749,7 @@ try {
     assert.match(await p3.getAttribute('#pe', 'aria-label'), /Personnages en scène : .*Bob/, 'Bob en scène dans l’en-tête');
 
     // Lieu annoncé en tête de réponse : lu pendant l'affichage, jamais montré.
-    await say('Je pars.', '<lieu>Volcan</lieu>\n\nUn volcan gronde.\n\n{{img::alice_alice}}\n\n<etat>\nLieu: Volcan\nObjectif: Fuir\n</etat>');
+    await say('Je pars.', '<lieu>Volcan</lieu>\n\nUn volcan gronde.\n\n{{img::alice_alice}}\n\n<etat>\nLieu: Volcan\nJour: 2\nObjectif: Fuir\n</etat>');
     assert.doesNotMatch(await p3.textContent('#msgs'), /<\/?lieu/, 'balise <lieu> invisible');
     g = await last('cut');
     assert.match(g.dec, /decors\/defaut\.png$/, 'lieu inconnu : fond par défaut');
@@ -759,15 +759,11 @@ try {
       'lettrine au changement de lieu, pas à chaque réponse'
     );
     assert.deepEqual(await p3.locator('#msgs .scene').allTextContents(), ['Auberge du Pont', 'Volcan'], 'intertitres de lieu');
-    // En-tête : ligne de contexte du dernier état ; un toucher déplie l'état, un second le referme.
+    // En-tête : surtitre, lieu en titre, jour dessous ; le reste de l'état est dans la carte sous la réponse.
     assert.equal(await p3.textContent('#cov'), 'Chapitre I · Scène 2', 'surtitre chapitre et scène');
     assert.equal(await p3.textContent('#ct'), 'Volcan', 'le lieu en titre');
-    assert.equal(await p3.textContent('#cx span'), 'État', 'ligne sous le titre, sans jour ni heure dans cet état');
-    await p3.click('#cx');
-    await p3.waitForSelector('#cxp:not([hidden]) .cxl');
-    assert.equal(await p3.textContent('#cxp'), 'Objectif : Fuir', 'état déplié, sans le lieu déjà en titre');
-    await p3.click('#cx');
-    await p3.waitForSelector('#cxp', { state: 'hidden' });
+    assert.equal(await p3.textContent('#cx'), 'Jour 2', 'le jour sous le titre');
+    assert.equal(await p3.textContent('#msgs .m.last .st .stc'), 'Fuir', 'carte : l’objectif, sans le lieu ni le jour');
     // Repli : la molette vers le bas replie l'en-tête sur la ligne de contexte, vers le haut le rouvre ; le
     // défilement fait par l'application ne le replie pas.
     await p3.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
@@ -987,6 +983,59 @@ try {
     assert.equal(await p5.locator('#msgs .st:not(.open)').count(), 0, 'toutes les cartes dépliées');
     await p5.click('#msgs .m[data-i="3"] .stl');
     await p5.waitForSelector('#msgs .m[data-i="3"] .st:not(.open)');
+    // Inventaire et liens (scénario qui les tient) : pastilles des changements, inventaire dans la carte dépliée,
+    // et la suite reconstruite quand une réponse plus haute change.
+    const modes = inv3 =>
+      p5.evaluate(async inv3 => {
+        const { app, ctx } = await import('/js/state.js');
+        ctx.inv = [{ k: 'Euros', n: 100, max: null, day: 0 }];
+        ctx.liens = { min: -3, max: 3, steps: [] };
+        ctx.chars = [{ name: 'Léna' }];
+        app.cur.remote = 'demo';
+        app.cur.messages[3].inv = inv3;
+        app.cur.messages[5].inv = [['Euros', -40]];
+        app.cur.messages[5].links = [['Léna', 1]];
+        (await import('/js/view.js')).render();
+        const c = document.querySelector('#msgs .m[data-i="5"] .st');
+        return {
+          chips: [...c.querySelectorAll('.stc .stq')].map(e => e.textContent),
+          inv: [...c.querySelectorAll('.stx .sti > span')].map(e => e.textContent + (e.className ? ' ' + e.className : ''))
+        };
+      }, inv3);
+    let mo = await modes([['Corde', 1]]);
+    assert.deepEqual(mo.chips, ['−40 Euros', 'Léna +1'], 'pastilles : objet perdu, lien changé');
+    assert.deepEqual(mo.inv, ['Euros60 on', 'Corde1'], 'inventaire après la réponse, l’objet changé marqué');
+    mo = await modes([]);
+    assert.deepEqual(mo.inv, ['Euros60 on'], 'réponse plus haute modifiée : la carte suivante suit');
+    // État plus haut modifié : la carte suivante recalcule ses variations.
+    const pv5 = () => p5.evaluate(() => document.querySelector('#msgs .m[data-i="5"] .stc .stp .dl')?.textContent || '');
+    assert.equal(await pv5(), '');
+    await p5.evaluate(async () => {
+      const { app } = await import('/js/state.js');
+      app.cur.messages[3].state = app.cur.messages[3].state.map(([k, v]) => [k, k == 'PV' ? '50/100' : v]);
+      (await import('/js/view.js')).render();
+    });
+    assert.equal(await pv5(), '▲18', 'variation recalculée depuis l’état modifié');
+    // Lieu sans jour ni heure : l'en-tête se replie quand même en descendant, sur le lieu.
+    await p5.evaluate(async () => {
+      const ms = [];
+      for (let i = 0; i < 20; i++)
+        ms.push(
+          i % 2
+            ? { role: 'assistant', content: 'La lande. '.repeat(40), state: [['Lieu', 'Lande'], ['PV', '50/100']] }
+            : { role: 'user', content: 'Tour ' + i }
+        );
+      await (await import('/js/store.js')).put({ id: 'lande', name: 'Lande', updated: Date.now(), system: 'Narrateur.', avatar: '', stat: true, messages: ms });
+      await (await import('/js/bus.js')).emit('open', 'lande');
+    });
+    await until(p5, () => document.querySelector('#ct').textContent == 'Lande');
+    assert.ok(await p5.isHidden('#cx'), 'ni jour ni heure : pas de ligne sous le lieu');
+    await p5.evaluate(() => (document.querySelector('#msgs').scrollTop = 0));
+    await wait(500);
+    await p5.mouse.move(195, 500);
+    for (let i = 0; i < 4; i++) await p5.mouse.wheel(0, 150), await wait(120);
+    await p5.waitForSelector('#chat header.rd');
+    assert.ok(await p5.isVisible('#ct'), 'replié : le lieu reste');
     await c5.close();
   });
 

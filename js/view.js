@@ -161,14 +161,14 @@ const stGrid = rows =>
       r.p != null ? stTile(r) : el('div', chg(r, 'kv'), el('span', { text: r.k }), el('b', null, r.v, dl(r.d)))
     )
   );
-// Ligne « Clé : valeur » (panneau de l'en-tête, carte dépliée).
+// Ligne « Clé : valeur » (carte dépliée).
 const cxLine = r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r.d));
-// Carte sous la réponse. Les jauges (« 40/100 » : vie, mana, énergie…) toujours ; le reste seulement s'il a changé
-// depuis l'état précédent (tout, au premier état) ; jamais ce que l'en-tête montre déjà (lieu, jour, heure). Les
-// objectifs (Objectif, Quête, Mission, But) vont dans un encart doré chacun. Repliée : pastilles sur deux colonnes
-// (un texte, sur toute la largeur), puis les encarts sur deux lignes au plus ; dépliée : jauges en tuiles, valeurs
-// en lignes, objectifs en entier. Le choix plié / déplié vaut pour toute l'appli (chat.js). Une jauge sous LOW %
-// passe au rouge.
+// Carte sous la réponse, jamais avec ce que l'en-tête montre déjà (lieu, jour, heure). Repliée : les jauges
+// (« 40/100 » : vie, mana, énergie…) toujours, le reste seulement s'il a changé depuis l'état précédent (tout, au
+// premier état), en pastilles sur deux colonnes (un texte, sur toute la largeur) ; puis les objets gagnés ou perdus
+// et les liens changés par la réponse ; puis les objectifs (Objectif, Quête, Mission, But), un encart doré chacun,
+// sur deux lignes au plus. Dépliée : tout l'état (jauges en tuiles, valeurs en lignes, objectifs en entier) et
+// l'inventaire. Le choix plié / déplié vaut pour toute l'appli (chat.js). Une jauge sous LOW % passe au rouge.
 const LOW = 30;
 const gauge = (r, p, cls) =>
   el('i', { class: 'bar ' + cls }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }));
@@ -193,17 +193,42 @@ const stTile = r => {
 };
 // Encart d'un objectif : sa valeur telle quelle, sur deux lignes au plus (replié) ou en entier (déplié).
 const stGoal = (r, open) => el('span', chg(r, 'sgo'), ic('target', 14), el('span', { class: open ? 'sgt' : 'sgl', text: r.v }));
+// Inventaire et liens de chaque réponse (modes.js), en un passage par rendu (sceneStarts) : inv, l'inventaire
+// après la réponse (copié pour les seuls messages affichés, à partir de from) ; ic et lc, ses changements appliqués
+// (pas une dépense impossible ni un nom sans fiche). MK : ce dont dépend la carte hors du message lui-même (ces
+// données et l'état précédent), dans la clé de chaque message (keyOf) pour qu'un changement plus haut reconstruise
+// la suite.
+let MODES = [],
+  MK = [];
+const modesAll = (ms, from) => {
+  const R = ms.map(() => ({ ic: [], lc: [] })),
+    snap = (i, it) => {
+      if (i >= from) R[i].inv = it.filter(x => x.start || x.n > 0).map(x => ({ k: x.k, n: x.n, max: x.max }));
+    };
+  if (invOn(app.cur)) for (const c of invOf(ms, undefined, ms.length, snap).log) R[c.i].ic.push(c);
+  if (linksOn(app.cur)) for (const c of linksOf(ms).log) R[c.i].lc.push(c);
+  return R;
+};
+const modesOf = i => MODES[i] || { ic: [], lc: [] };
+const stChip = (c, n) =>
+  el('span', { class: 'stq' }, ic(n, 12), el('span', { text: n == 'bag' ? invText([[c.k, c.d]]) : linkText([[c.k, c.d]]) }));
 const stCard = (i, m) => {
   if (!m.state?.length || !statOn(app.cur)) return null;
   const hid = shownOf(m.state),
     first = !lastEtat(app.cur.messages, i),
-    rows = stRows(i, m).filter(r => !hid.has(r.k) && (first || r.c || r.p != null)),
     // Un objectif sans lettre ni chiffre (« — », « ; ») n'a rien à montrer.
-    goals = rows.filter(r => isGoal(r.k) && /[\p{L}\p{N}]/u.test(r.v)),
-    vals = rows.filter(r => !isGoal(r.k)),
-    gs = vals.filter(r => r.p != null),
+    all = stRows(i, m).filter(r => !hid.has(r.k) && (!isGoal(r.k) || /[\p{L}\p{N}]/u.test(r.v))),
+    allGoals = all.filter(r => isGoal(r.k)),
+    allVals = all.filter(r => !isGoal(r.k)),
+    gs = allVals.filter(r => r.p != null),
+    // Repliée : les jauges toujours, le reste s'il a changé (tout au premier état).
+    seen = r => first || r.c || r.p != null,
+    goals = allGoals.filter(seen),
+    vals = allVals.filter(seen),
+    { inv, ic: icg, lc } = modesOf(i),
+    chips = [...icg.map(c => stChip(c, 'bag')), ...lc.map(c => stChip(c, 'heart'))],
     open = LS.get('stOpen') == '1';
-  if (!vals.length && !goals.length) return null;
+  if (!vals.length && !goals.length && !chips.length) return null;
   return el(
     'div',
     { class: 'st' + (open ? ' open' : '') },
@@ -211,6 +236,7 @@ const stCard = (i, m) => {
       'button',
       { class: 'stc', 'aria-expanded': String(open) },
       vals.length > 0 && el('span', { class: 'sts' }, vals.map(stPill)),
+      chips.length > 0 && el('span', { class: 'sgc' }, chips),
       goals.map(r => stGoal(r, false)),
       ic('chevd', 14)
     ),
@@ -219,8 +245,23 @@ const stCard = (i, m) => {
       { class: 'stx' },
       el('button', { class: 'stl', 'aria-expanded': String(open) }, 'État', ic('chevd', 14)),
       gs.length > 0 && stGrid(gs),
-      vals.filter(r => !gs.includes(r)).map(cxLine),
-      goals.map(r => stGoal(r, true))
+      allVals.filter(r => r.p == null).map(cxLine),
+      allGoals.map(r => stGoal(r, true)),
+      inv?.length > 0 && [
+        el('p', { class: 'sth', text: 'Inventaire' }),
+        el(
+          'span',
+          { class: 'sti' },
+          inv.map(x =>
+            el(
+              'span',
+              { class: icg.some(c => c.k == x.k) ? 'on' : x.n ? '' : 'none' },
+              x.k,
+              el('b', { text: x.max != null ? x.n + '/' + x.max : String(x.n) })
+            )
+          )
+        )
+      ]
     )
   );
 };
@@ -230,11 +271,18 @@ let LT = new Set(),
   LIEU = [],
   MOM = [],
   SC = [];
-const sceneStarts = ms => {
+const sceneStarts = (ms, from) => {
   let shown = '';
   SC = scenesOf(ms);
   LIEU = ms.map(m => (shown = (m.role == 'assistant' && lieuOf(m.state)) || shown));
   MOM = momentsOf(ms);
+  MODES = modesAll(ms, from);
+  let ps = '';
+  MK = MODES.map((x, i) => {
+    const k = (i >= from && (x.ic.length || x.lc.length || x.inv) ? JSON.stringify(x) : '') + '|' + ps;
+    if (ms[i].role == 'assistant' && ms[i].state?.length) ps = sig(ms[i].state);
+    return k;
+  });
   return new Set(SC.map(s => s.at));
 };
 // Intertitres de lieu : avant la réponse qui change de lieu ; la première scène s'annonce en tête du récit.
@@ -286,13 +334,11 @@ const chText = (c, R) => {
     p = k && pct(k);
   return k ? [line(k.text), el('span', { class: 'jt' + (p < 35 ? ' ko' : '') }, ic('dice', 13), k.k + ' · ' + k.d + ' · ' + p + ' %')] : line(c);
 };
-// Changements de l'inventaire et des liens faits par cette réponse (modes.js), en une ligne discrète : ceux
-// que l'application a appliqués, pas une dépense impossible ni un nom sans fiche.
-const modeLine = (i, m) => {
-  const ms = app.cur.messages,
-    inv = m.inv?.length && invOn(app.cur) ? invOf(ms, undefined, i + 1).log.filter(c => c.i == i) : [],
-    ln = m.links?.length && linksOn(app.cur) ? linksOf(ms.slice(0, i + 1)).log.filter(c => c.i == i) : [],
-    t = [inv.length && 'Inventaire : ' + invText(inv.map(c => [c.k, c.d])), ln.length && 'Liens : ' + linkText(ln.map(c => [c.k, c.d]))]
+// Sans carte d'état (panneau d'état éteint, ou réponse sans état) : les changements d'inventaire et de liens en
+// une ligne discrète.
+const modeLine = i => {
+  const { ic: a, lc: b } = modesOf(i),
+    t = [a.length && 'Inventaire : ' + invText(a.map(c => [c.k, c.d])), b.length && 'Liens : ' + linkText(b.map(c => [c.k, c.d]))]
       .filter(Boolean)
       .join(' · ');
   return t ? el('p', { class: 'chg' }, t) : null;
@@ -309,18 +355,18 @@ const msgNode = (i, m, last, d = '') => {
     { class: 'm ' + m.role + (last ? ' last' : '') + (t ? ' lt' : ''), data: { i, mo: MOM[i] || '' } },
     el('span', { class: 'sr', text: (m.role == 'user' ? 'Joueur' : 'Récit') + ' :' }),
     b,
-    stCard(i, m),
-    modeLine(i, m),
+    stCard(i, m) || modeLine(i),
     act(i, m, last)
   );
-  n._k = keyOf(m, last, d, t, p, MOM[i]);
+  n._k = keyOf(m, last, d, t, p, MOM[i], MK[i]);
   return n;
 };
 // Tout ce dont dépend le rendu d'un message : panneau d'état affiché ou non, index des images (ctx.iv,
 // changé par « Recharger l'index ») pour qu'une image ajoutée remplace son repère « image introuvable », et
 // nom du joueur (qui remplace {{user}}).
-const keyOf = (m, l, d, t, p, mo) => ({
+const keyOf = (m, l, d, t, p, mo, mk) => ({
   mo,
+  mk,
   c: m.content,
   a: m.ai,
   l,
@@ -365,7 +411,7 @@ export function render(sc) {
     n = ms.length,
     st = Math.max(0, n - app.LIM);
   const D = decorsOf(ms);
-  LT = sceneStarts(ms);
+  LT = sceneStarts(ms, st);
   const cv = !st && coverOf(app.cur);
   head.replaceChildren(
     ...[
@@ -388,7 +434,7 @@ export function render(sc) {
   const fresh = [];
   for (const e of cur) {
     const i = +e.dataset.i,
-      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), ms[i].role == 'assistant' ? LIEU[i] || '' : '', MOM[i]);
+      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), ms[i].role == 'assistant' ? LIEU[i] || '' : '', MOM[i], MK[i]);
     if (!same(e._k, k)) {
       const x = msgNode(i, ms[i], k.l, D[i]);
       e.replaceWith(x);
@@ -613,30 +659,18 @@ function castView(pr) {
 // Message dont l'état est le dernier montré (-1 : aucun), pour l'en-tête et la colonne du grand écran.
 const stIdx = () => (statOn(app.cur) ? app.cur.messages.findLastIndex(m => m.role == 'assistant' && m.state?.length) : -1);
 // En-tête : avec un lieu dans l'état, un surtitre « Chapitre I · Scène 4 » (#cov), le lieu en titre (#ct) et le
-// jour et l'heure dessous (#cx) ; sans lieu, le titre de l'histoire. Toucher #cx déplie le reste de l'état
-// par-dessus le fil (#cxp), reconstruit seulement quand l'état change. Une autre histoire rouvre l'en-tête complet.
-let CXID = '';
+// jour et l'heure dessous (#cx) ; sans lieu, le titre de l'histoire. Le reste de l'état est dans la carte sous la
+// réponse. Une autre histoire rouvre l'en-tête complet.
+let CXID = '',
+  CTX = false;
 // Ouverture d'une histoire, même celle qu'on vient de quitter (chat.js) : le prochain rendu rouvre l'en-tête.
 export const hdReset = () => (CXID = '');
-const cxOpen = o => {
-  $('#cxp').hidden = !o;
-  if (!$('#cx').classList.contains('nx')) $('#cx').setAttribute('aria-expanded', String(o));
-};
 // Champs que l'en-tête montre déjà en entier : le lieu, l'heure, et le jour s'il n'est rien de plus que ce que
-// l'en-tête en garde (une Date « J+3, 14h, pluie » reste dans le panneau).
+// l'en-tête en garde (une Date « J+3, 14h, pluie » reste dans la carte).
 const shownOf = st => {
   const f = t => st.find(([k]) => t(k)),
     J = f(isJour);
   return new Set([f(isLieu), f(isHeure), J && head(J[1]) == String(J[1]).trim() && J].filter(Boolean).map(r => r[0]));
-};
-// Le panneau : le reste de l'état, les valeurs en lignes « Clé : valeur », les jauges (« 40/100 ») dans la grille.
-const cxBody = (i, m, hid) => {
-  const rows = stRows(i, m).filter(r => !hid.has(r.k)),
-    g = rows.filter(r => r.p != null);
-  return [
-    ...rows.filter(r => !g.includes(r)).map(cxLine),
-    g.length > 0 && stGrid(g)
-  ].filter(Boolean);
 };
 const ROM = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
 const roman = n => ROM.reduce((s, [v, r]) => {
@@ -657,46 +691,32 @@ function ctxView() {
     lieu = st ? lieuOf(st) : '',
     ov = lieu ? chapScene(ms) : '',
     title = lieu || app.cur.name,
-    hid = st && shownOf(st),
-    more = !!st?.some(([k]) => !hid.has(k)),
-    t = st ? [jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') || (more ? 'État' : '') : '',
-    s = $('#cx span');
+    t = st ? [jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') : '';
   if (CXID != app.cur.id) {
     CXID = app.cur.id;
     sy = 0;
     fold(false);
-    cxOpen(false);
   }
   $('#cov').hidden = !ov;
   if ($('#cov').textContent != ov) $('#cov').textContent = ov;
   if ($('#ct').textContent != title) $('#ct').textContent = title;
   $('#cx').hidden = !t;
-  if ($('#cx').classList.toggle('nx', !more)) {
-    $('#cx').removeAttribute('aria-expanded');
-    $('#cx').removeAttribute('aria-controls');
-  } else $('#cx').setAttribute('aria-controls', 'cxp');
-  if (s.textContent != t) s.textContent = t;
-  // Plus d'état (réponse supprimée ou régénérée) : sans ligne de contexte, l'en-tête replié resterait vide.
-  if (!t) return cxOpen(false), fold(false);
-  if (!more) return cxOpen(false);
-  const p = $('#cxp'),
-    k = app.cur.id + ':' + i + ':' + sig(st);
-  if (!p.hidden && p.dataset.k !== k) {
-    p.dataset.k = k;
-    p.replaceChildren(...cxBody(i, ms[i], hid));
-  }
+  if ($('#cx').textContent != t) $('#cx').textContent = t;
+  // Plus de lieu ni de jour (réponse supprimée ou régénérée) : l'en-tête replié n'aurait que le nom de l'histoire.
+  CTX = !!(t || ov);
+  if (!CTX) fold(false);
 }
-// Replié, un toucher sur le lieu ou la ligne rouvre d'abord l'en-tête (retour, menu) ; déplié, la ligne ouvre ou
-// ferme l'état (s'il reste quelque chose à montrer : classe nx sinon).
+// Replié, un toucher sur le lieu ou la ligne rouvre l'en-tête (retour, menu).
 $('#ctw').addEventListener('click', e => {
   if (!$('#chat header').classList.contains('rd')) return;
   e.stopPropagation();
   fold(false);
 }, true);
-$('#cx').onclick = () => {
-  if ($('#cx').classList.contains('nx')) return;
-  cxOpen($('#cxp').hidden);
-  ctxView();
+$('#ctw').onkeydown = e => {
+  if ((e.key == 'Enter' || e.key == ' ') && $('#chat header').classList.contains('rd')) {
+    e.preventDefault();
+    fold(false);
+  }
 };
 // Téléphone : l'en-tête se replie sur la ligne de contexte quand le joueur descend dans le fil, et revient dès
 // qu'il remonte. Seuls ses gestes comptent (gx : dernier toucher ou molette), pas le défilement de l'application
@@ -720,7 +740,7 @@ function fold(f) {
   if (hd.classList.contains('rd') == f) return;
   hd.classList.toggle('rd', f);
   hdAt = Date.now();
-  if (f) cxOpen(false);
+  $('#ctw').tabIndex = f ? 0 : -1;
 }
 // Grand écran (ordinateur) : même seuil que les @media (min-width: 1200px) de style.css.
 export const WIDE = matchMedia('(min-width: 1200px)');
@@ -832,7 +852,7 @@ $('#msgs').onscroll = () => {
   if (Math.abs(dy) < 24 && y >= 40) return;
   sy = y;
   const now = Date.now();
-  if (now - gx < 800 && now - hdAt > 400 && !WIDE.matches && !$('#cx').hidden) fold(y >= 40 && dy > 0);
+  if (now - gx < 800 && now - hdAt > 400 && !WIDE.matches && CTX) fold(y >= 40 && dy > 0);
 };
 // Clavier ouvert (Android avec interactive-widget=resizes-content, index.html ; iPhone) : le fil rapetisse par le
 // bas. Si on lisait la fin, elle reste en vue au lieu de passer sous la saisie. Le rétrécissement ne déplace pas

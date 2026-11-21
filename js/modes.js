@@ -72,8 +72,9 @@ const dayOf = st => {
 
 // Inventaire après les upto premiers messages : quantités de départ, baisse par jour passé, puis les changements
 // de chaque réponse. Jamais sous zéro ni au-dessus de la borne ; une dépense impossible (plus que ce qu'on a) est
-// ignorée. log : les changements appliqués, pour la feuille Inventaire.
-export const invOf = (ms, base = ctx.inv || [], upto = ms.length) => {
+// ignorée. log : les changements appliqués, pour la feuille Inventaire. each(i, objets) : après chaque réponse, les
+// objets tels qu'ils sont à ce moment, à copier (carte d'état, view.js), en un seul passage.
+export const invOf = (ms, base = ctx.inv || [], upto = ms.length, each) => {
   const items = base.map(x => ({ ...x, start: true })),
     log = [];
   let day = null;
@@ -96,6 +97,7 @@ export const invOf = (ms, base = ctx.inv || [], upto = ms.length) => {
       x.n = x.max != null ? Math.min(x.max, x.n + v) : x.n + v;
       if (x.n != n0) log.push({ i, k: x.k, d: x.n - n0 });
     }
+    each?.(i, items);
   }
   return { items: items.filter(x => x.start || x.n > 0), log };
 };
