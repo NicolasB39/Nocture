@@ -2165,6 +2165,11 @@ dialog label:has(> input[type='checkbox']) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 5px;
 }
+/* Une seule pastille ou une seule tuile : toute la largeur. */
+.sts > :only-child,
+.stx .stg > :only-child {
+  grid-column: 1 / -1;
+}
 .stp {
   display: flex;
   align-items: center;
