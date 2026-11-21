@@ -1,15 +1,18 @@
 import { app, ctx } from './state.js';
 import { el, hue, nz } from './util.js';
 
-export const lieuOf = st => (st || []).find(([k]) => /^(lieu|endroit|localisation|position)/.test(nz(k)))?.[1] || '';
-// Jour (ou Date) du récit : pas « Jours restants » ni « Journal ».
-export const jourOf = st => (st || []).find(([k]) => /^(jour|date)(\s|\(|$)/.test(nz(k).trim()))?.[1] || '';
+// Champs reconnus de l'état : lieu, jour (ou Date ; pas « Jours restants » ni « Journal »), heure (Moment, Heure ou
+// Période).
+export const isLieu = k => /^(lieu|endroit|localisation|position)/.test(nz(k));
+export const isJour = k => /^(jour|date)(\s|\(|$)/.test(nz(k).trim());
+export const isHeure = k => /^(moment|heure|periode)/.test(nz(k));
+export const lieuOf = st => (st || []).find(([k]) => isLieu(k))?.[1] || '';
+export const jourOf = st => (st || []).find(([k]) => isJour(k))?.[1] || '';
 // Première partie d'une valeur d'état, avant une virgule, une parenthèse ou un tiret (« J+3, 14h, pluie » → « J+3 »).
 export const head = v => String(v || '').split(/[,(—–]/)[0].trim();
 // Le jour seul, sans l'heure ni la météo qu'un champ Date porte souvent.
 export const dayKey = st => head(jourOf(st));
-// Heure du récit (champ Moment, Heure ou Période).
-export const heureOf = st => (st || []).find(([k]) => /^(moment|heure|periode)/.test(nz(k)))?.[1];
+export const heureOf = st => (st || []).find(([k]) => isHeure(k))?.[1];
 // « Jour 2 » (ou « Jour 1/12 ») pour une valeur qui n'est qu'un nombre, sinon la valeur telle quelle (« 3 mai »).
 export const jourLabel = v => (/^\d+(\s*\/\s*\d+)?$/.test((v = String(v || '').trim())) ? 'Jour ' + v : v);
 // Moment de la journée d'un état (champ Moment, Heure ou Période) : aube, soir ou nuit teintent les décors

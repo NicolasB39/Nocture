@@ -661,7 +661,7 @@ try {
       );
     const F = {
       'scenarios/demo/systeme.md': 'Narrateur.',
-      'scenarios/demo/etat.md': 'Lieu',
+      'scenarios/demo/etat.md': 'Lieu, Objectif',
       'scenarios/demo/personnages/Alice/alice.png': await png(100, 200, 'cut'),
       'scenarios/demo/personnages/Bob/bob.png': await png(100, 200, 'flat'),
       'scenarios/demo/decors/taverne.png': await png(800, 450, '#a33'),
@@ -755,7 +755,7 @@ try {
     assert.match(await p3.getAttribute('#pe', 'aria-label'), /Personnages en scène : .*Bob/, 'Bob en scène dans l’en-tête');
 
     // Lieu annoncé en tête de réponse : lu pendant l'affichage, jamais montré.
-    await say('Je pars.', '<lieu>Volcan</lieu>\n\nUn volcan gronde.\n\n{{img::alice_alice}}\n\n<etat>\nLieu: Volcan\n</etat>');
+    await say('Je pars.', '<lieu>Volcan</lieu>\n\nUn volcan gronde.\n\n{{img::alice_alice}}\n\n<etat>\nLieu: Volcan\nObjectif: Fuir\n</etat>');
     assert.doesNotMatch(await p3.textContent('#msgs'), /<\/?lieu/, 'balise <lieu> invisible');
     g = await last('cut');
     assert.match(g.dec, /decors\/defaut\.png$/, 'lieu inconnu : fond par défaut');
@@ -770,8 +770,8 @@ try {
     assert.equal(await p3.textContent('#ct'), 'Volcan', 'le lieu en titre');
     assert.equal(await p3.textContent('#cx span'), 'État', 'ligne sous le titre, sans jour ni heure dans cet état');
     await p3.click('#cx');
-    await p3.waitForSelector('#cxp:not([hidden]) .stg');
-    assert.match(await p3.textContent('#cxp'), /Volcan/, 'état déplié');
+    await p3.waitForSelector('#cxp:not([hidden]) .cxl');
+    assert.equal(await p3.textContent('#cxp'), 'Objectif : Fuir', 'état déplié, sans le lieu déjà en titre');
     await p3.click('#cx');
     await p3.waitForSelector('#cxp', { state: 'hidden' });
     // Repli : la molette vers le bas replie l'en-tête sur la ligne de contexte, vers le haut le rouvre ; le

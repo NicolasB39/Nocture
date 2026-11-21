@@ -9,7 +9,21 @@ import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
-import { dayKey, decorFor, decorNow, decorsOf, heureOf, jourLabel, lieuOf, momentsOf, scenesOf } from './scene.js';
+import {
+  dayKey,
+  decorFor,
+  decorNow,
+  decorsOf,
+  head,
+  heureOf,
+  isHeure,
+  isJour,
+  isLieu,
+  jourLabel,
+  lieuOf,
+  momentsOf,
+  scenesOf
+} from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
 import { $, el, ic, LS, smooth } from './util.js';
 
@@ -577,14 +591,30 @@ function castView(pr) {
 // Message dont l'état est le dernier montré (-1 : aucun), pour l'en-tête et la colonne du grand écran.
 const stIdx = () => (statOn(app.cur) ? app.cur.messages.findLastIndex(m => m.role == 'assistant' && m.state?.length) : -1);
 // En-tête : avec un lieu dans l'état, un surtitre « Chapitre I · Scène 4 » (#cov), le lieu en titre (#ct) et le
-// jour et l'heure dessous (#cx) ; sans lieu, le titre de l'histoire. Toucher #cx déplie l'état complet par-dessus
-// le fil (#cxp), reconstruit seulement quand l'état change. Une autre histoire rouvre l'en-tête complet.
+// jour et l'heure dessous (#cx) ; sans lieu, le titre de l'histoire. Toucher #cx déplie le reste de l'état
+// par-dessus le fil (#cxp), reconstruit seulement quand l'état change. Une autre histoire rouvre l'en-tête complet.
 let CXID = '';
 // Ouverture d'une histoire, même celle qu'on vient de quitter (chat.js) : le prochain rendu rouvre l'en-tête.
 export const hdReset = () => (CXID = '');
 const cxOpen = o => {
   $('#cxp').hidden = !o;
-  $('#cx').setAttribute('aria-expanded', String(o));
+  if (!$('#cx').classList.contains('nx')) $('#cx').setAttribute('aria-expanded', String(o));
+};
+// Champs que l'en-tête montre déjà en entier : le lieu, l'heure, et le jour s'il n'est rien de plus que ce que
+// l'en-tête en garde (une Date « J+3, 14h, pluie » reste dans le panneau).
+const shownOf = st => {
+  const f = t => st.find(([k]) => t(k)),
+    J = f(isJour);
+  return new Set([f(isLieu), f(isHeure), J && head(J[1]) == String(J[1]).trim() && J].filter(Boolean).map(r => r[0]));
+};
+// Le panneau : le reste de l'état, les valeurs en lignes « Clé : valeur », les jauges (« 40/100 ») dans la grille.
+const cxBody = (i, m, hid) => {
+  const rows = stRows(i, m).filter(r => !hid.has(r.k)),
+    g = rows.filter(r => pctOf(r.v) != null);
+  return [
+    ...rows.filter(r => !g.includes(r)).map(r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r.d))),
+    g.length > 0 && stGrid(g)
+  ].filter(Boolean);
 };
 const ROM = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
 const roman = n => ROM.reduce((s, [v, r]) => {
@@ -605,7 +635,9 @@ function ctxView() {
     lieu = st ? lieuOf(st) : '',
     ov = lieu ? chapScene(ms) : '',
     title = lieu || app.cur.name,
-    t = st ? [jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') || 'État' : '',
+    hid = st && shownOf(st),
+    more = !!st?.some(([k]) => !hid.has(k)),
+    t = st ? [jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') || (more ? 'État' : '') : '',
     s = $('#cx span');
   if (CXID != app.cur.id) {
     CXID = app.cur.id;
@@ -617,19 +649,30 @@ function ctxView() {
   if ($('#cov').textContent != ov) $('#cov').textContent = ov;
   if ($('#ct').textContent != title) $('#ct').textContent = title;
   $('#cx').hidden = !t;
+  if ($('#cx').classList.toggle('nx', !more)) {
+    $('#cx').removeAttribute('aria-expanded');
+    $('#cx').removeAttribute('aria-controls');
+  } else $('#cx').setAttribute('aria-controls', 'cxp');
   if (s.textContent != t) s.textContent = t;
   // Plus d'état (réponse supprimée ou régénérée) : sans ligne de contexte, l'en-tête replié resterait vide.
   if (!t) return cxOpen(false), fold(false);
+  if (!more) return cxOpen(false);
   const p = $('#cxp'),
-    k = i + sig(st);
+    k = app.cur.id + ':' + i + ':' + sig(st);
   if (!p.hidden && p.dataset.k !== k) {
     p.dataset.k = k;
-    p.replaceChildren(stGrid(stRows(i, ms[i])));
+    p.replaceChildren(...cxBody(i, ms[i], hid));
   }
 }
-// Replié, un toucher rouvre d'abord l'en-tête (retour, menu) ; déplié, il ouvre ou ferme l'état.
+// Replié, un toucher sur le lieu ou la ligne rouvre d'abord l'en-tête (retour, menu) ; déplié, la ligne ouvre ou
+// ferme l'état (s'il reste quelque chose à montrer : classe nx sinon).
+$('#ctw').addEventListener('click', e => {
+  if (!$('#chat header').classList.contains('rd')) return;
+  e.stopPropagation();
+  fold(false);
+}, true);
 $('#cx').onclick = () => {
-  if ($('#chat header').classList.contains('rd')) return fold(false);
+  if ($('#cx').classList.contains('nx')) return;
   cxOpen($('#cxp').hidden);
   ctxView();
 };

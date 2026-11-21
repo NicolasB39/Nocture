@@ -527,6 +527,23 @@ header > button:active {
 #cx[aria-expanded='true'] svg {
   transform: rotate(180deg);
 }
+#cx.nx svg {
+  display: none;
+}
+/* Panneau de l'état (#cxp) : une ligne « Clé : valeur » par champ, puis les jauges. */
+.cxl {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--nar);
+}
+.cxl b {
+  font-weight: 600;
+  color: var(--fg);
+}
+.cxl .dl {
+  margin-left: 6px;
+}
 /* Replié pendant la lecture (téléphone) : seule la ligne de contexte reste, centrée. */
 #chat header.rd {
   padding-top: calc(env(safe-area-inset-top, 0px) + 4px);
