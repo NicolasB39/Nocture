@@ -167,8 +167,9 @@ const cxLine = r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + 
 // (« 40/100 » : vie, mana, énergie…) toujours, le reste seulement s'il a changé depuis l'état précédent (tout, au
 // premier état), en pastilles sur deux colonnes (un texte, sur toute la largeur) ; puis les objets gagnés ou perdus
 // et les liens changés par la réponse ; puis les objectifs (Objectif, Quête, Mission, But), un encart doré chacun,
-// sur deux lignes au plus. Dépliée : tout l'état (jauges en tuiles, valeurs en lignes, objectifs en entier) et
-// l'inventaire. Le choix plié / déplié vaut pour toute l'appli (chat.js). Une jauge sous LOW % passe au rouge.
+// sur deux lignes au plus. Dépliée : tout l'état (jauges en tuiles, valeurs en lignes, objectifs en entier) ;
+// l'inventaire complet est dans sa feuille (inv.js). Le choix plié / déplié vaut pour toute l'appli (chat.js). Une
+// jauge sous LOW % passe au rouge.
 const LOW = 30;
 const gauge = (r, p, cls) =>
   el('i', { class: 'bar ' + cls }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }));
@@ -193,19 +194,15 @@ const stTile = r => {
 };
 // Encart d'un objectif : sa valeur telle quelle, sur deux lignes au plus (replié) ou en entier (déplié).
 const stGoal = (r, open) => el('span', chg(r, 'sgo'), ic('target', 14), el('span', { class: open ? 'sgt' : 'sgl', text: r.v }));
-// Inventaire et liens de chaque réponse (modes.js), en un passage par rendu (sceneStarts) : inv, l'inventaire
-// après la réponse (copié pour les seuls messages affichés, à partir de from) ; ic et lc, ses changements appliqués
-// (pas une dépense impossible ni un nom sans fiche). MK : ce dont dépend la carte hors du message lui-même (ces
-// données et l'état précédent), dans la clé de chaque message (keyOf) pour qu'un changement plus haut reconstruise
-// la suite.
+// Changements d'inventaire et de liens de chaque réponse (modes.js), en un passage par rendu (sceneStarts) : ic et
+// lc, ceux que l'application a appliqués (pas une dépense impossible ni un nom sans fiche). MK : ce dont dépend la
+// carte hors du message lui-même (ces changements et l'état précédent), dans la clé de chaque message (keyOf) pour
+// qu'un changement plus haut reconstruise la suite.
 let MODES = [],
   MK = [];
-const modesAll = (ms, from) => {
-  const R = ms.map(() => ({ ic: [], lc: [] })),
-    snap = (i, it) => {
-      if (i >= from) R[i].inv = it.filter(x => x.start || x.n > 0).map(x => ({ k: x.k, n: x.n, max: x.max }));
-    };
-  if (invOn(app.cur)) for (const c of invOf(ms, undefined, ms.length, snap).log) R[c.i].ic.push(c);
+const modesAll = ms => {
+  const R = ms.map(() => ({ ic: [], lc: [] }));
+  if (invOn(app.cur)) for (const c of invOf(ms).log) R[c.i].ic.push(c);
   if (linksOn(app.cur)) for (const c of linksOf(ms).log) R[c.i].lc.push(c);
   return R;
 };
@@ -225,7 +222,7 @@ const stCard = (i, m) => {
     seen = r => first || r.c || r.p != null,
     goals = allGoals.filter(seen),
     vals = allVals.filter(seen),
-    { inv, ic: icg, lc } = modesOf(i),
+    { ic: icg, lc } = modesOf(i),
     chips = [...icg.map(c => stChip(c, 'bag')), ...lc.map(c => stChip(c, 'heart'))],
     open = LS.get('stOpen') == '1';
   if (!vals.length && !goals.length && !chips.length) return null;
@@ -246,22 +243,7 @@ const stCard = (i, m) => {
       el('button', { class: 'stl', 'aria-expanded': String(open) }, 'État', ic('chevd', 14)),
       gs.length > 0 && stGrid(gs),
       allVals.filter(r => r.p == null).map(cxLine),
-      allGoals.map(r => stGoal(r, true)),
-      inv?.length > 0 && [
-        el('p', { class: 'sth', text: 'Inventaire' }),
-        el(
-          'span',
-          { class: 'sti' },
-          inv.map(x =>
-            el(
-              'span',
-              { class: icg.some(c => c.k == x.k) ? 'on' : x.n ? '' : 'none' },
-              x.k,
-              el('b', { text: x.max != null ? x.n + '/' + x.max : String(x.n) })
-            )
-          )
-        )
-      ]
+      allGoals.map(r => stGoal(r, true))
     )
   );
 };
@@ -271,15 +253,15 @@ let LT = new Set(),
   LIEU = [],
   MOM = [],
   SC = [];
-const sceneStarts = (ms, from) => {
+const sceneStarts = ms => {
   let shown = '';
   SC = scenesOf(ms);
   LIEU = ms.map(m => (shown = (m.role == 'assistant' && lieuOf(m.state)) || shown));
   MOM = momentsOf(ms);
-  MODES = modesAll(ms, from);
+  MODES = modesAll(ms);
   let ps = '';
   MK = MODES.map((x, i) => {
-    const k = (i >= from && (x.ic.length || x.lc.length || x.inv) ? JSON.stringify(x) : '') + '|' + ps;
+    const k = (x.ic.length || x.lc.length ? JSON.stringify(x) : '') + '|' + ps;
     if (ms[i].role == 'assistant' && ms[i].state?.length) ps = sig(ms[i].state);
     return k;
   });
@@ -411,7 +393,7 @@ export function render(sc) {
     n = ms.length,
     st = Math.max(0, n - app.LIM);
   const D = decorsOf(ms);
-  LT = sceneStarts(ms, st);
+  LT = sceneStarts(ms);
   const cv = !st && coverOf(app.cur);
   head.replaceChildren(
     ...[

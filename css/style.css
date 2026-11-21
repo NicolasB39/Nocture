@@ -2321,37 +2321,6 @@ dialog label:has(> input[type='checkbox']) {
 .stx .sgo {
   margin-top: 10px;
 }
-/* Carte dépliée : l'inventaire après la réponse, l'objet qui vient de changer cerclé d'or. */
-.sth {
-  margin: 12px 0 6px;
-  color: var(--mu);
-  font: 600 10px/1.6 var(--sans);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-.sti {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-.sti > span {
-  padding: 3px 9px;
-  border: 1px solid var(--bd);
-  border-radius: 8px;
-  background: var(--s2);
-  font-size: 12px;
-}
-.sti > .on {
-  border-color: color-mix(in srgb, var(--ac) 50%, var(--bd));
-}
-.sti > .none {
-  color: var(--mu);
-}
-.sti b {
-  margin-left: 5px;
-  color: var(--ac);
-  font-weight: 600;
-}
 .stg {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

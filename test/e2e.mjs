@@ -983,8 +983,8 @@ try {
     assert.equal(await p5.locator('#msgs .st:not(.open)').count(), 0, 'toutes les cartes dépliées');
     await p5.click('#msgs .m[data-i="3"] .stl');
     await p5.waitForSelector('#msgs .m[data-i="3"] .st:not(.open)');
-    // Inventaire et liens (scénario qui les tient) : pastilles des changements, inventaire dans la carte dépliée,
-    // et la suite reconstruite quand une réponse plus haute change.
+    // Inventaire et liens (scénario qui les tient) : pastilles des changements, et la suite reconstruite quand une
+    // réponse plus haute change.
     const modes = inv3 =>
       p5.evaluate(async inv3 => {
         const { app, ctx } = await import('/js/state.js');
@@ -996,17 +996,12 @@ try {
         app.cur.messages[5].inv = [['Euros', -40]];
         app.cur.messages[5].links = [['Léna', 1]];
         (await import('/js/view.js')).render();
-        const c = document.querySelector('#msgs .m[data-i="5"] .st');
-        return {
-          chips: [...c.querySelectorAll('.stc .stq')].map(e => e.textContent),
-          inv: [...c.querySelectorAll('.stx .sti > span')].map(e => e.textContent + (e.className ? ' ' + e.className : ''))
-        };
+        return [...document.querySelectorAll('#msgs .m[data-i="5"] .stc .stq')].map(e => e.textContent);
       }, inv3);
-    let mo = await modes([['Corde', 1]]);
-    assert.deepEqual(mo.chips, ['−40 Euros', 'Léna +1'], 'pastilles : objet perdu, lien changé');
-    assert.deepEqual(mo.inv, ['Euros60 on', 'Corde1'], 'inventaire après la réponse, l’objet changé marqué');
-    mo = await modes([]);
-    assert.deepEqual(mo.inv, ['Euros60 on'], 'réponse plus haute modifiée : la carte suivante suit');
+    assert.deepEqual(await modes([]), ['−40 Euros', 'Léna +1'], 'pastilles : objet perdu, lien changé');
+    // Plus haut, une dépense laisse trop peu : la dépense suivante, impossible, disparaît de sa carte.
+    assert.deepEqual(await modes([['Euros', -80]]), ['Léna +1'], 'réponse plus haute modifiée : la carte suivante suit');
+    assert.deepEqual(await modes([]), ['−40 Euros', 'Léna +1']);
     // État plus haut modifié : la carte suivante recalcule ses variations.
     const pv5 = () => p5.evaluate(() => document.querySelector('#msgs .m[data-i="5"] .stc .stp .dl')?.textContent || '');
     assert.equal(await pv5(), '');
