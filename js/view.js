@@ -168,11 +168,16 @@ const stGrid = rows =>
       );
     })
   );
+// Carte sous la réponse : seulement ce qui a changé depuis l'état précédent (tout, au premier état), sans ce que
+// l'en-tête montre déjà (lieu, jour, heure). Rien de changé : pas de carte.
 const stCard = (i, m) => {
   if (!m.state?.length || !statOn(app.cur)) return null;
-  const open = LS.get('stOpen') == '1',
-    rows = stRows(i, m),
+  const hid = shownOf(m.state),
+    first = !lastEtat(app.cur.messages, i),
+    rows = stRows(i, m).filter(r => !hid.has(r.k) && (first || r.c)),
+    open = LS.get('stOpen') == '1',
     more = rows.length - ST_N;
+  if (!rows.length) return null;
   return el(
     'div',
     { class: 'st' + (open ? ' open' : '') },
