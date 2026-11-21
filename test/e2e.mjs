@@ -766,7 +766,9 @@ try {
     );
     assert.deepEqual(await p3.locator('#msgs .scene').allTextContents(), ['Auberge du Pont', 'Volcan'], 'intertitres de lieu');
     // En-tête : ligne de contexte du dernier état ; un toucher déplie l'état, un second le referme.
-    assert.equal(await p3.textContent('#cx span'), 'Volcan', 'ligne de contexte sous le titre');
+    assert.equal(await p3.textContent('#cov'), 'Chapitre I · Scène 2', 'surtitre chapitre et scène');
+    assert.equal(await p3.textContent('#ct'), 'Volcan', 'le lieu en titre');
+    assert.equal(await p3.textContent('#cx span'), 'État', 'ligne sous le titre, sans jour ni heure dans cet état');
     await p3.click('#cx');
     await p3.waitForSelector('#cxp:not([hidden]) .stg');
     assert.match(await p3.textContent('#cxp'), /Volcan/, 'état déplié');

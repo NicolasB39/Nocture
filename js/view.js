@@ -9,7 +9,7 @@ import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { recapCheck } from './recap.js';
 import { coverOf } from './scenarios.js';
-import { dayKey, decorFor, decorNow, decorsOf, head, heureOf, jourLabel, lieuOf, momentsOf, scenesOf } from './scene.js';
+import { dayKey, decorFor, decorNow, decorsOf, heureOf, jourLabel, lieuOf, momentsOf, scenesOf } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
 import { $, el, ic, LS, smooth } from './util.js';
 
@@ -321,7 +321,6 @@ export function jump(i) {
   setTimeout(() => e.classList.remove('flash'), 1600);
 }
 export function render(sc) {
-  $('#ct').textContent = app.cur.name;
   const w = $('#msgs'),
     head = $('#mhead'),
     foot = $('#mfoot'),
@@ -577,7 +576,8 @@ function castView(pr) {
 }
 // Message dont l'état est le dernier montré (-1 : aucun), pour l'en-tête et la colonne du grand écran.
 const stIdx = () => (statOn(app.cur) ? app.cur.messages.findLastIndex(m => m.role == 'assistant' && m.state?.length) : -1);
-// En-tête : lieu, jour et heure du dernier état sous le titre (#cx) ; un toucher déplie l'état complet par-dessus
+// En-tête : avec un lieu dans l'état, un surtitre « Chapitre I · Scène 4 » (#cov), le lieu en titre (#ct) et le
+// jour et l'heure dessous (#cx) ; sans lieu, le titre de l'histoire. Toucher #cx déplie l'état complet par-dessus
 // le fil (#cxp), reconstruit seulement quand l'état change. Une autre histoire rouvre l'en-tête complet.
 let CXID = '';
 // Ouverture d'une histoire, même celle qu'on vient de quitter (chat.js) : le prochain rendu rouvre l'en-tête.
@@ -586,13 +586,26 @@ const cxOpen = o => {
   $('#cxp').hidden = !o;
   $('#cx').setAttribute('aria-expanded', String(o));
 };
+const ROM = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+const roman = n => ROM.reduce((s, [v, r]) => {
+  for (; n >= v; n -= v) s += r;
+  return s;
+}, '');
+// Chapitre en cours (les chapitres de la mémoire sont les terminés) et rang de la scène en cours dans ce chapitre,
+// comme dans le Sommaire : une scène commencée avant le chapitre compte pour sa première.
+const chapScene = ms => {
+  const C = app.cur.mem.chapters || [],
+    start = C.at(-1)?.upto || 0;
+  return 'Chapitre ' + roman(C.length + 1) + ' · Scène ' + scenesOf(ms).filter(s => s.to >= start).length;
+};
 function ctxView() {
   const ms = app.cur.messages,
     i = stIdx(),
     st = i >= 0 ? ms[i].state : null,
-    // Le lieu et le jour jusqu'à leur première virgule (« Rue Pinel, cour de l'atelier » → « Rue Pinel ») : tout
-    // reste visible sur un téléphone ; l'intertitre du récit et l'état déplié donnent le lieu en entier.
-    t = st ? [head(lieuOf(st)), jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') : '',
+    lieu = st ? lieuOf(st) : '',
+    ov = lieu ? chapScene(ms) : '',
+    title = lieu || app.cur.name,
+    t = st ? [jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') || 'État' : '',
     s = $('#cx span');
   if (CXID != app.cur.id) {
     CXID = app.cur.id;
@@ -600,6 +613,9 @@ function ctxView() {
     fold(false);
     cxOpen(false);
   }
+  $('#cov').hidden = !ov;
+  if ($('#cov').textContent != ov) $('#cov').textContent = ov;
+  if ($('#ct').textContent != title) $('#ct').textContent = title;
   $('#cx').hidden = !t;
   if (s.textContent != t) s.textContent = t;
   // Plus d'état (réponse supprimée ou régénérée) : sans ligne de contexte, l'en-tête replié resterait vide.
