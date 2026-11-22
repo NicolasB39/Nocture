@@ -13,7 +13,7 @@ scenarios/
     liens.md                 ← optionnel : échelle et paliers, active les liens (voir modes.md)
     intro.md                 ← optionnel : accroche et débuts proposés avant le premier tour
     avatar.md                ← optionnel : description du personnage du joueur
-    images.md                ← optionnel, ignoré par l'application : bloc de style et prompts
+    images.md                ← optionnel, ignoré par l'application : un prompt complet par image
     personnages/
       Maren/
         fiche.md             ← fiche détaillée, avec en-têtes

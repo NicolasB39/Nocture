@@ -18,7 +18,18 @@ Négatif commun (champ « negative prompt », ou `--no` selon l'outil) :
 chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border
 ```
 
-Gardez le bloc de style et les prompts du scénario dans un fichier `images.md` à la racine du scénario : l'application l'ignore, et il permet de régénérer une image des mois plus tard dans le même style.
+Gardez les prompts du scénario dans un fichier `images.md` à la racine du scénario : l'application l'ignore, et il permet de régénérer une image des mois plus tard dans le même style.
+
+### Le fichier images.md : un prompt complet par image
+
+Les gabarits ci-dessous servent à **écrire** les prompts. Dans `images.md`, chaque image a son **prompt complet**, prêt à copier d'un seul bloc et à coller tel quel : rien à assembler, ni bloc de style à recoller, ni partie commune, ni négatif à part.
+
+- Un titre par image, au nom du fichier à enregistrer (`### Maren`, `### phare`), puis un bloc de code qui contient tout : le bloc de style, la description, les consignes du gabarit, et une dernière ligne `Avoid: …` qui réunit le négatif commun et celui du gabarit. ChatGPT et Gemini n'ont pas de champ négatif : écrit dans le prompt, il est suivi.
+- Sous la planche d'un personnage, la commande de découpe dans son propre bloc, avec les noms des fichiers (`neutre sourire ferme`).
+- Aucun repère à remplacer (`[BLOC DE STYLE]`, `[PARTIE COMMUNE]`, `[EXPRESSION]`) ne reste dans le fichier.
+- Le bloc de style figure une fois en tête du fichier, pour mémoire, pour écrire de nouveaux prompts dans le même style.
+
+Sur GitHub, chaque bloc de code a son bouton de copie : un toucher depuis le téléphone, un collage dans le générateur. Le style répété dans chaque prompt est voulu : pour changer de style, réécrivez le fichier entier.
 
 ## Personnages : détourés, en buste
 
@@ -189,7 +200,7 @@ La couverture est recadrée en 3/4, 16/10 et 16/9 selon l'endroit : tout ce qui 
 |---|---|---|
 | Midjourney | `--ar 3:2` (planche), `--ar 2:3`, `--ar 16:9`, `--ar 3:4` | `--no` suivi de la liste |
 | Stable Diffusion, Flux, ComfyUI | largeur × hauteur (1536 × 1024 pour une planche, 1024 × 1536, 1600 × 900) | champ négatif |
-| ChatGPT, Gemini, outils sans réglage | écrire « wide horizontal format 3:2 », « vertical 2:3 », « widescreen 16:9 » dans le prompt, comme dans les gabarits ; ChatGPT propose aussi le format paysage 1536 × 1024 | écrire « without … » dans le prompt |
+| ChatGPT, Gemini, outils sans réglage | écrire « wide horizontal format 3:2 », « vertical 2:3 », « widescreen 16:9 » dans le prompt, comme dans les gabarits ; ChatGPT propose aussi le format paysage 1536 × 1024 | la ligne `Avoid: …` à la fin du prompt (déjà dans `images.md`) |
 
 ## Exemple complet : Le Phare d'Arvor
 

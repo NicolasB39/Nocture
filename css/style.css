@@ -970,6 +970,12 @@ hr {
 .scn.cut .chr {
   visibility: visible;
 }
+/* Personnage détouré : le décor derrière lui se floute un peu, comme une faible profondeur de champ ; agrandi
+   juste assez pour que le flou ne laisse pas de bord clair. */
+.scn.cut .dec {
+  filter: blur(1.5px);
+  transform: scale(1.02);
+}
 .scn.flat {
   width: auto;
   aspect-ratio: auto;

@@ -44,6 +44,6 @@ Chercher dans `systeme.md` : `<choix>`, `<etat>`, `{{img::`, « trois propositio
 - `etat.md` contient-il `Lieu` ? Sans lui, le décor est deviné d'après le texte.
 - Si le temps compte, `etat.md` contient-il `Jour` et `Heure` ? Sans heure, le narrateur étire les journées ; sans jour, l'inventaire ne baisse pas et la mémoire ne date rien.
 - Y a-t-il un `decors/defaut` ? Sans lui, les lieux non prévus tombent sur un fond généré.
-- Le style est-il homogène, anime réaliste, d'une image à l'autre ? Un même bloc de style en tête de tous les prompts (`images.md`) ?
+- Le style est-il homogène, anime réaliste, d'une image à l'autre ? Un même bloc de style en tête de tous les prompts (`images.md`) ? Chaque prompt y est-il complet, prêt à copier, sans repère `[…]` à remplacer ?
 - La couverture est-elle en 3/4 avec le sujet centré verticalement ?
 - Chaque personnage important a-t-il au moins une expression neutre ?

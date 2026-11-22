@@ -51,7 +51,7 @@ Ce qui reste au scénario : le monde, le ton, la voix, le **rythme propre à l'h
 6. **Créer les personnages**, un dossier chacun, avec `fiche.md`, ses en-têtes et une **réplique d'exemple** dans la section Voix.
 7. **Créer le lorebook** pour ce qui ne doit arriver qu'au bon moment.
 8. **Activer les modes** si l'histoire s'y prête (`regles.md`, `inventaire.md`, `liens.md`) et écrire `intro.md` : voir `reference/modes.md`.
-9. **Écrire les prompts d'images** avec les gabarits de `reference/images.md`, à partir d'un bloc de style commun, et les ranger dans `images.md` à la racine du scénario. **Style anime réaliste** partout.
+9. **Écrire les prompts d'images** avec les gabarits de `reference/images.md`, à partir d'un bloc de style commun, et les ranger dans `images.md` à la racine du scénario : **un prompt complet par image**, dans son propre bloc (style, description, consignes et ligne `Avoid:`), prêt à copier et coller tel quel, sans repère à remplacer. **Style anime réaliste** partout.
 10. **Ajouter les images** :
    - personnages : **une seule planche par personnage**, le même personnage répété côte à côte dans chacune de ses expressions (une génération, donc un visage et une tenue identiques), sur fond vert d'incrustation uni (#00FF00), en PNG d'origine, puis découpée en une image par expression avec `node scripts/decouper.mjs`, qui la détoure aussi ; chaque image est **détourée** (PNG ou WebP transparent), en buste coupé à la taille par le bas de l’image, expressions marquées, verticale 2:3. Voir `reference/images.md` ;
    - décors : un par lieu récurrent dans `decors/`, en **16/9, sans personnage**, avec un `.md` de mots-clés, plus un `defaut` ; garder `Lieu` dans `etat.md` ;
