@@ -2,10 +2,12 @@
 
 Fichier ignoré par l'application. Chaque prompt est **complet** : le style, la description, le cadrage et les éléments à éviter sont dans un seul bloc, à copier d'un coup (sur GitHub, bouton de copie en haut à droite du bloc) et à coller tel quel dans ChatGPT ou Gemini. Pour Midjourney ou Stable Diffusion, déplacer la ligne « Avoid: » dans `--no` ou dans le champ négatif.
 
+Si le générateur accepte une image en entrée (ChatGPT, Gemini, Midjourney avec `--sref`), joindre une image dont le style plaît (un personnage d'un autre scénario, par exemple) et ajouter en tête du prompt : `Match the art style, rendering and lighting of the attached image, but draw a different character:`. C'est le moyen le plus sûr d'obtenir ce style, plus qu'une description. Sans image, Gemini dérive vers un style d'illustration de jeu occidental.
+
 Bloc de style, en tête de chaque prompt (rappelé pour en écrire de nouveaux) :
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows
 ```
 
 ## Personnages (une planche par personnage, puis découpe)
@@ -20,7 +22,7 @@ Les trois expressions d'un personnage se génèrent en une seule image, côte à
 ### Ysolde
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -37,7 +39,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -49,7 +51,7 @@ node tools/planche.mjs planche-ysolde.png "scenarios/L'Auberge des Cendres/perso
 ### Pervenche
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -66,7 +68,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -78,7 +80,7 @@ node tools/planche.mjs planche-pervenche.png "scenarios/L'Auberge des Cendres/pe
 ### Brokk
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -95,7 +97,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -107,7 +109,7 @@ node tools/planche.mjs planche-brokk.png "scenarios/L'Auberge des Cendres/person
 ### Gaudine
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -124,7 +126,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -136,7 +138,7 @@ node tools/planche.mjs planche-gaudine.png "scenarios/L'Auberge des Cendres/pers
 ### Fenouil
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -153,7 +155,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -165,7 +167,7 @@ node tools/planche.mjs planche-fenouil.png "scenarios/L'Auberge des Cendres/pers
 ### Corvin
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -182,7 +184,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -198,105 +200,105 @@ node tools/planche.mjs planche-corvin.png "scenarios/L'Auberge des Cendres/perso
 ### ruines
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, the burnt ruins of a small medieval village inn, charred beams, a half-collapsed stone chimney still standing, a tarp stretched as a makeshift shelter, ashes on the floor, morning after the fire, thin smoke, pale autumn light,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### salle_commune
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, the common room of a medieval village inn being rebuilt, fresh pale wood beams beside old blackened ones, long wooden tables and benches, a bar counter with barrels on the left, warm hearth light in the evening,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### cuisine
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, the kitchen of a medieval inn, big stone hearth with a hanging cauldron, copper pots, strings of onions and herbs, a flour-covered wooden table, warm firelight,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### cave
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, a vaulted stone cellar under an inn, wine and beer barrels, rubble piled in a corner, at the back a section of newer bricked-up wall, a single lantern, cold blue shadows,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### grand_place
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, the small main square of a medieval village, a wooden quest board under a little roof covered with paper notices on the left, a stone well in the center, half-timbered houses, autumn morning,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### foret
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, a deep ancient forest, very tall trees, cold mist between the trunks, a narrow path, pale ghostly oak trees with white bark, autumn leaves, dim light,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### sanglier_dore
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, the luxurious common room of a rival inn, gilded wooden decor, a stuffed golden boar head above a big fireplace on the left, red velvet benches, polished tables, evening,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ### defaut
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Environment background, a quiet medieval village at the edge of a misty forest, thatched and half-timbered houses, a dirt road leading to a mountain pass, autumn, soft neutral light,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd, animals in the foreground.
 ```
 
 ## Monstres (scène complète en 16/9, avec fond)
@@ -306,34 +308,34 @@ Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, sign
 ### loup
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Monster illustration: a pack leader grey wolf, lean and scarred, yellow eyes, lips pulled back over its fangs, low to the ground, about to lunge, in a misty forest path at dusk,
 the monster large and fully visible in the center of the frame,
 dramatic lighting, strong silhouette readable on a phone screen, tense and threatening mood, not cute, not comical,
 no people, no humans, no text, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, humans, cute, cartoonish, comical.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, humans, cute, cartoonish, comical.
 ```
 
 ### sanglier_cendre
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Monster illustration: a monstrous boar the size of an ox, charred black hide cracked with glowing embers, smoke rising from its back, huge tusks, charging, in a trampled wheat field at the edge of a forest at dusk,
 the monster large and fully visible in the center of the frame,
 dramatic lighting, strong silhouette readable on a phone screen, tense and threatening mood, not cute, not comical,
 no people, no humans, no text, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, humans, cute, cartoonish, comical.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, humans, cute, cartoonish, comical.
 ```
 
 ### ronces
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Monster illustration: a mass of living thorny brambles rising like a coiled serpent, thick vines with long black thorns, reaching out, in around a pale ghost oak tree in a dark misty forest,
 the monster large and fully visible in the center of the frame,
 dramatic lighting, strong silhouette readable on a phone screen, tense and threatening mood, not cute, not comical,
 no people, no humans, no text, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, humans, cute, cartoonish, comical.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, humans, cute, cartoonish, comical.
 ```
 
 ## Couverture (3/4, sujet centré)
@@ -341,10 +343,10 @@ Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, sign
 À enregistrer sous `cover.webp`, à la racine du scénario.
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
 Key art for an interactive story: a small half-rebuilt medieval village inn at dusk, fresh pale beams beside charred black ones,
 warm light in the windows, a wooden sign without letters, smoke from a new chimney, misty forest behind,
 strong central composition, subject centered vertically and horizontally,
 atmospheric, cosy and hopeful, no text, no title, vertical 3:4 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, title, logo, letters.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, title, logo, letters.
 ```

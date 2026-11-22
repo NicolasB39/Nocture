@@ -63,7 +63,7 @@ Une image **à fond plein** (un JPG, ou un PNG sans transparence) s'affiche seul
 
 ### Style et format, non négociables
 
-- **Style : anime réaliste.** Traits d'animation japonaise contemporaine, mais anatomie, lumière et matières crédibles. Pas de cel-shading plat, pas de chibi, pas de rendu photographique non plus.
+- **Style : anime réaliste.** Illustration d'anime japonais moderne : grands yeux détaillés, trait fin, ombres peintes en dégradés, mais proportions et lumière crédibles. Pas de cel-shading plat, pas de chibi, pas d'illustration de jeu occidental, pas de rendu photographique non plus.
 - **Personnages : détourés, en buste coupé à la taille, expressions marquées, format vertical 2:3** (1024 × 1536 par exemple), exportés en **PNG ou WebP avec transparence**. Pas d'ombre portée au sol.
 - **Décors : 16/9, sans personnage**, dans `decors/` et non plus dans `personnages/`.
 - **Couverture : 3/4**, sujet centré.

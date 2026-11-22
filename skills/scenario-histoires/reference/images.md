@@ -6,17 +6,23 @@ Trois sortes d'images, trois gabarits : les personnages (détourés), les décor
 
 La cohérence compte plus que la qualité d'une image isolée. Écrivez une fois pour toutes un bloc de style et collez-le **tel quel** en tête de chaque prompt du scénario. Seule la palette change d'un scénario à l'autre.
 
+Nommez l'anime sans détour : avec une formule vague comme « realistic anime style, soft painterly shading », Gemini dessine une illustration de jeu de rôle occidental (traits épais, couleurs à plat). Les yeux d'anime, le trait fin et les reflets sur les cheveux le ramènent au bon style.
+
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces,
-believable anatomy, realistic materials and lighting, soft painterly shading,
+high-quality Japanese anime illustration, modern anime game key visual,
+semi-realistic anime proportions, beautiful detailed face,
+large detailed anime eyes with bright reflections and colored irises, fine delicate lineart,
+rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting,
 [PALETTE : ex. muted cold palette, slate blue and grey, warm lamplight accents]
 ```
 
 Négatif commun (champ « negative prompt », ou `--no` selon l'outil) :
 
 ```
-chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border
+chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border
 ```
+
+Si le générateur accepte une image en entrée (ChatGPT, Gemini, Midjourney avec `--sref`), le plus sûr est d'y joindre une image dont le style plaît (un personnage d'un autre scénario) et de commencer le prompt par `Match the art style, rendering and lighting of the attached image, but draw a different character:`. Écrivez ce conseil en tête d'`images.md`.
 
 Gardez les prompts du scénario dans un fichier `images.md` à la racine du scénario : l'application l'ignore, et il permet de régénérer une image des mois plus tard dans le même style.
 
@@ -207,8 +213,10 @@ La couverture est recadrée en 3/4, 16/10 et 16/9 selon l'endroit : tout ce qui 
 Bloc de style :
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces,
-believable anatomy, realistic materials and lighting, soft painterly shading,
+high-quality Japanese anime illustration, modern anime game key visual,
+semi-realistic anime proportions, beautiful detailed face,
+large detailed anime eyes with bright reflections and colored irises, fine delicate lineart,
+rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting,
 muted cold palette, slate blue and grey, warm lamplight accents
 ```
 

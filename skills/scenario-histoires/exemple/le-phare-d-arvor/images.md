@@ -2,10 +2,12 @@
 
 Fichier ignoré par l'application. Chaque prompt est complet : à copier d'un bloc et à coller tel quel dans le générateur (ChatGPT, Gemini). Pour Midjourney ou Stable Diffusion, déplacer la ligne « Avoid: » dans `--no` ou dans le champ négatif. Gabarits : `reference/images.md` du skill.
 
+Si le générateur accepte une image en entrée, joindre une image dont le style plaît et ajouter en tête du prompt : `Match the art style, rendering and lighting of the attached image, but draw a different character:`. C'est le moyen le plus sûr d'obtenir ce style.
+
 Bloc de style, en tête de chaque prompt (rappelé pour en écrire de nouveaux) :
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents
 ```
 
 ## Personnages (une planche par personnage, fond vert, puis découpe)
@@ -13,7 +15,7 @@ realistic anime style, contemporary Japanese animation feature film, stylized fa
 ### Maren
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -30,7 +32,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -42,7 +44,7 @@ node scripts/decouper.mjs planche-maren.png "scenarios/Le Phare d'Arvor/personna
 ### Ozenn
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Character expression sheet: the same character shown 3 times side by side in a single row,
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
@@ -59,7 +61,7 @@ no figure touching or overlapping another,
 isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
 no text, no labels, no frames or dividing lines, soft even lighting from the left,
 wide horizontal format 3:2.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
 ```
 
 Découpe :
@@ -75,53 +77,53 @@ node scripts/decouper.mjs planche-ozenn.png "scenarios/Le Phare d'Arvor/personna
 ### phare
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Environment background, the watch room at the top of an old granite lighthouse in Brittany, brass instruments, logbook on a wooden desk, curved windows overlooking the sea, November dusk, overcast sky, last light on the water,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
 ```
 
 ### port
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Environment background, a small Breton fishing harbour, granite quay, moored wooden boats, a modest café with a lit window on the left, November afternoon, low grey sky, wet stones,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
 ```
 
 ### digue
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Environment background, a narrow stone causeway crossing wet sand and seaweed at low tide toward a rocky point, distant lighthouse on the left, November, wind, pale cold light,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
 ```
 
 ### defaut
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Environment background, the Breton coast in November, granite rocks and grey sea under a low sky, quiet and neutral,
 no people, no characters, empty scene, camera at waist height, horizon line near the middle of the frame,
 floor or ground running from the horizon all the way down to the bottom edge of the image,
 main elements on the left and center, the right third kept calm and uncluttered for a figure to stand in,
 bold readable shapes, low detail density, clear depth with foreground, midground and background,
 light coming from the left, widescreen cinematic 16:9 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, people, person, character, figure, silhouette, crowd.
 ```
 
 ## Couverture (3/4, sujet centré)
@@ -129,9 +131,9 @@ Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, sign
 À enregistrer sous `cover.webp`.
 
 ```
-realistic anime style, contemporary Japanese animation feature film, stylized faces, believable anatomy, realistic materials and lighting, soft painterly shading, muted cold palette, slate blue and grey, warm lamplight accents.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, muted cold palette, slate blue and grey, warm lamplight accents.
 Key art for an interactive story: an old granite lighthouse on a rocky point at dusk,
 its light just switching on, black reef rocks in the sea, strong central composition,
 subject centered vertically and horizontally, atmospheric, no text, no title, vertical 3:4 format.
-Avoid: chibi, flat cel shading, photorealistic, 3d render, text, watermark, signature, frame, border, title, logo.
+Avoid: chibi, flat cel shading, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, title, logo.
 ```
