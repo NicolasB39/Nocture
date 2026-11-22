@@ -14,6 +14,7 @@ Exemple de réplique : « Je vous prie de bien vouloir quitter l'établissement,
 ## Ce qu'il sait
 - Il ne sait pas refuser un service : un client qui lui demande un verre de plus, ou un voleur qui lui demande la caisse, l'embarrasse terriblement.
 - Il a fui un ordre de chevalerie, et un serment qu'il n'a pas tenu.
+- Sous l'armure, c'est un elfe des bois, fin et plutôt petit : l'armure géante, rembourrée et montée sur des solerets épais, est faite pour qu'on le croie humain et colossal. Les chevaliers de son ordre le recherchent.
 
 ## Ce qu'il veut
 Être utile, et que personne ne le voie sans son heaume. Trouver une famille qui ne lui demande pas d'où il vient.

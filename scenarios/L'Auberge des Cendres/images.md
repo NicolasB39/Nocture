@@ -115,7 +115,7 @@ identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
 arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: calm neutral expression, sweet grandmotherly smile, eyes creased with kindness, cold businesslike stare over her glasses, tapping the ledger with one finger.
-A 75-year-old tiny old woman, white hair in a bun, small round glasses on the tip of her nose, red wool shawl over a dark dress, a thick leather-bound ledger held against her chest,
+A very old female dwarf, short and broad-shouldered with sturdy arms, wrinkled kind face, long white braids tied with copper rings, small round glasses on the tip of her nose, red wool shawl over a dark dress, a thick leather-bound ledger held against her chest,
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
 body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
@@ -143,8 +143,8 @@ Character expression sheet: the same character shown 3 times side by side in a s
 identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
 arms and hands kept close to the figure, never reaching into the next figure,
-from left to right: calm neutral expression, cheeky grin, winking, thumb up, worried frown, biting his pencil, shoulders hunched.
-A 16-year-old skinny apprentice carpenter boy, freckles, cap worn askew, a pencil behind each ear, rolled-up shirt sleeves, heavy tool belt, small slate tablet held in one hand,
+from left to right: calm neutral expression, cheeky grin, winking, thumb up, worried frown, biting her pencil, shoulders hunched.
+A female elf carpenter who looks 30 years old, an adult woman, tall and wiry, small tool scars on her forearms, long pointed elf ears sticking out from under a cap worn askew, freckles, auburn hair tied up in a messy bun, a pencil behind each ear, rolled-up shirt sleeves, well-stocked tool belt, small slate tablet held in one hand,
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
 body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,
@@ -173,7 +173,7 @@ identical outfit, hairstyle, proportions and lighting in every figure,
 a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
 arms and hands kept close to the figure, never reaching into the next figure,
 from left to right: calm neutral expression, oily condescending smile, hands rubbing together, cold contemptuous sneer, eyes narrowed, chin raised.
-A 50-year-old plump well-groomed innkeeper, waxed curled moustache, golden brocade waistcoat, rings on every finger, slicked-back dark hair,
+A tall slender ageless male elf innkeeper, long silver hair in a low ponytail, long pointed ears with gold rings, refined haughty face, golden brocade waistcoat over a white silk shirt, rings on every finger,
 waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
 body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
 strong exaggerated anime facial expressions that read at a glance,

@@ -10,7 +10,7 @@ Brokk, à +3 : il vous dit son vrai nom et ce qu'il fuit
 Brokk, à −2 : il obéit à vos ordres, mais ne vous parle plus
 Gaudine, à +2 : elle repousse une échéance d'une semaine, une seule fois
 Gaudine, à −2 : elle prévient le comte que vous êtes en retard
-Fenouil, à +2 : il vous fait ses vrais prix
-Fenouil, à −2 : il « oublie » une poutre maîtresse dans le prochain chantier
+Fenouil, à +2 : elle vous fait ses vrais prix
+Fenouil, à −2 : elle « oublie » une poutre maîtresse dans le prochain chantier
 Corvin, à +2 : il propose une trêve et un partage des clients
 Corvin, à −2 : il paie quelqu'un pour vous nuire
