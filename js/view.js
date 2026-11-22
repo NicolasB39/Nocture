@@ -247,16 +247,12 @@ const stCard = (i, m) => {
     )
   );
 };
-// Débuts de scène (scenesOf, scene.js), ornés d'une lettrine et d'un intertitre. LIEU[i] : le lieu connu à la
-// fin du message i, pour la légende des images.
+// Débuts de scène (scenesOf, scene.js), ornés d'une lettrine et d'un intertitre.
 let LT = new Set(),
-  LIEU = [],
   MOM = [],
   SC = [];
 const sceneStarts = ms => {
-  let shown = '';
   SC = scenesOf(ms);
-  LIEU = ms.map(m => (shown = (m.role == 'assistant' && lieuOf(m.state)) || shown));
   MOM = momentsOf(ms);
   MODES = modesAll(ms);
   let ps = '';
@@ -327,10 +323,7 @@ const modeLine = i => {
 };
 const msgNode = (i, m, last, d = '') => {
   const t = LT.has(i),
-    p = m.role == 'assistant' ? LIEU[i] || '' : '',
     b = el('div', { class: 'b' }, body(m.content, d, m.role == 'user'));
-  // Légende des scènes : le lieu, en bas à gauche de l'image (masquée pour un portrait sans décor).
-  if (p) for (const s of b.querySelectorAll('.scn')) s.append(el('span', { class: 'scap', text: fr(p) }));
   const n = el(
     'div',
     // mo : moment de la journée, qui teinte les décors du message (style.css, [data-mo]).
@@ -340,13 +333,13 @@ const msgNode = (i, m, last, d = '') => {
     stCard(i, m) || modeLine(i),
     act(i, m, last)
   );
-  n._k = keyOf(m, last, d, t, p, MOM[i], MK[i]);
+  n._k = keyOf(m, last, d, t, MOM[i], MK[i]);
   return n;
 };
 // Tout ce dont dépend le rendu d'un message : panneau d'état affiché ou non, index des images (ctx.iv,
 // changé par « Recharger l'index ») pour qu'une image ajoutée remplace son repère « image introuvable », et
 // nom du joueur (qui remplace {{user}}).
-const keyOf = (m, l, d, t, p, mo, mk) => ({
+const keyOf = (m, l, d, t, mo, mk) => ({
   mo,
   mk,
   c: m.content,
@@ -357,7 +350,6 @@ const keyOf = (m, l, d, t, p, mo, mk) => ({
   v: JSON.stringify([m.inv, m.links]),
   d,
   t,
-  p,
   o: statOn(app.cur),
   g: ctx.iv,
   u: playerName(app.cur)
@@ -416,7 +408,7 @@ export function render(sc) {
   const fresh = [];
   for (const e of cur) {
     const i = +e.dataset.i,
-      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), ms[i].role == 'assistant' ? LIEU[i] || '' : '', MOM[i], MK[i]);
+      k = keyOf(ms[i], i == n - 1, D[i], LT.has(i), MOM[i], MK[i]);
     if (!same(e._k, k)) {
       const x = msgNode(i, ms[i], k.l, D[i]);
       e.replaceWith(x);

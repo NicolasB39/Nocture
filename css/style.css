@@ -1545,20 +1545,6 @@ hr {
   -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent);
   mask-image: linear-gradient(to bottom, #000 86%, transparent);
 }
-/* Légende en haut à gauche : en bas, elle disparaîtrait dans le fondu. */
-.scap {
-  position: absolute;
-  z-index: 1;
-  left: 16px;
-  top: 10px;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
-  color: var(--mu2);
-  font: italic 400 13px/1.2 var(--ser);
-}
-.scn.flat .scap,
-.scn.big .scap {
-  display: none;
-}
 /* Lettrine au début de chaque scène. */
 .m.lt .b > p:first-of-type::first-letter {
   float: left;
