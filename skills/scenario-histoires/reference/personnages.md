@@ -59,7 +59,7 @@ Un personnage qui accompagne le joueur en permanence attire l'intrigue : sans co
 
 Une image de personnage **détourée** (fond transparent) s'affiche en scène : posée sur le décor du lieu courant (voir `decors.md`). Dans la conversation, l'application place le personnage à droite, centré aux trois quarts de la largeur, la taille en bas ; dans la fenêtre Personnages, elle le centre. Elle mesure la silhouette elle-même : vous n'avez rien à cadrer, il suffit que l'image contienne le personnage seul, en buste coupé à la taille par le bas de l'image.
 
-Une image **à fond plein** (un JPG, ou un PNG sans transparence) s'affiche seule, en pleine largeur, sans décor derrière. C'est l'ancien fonctionnement, toujours accepté, mais elle ne profite pas des décors.
+Une image **à fond plein** (un JPG, ou un PNG sans transparence) s'affiche seule, sans décor derrière. C'est l'ancien fonctionnement, toujours accepté, mais elle ne profite pas des décors.
 
 ### Style et format, non négociables
 

@@ -108,8 +108,7 @@ export const decorNow = ms => {
 
 export const SA = 16 / 9;
 // Personnages en buste, coupés à la taille au bas de leur image : le buste occupe 94 % de la hauteur de la
-// scène, la taille posée au bas, là où l'image se fond. Centré aux trois quarts de la largeur, il laisse la moitié
-// gauche au décor.
+// scène, la taille posée au bas. Centré aux trois quarts de la largeur, il laisse la moitié gauche au décor.
 export const place = (a, { x = 0.75, fill = 0.94, top = null, sa = SA } = {}) => {
   const [bx0, bx1, by0, by1] = a.b,
     hp = fill / (by1 - by0),

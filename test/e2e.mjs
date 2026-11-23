@@ -713,7 +713,7 @@ try {
           dec: d.querySelector('img')?.getAttribute('src') || (d.classList.contains('art') ? 'généré' : ''),
           decShown: getComputedStyle(d).display != 'none',
           ratio: r.width / r.height,
-          full: Math.abs(r.width - document.querySelector('#msgs').clientWidth) < 2,
+          col: Math.abs(r.width - s.closest('.b').getBoundingClientRect().width) < 2,
           hfrac: (i.height * 0.85) / r.height,
           cx: (i.left + i.width / 2 - r.left) / r.width,
           feet: i.top + i.height * 0.95 - r.bottom,
@@ -735,7 +735,7 @@ try {
     assert.match(g.dec, /decors\/taverne\.png$/, 'décor par mot-clé');
     assert.equal(await p3.locator('#msgs .m.lt').count(), 1, 'lettrine sur la première réponse');
     assert.ok(Math.abs(g.ratio - 16 / 9) < 0.05, 'format de la scène : ' + g.ratio);
-    assert.ok(g.full, 'scène pleine largeur');
+    assert.ok(g.col, 'scène à la largeur de la colonne');
     // Cadrage en buste : silhouette à 94 % de la hauteur, bas de la silhouette au bas de la scène.
     assert.ok(Math.abs(g.hfrac - 0.94) < 0.03, 'hauteur du personnage : ' + g.hfrac);
     assert.ok(Math.abs(g.feet) < 2, 'bas de la silhouette à ' + g.feet + ' px du bas');

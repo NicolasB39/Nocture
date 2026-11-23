@@ -56,7 +56,7 @@ L'application affiche l'image **là où le modèle l'écrit**, en tête, au mili
 
 La reconnaissance du code est tolérante : majuscules, accents, espaces, tirets et tirets bas sont équivalents (`alice_sourire heureux`, `alice_sourire_heureux` et `Alice-Sourire-Heureux` désignent le même fichier), et le nom du fichier seul suffit s'il est unique (`sourire_heureux`). Quand un code ne correspond à aucune image, un repère « image introuvable : code » s'affiche à la place.
 
-Les images de `monstres/`, à plat, n'ont ni fiche ni réglage : `monstres/noye.webp` donne le code `monstre_noye`. Elles sont proposées à l'IA sur une ligne « Monstres » de la liste des codes, et n'apparaissent pas dans la feuille Personnages. Une image de monstre à fond plein s'affiche seule, en pleine largeur, avec son propre décor ; détourée, elle est posée sur le décor du lieu comme un personnage.
+Les images de `monstres/`, à plat, n'ont ni fiche ni réglage : `monstres/noye.webp` donne le code `monstre_noye`. Elles sont proposées à l'IA sur une ligne « Monstres » de la liste des codes, et n'apparaissent pas dans la feuille Personnages. Une image de monstre à fond plein s'affiche seule, avec son propre décor ; détourée, elle est posée sur le décor du lieu comme un personnage.
 
 Après avoir renommé des images :
 
@@ -65,7 +65,7 @@ Après avoir renommé des images :
 
 ### Décors
 
-Une image de personnage **détourée** (fond transparent, en `.png` ou `.webp`) s'affiche en scène : un décor en fond, le personnage posé dessus. L'application le détecte elle-même en lisant les pixels du bord de l'image ; une image à fond plein s'affiche en pleine largeur, sans décor derrière, puisqu'elle contient déjà le sien.
+Une image de personnage **détourée** (fond transparent, en `.png` ou `.webp`) s'affiche en scène : un décor en fond, le personnage posé dessus. L'application le détecte elle-même en lisant les pixels du bord de l'image ; une image à fond plein s'affiche seule, sans décor derrière, puisqu'elle contient déjà le sien.
 
 Les décors se rangent dans `scenarios/<scénario>/decors/` :
 

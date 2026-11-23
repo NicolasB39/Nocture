@@ -861,13 +861,27 @@ header > button:active {
 .b > :last-child {
   margin-bottom: 0;
 }
-.b p:has(+ .pic),
 .b p:has(+ .miss) {
   margin-bottom: 3px;
 }
-.b .pic + p,
 .b .miss + p {
   margin-top: 3px;
+}
+/* Images posées dans la colonne, cadre arrondi : un peu d'air avant et après le texte. */
+.b p:has(+ .pic) {
+  margin-bottom: 12px;
+}
+.b .pic + p {
+  margin-top: 12px;
+}
+/* Scène à personnage détouré : arrondie en haut, elle se fond dans le fond par le bas, d'où sort le texte. */
+.b .pic.cut {
+  border-radius: 14px 14px 0 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 80%, transparent);
+  mask-image: linear-gradient(to bottom, #000 80%, transparent);
+}
+.b .pic.cut + p {
+  margin-top: 2px;
 }
 .b .pic + .pic,
 .b .pic + .miss,
@@ -1541,15 +1555,6 @@ hr {
   min-width: 24px;
   height: 1px;
   background: var(--bd);
-}
-/* Scènes illustrées pleine largeur : l'image touche les bords et se fond dans le fond par le bas. */
-.m .b .scn:not(.flat):not(.av):not(.tile) {
-  width: calc(100% + 32px);
-  max-width: none;
-  margin-inline: -16px;
-  border-radius: 0;
-  -webkit-mask-image: linear-gradient(to bottom, #000 86%, transparent);
-  mask-image: linear-gradient(to bottom, #000 86%, transparent);
 }
 /* Lettrine au début de chaque scène. */
 .m.lt .b > p:first-of-type::first-letter {

@@ -67,7 +67,7 @@ Les points qui comptent :
 - **Lumière venant de la gauche**, comme dans le gabarit des décors : un personnage éclairé de l'autre côté que son décor se voit tout de suite.
 - **Format vertical 2:3**, par exemple 1024 × 1536. L'application s'adapte à d'autres proportions puisqu'elle mesure la silhouette, mais un même format pour tout le scénario garde les personnages à la même échelle.
 
-Export : **PNG ou WebP avec transparence**. Un JPG ne peut pas être transparent : l'image serait affichée seule, en pleine largeur, sans décor derrière. Vérifiez le bord du détourage sur fond sombre : un liseré clair autour des cheveux se verra sur tous les décors nocturnes.
+Export : **PNG ou WebP avec transparence**. Un JPG ne peut pas être transparent : l'image serait affichée seule, sans décor derrière. Vérifiez le bord du détourage sur fond sombre : un liseré clair autour des cheveux se verra sur tous les décors nocturnes.
 
 ### Expressions : une seule planche par personnage
 
@@ -175,7 +175,7 @@ Pour une variante (nuit, tempête), générez le même lieu avec le même prompt
 
 ## Monstres : une scène complète, en 16/9
 
-Une image de `monstres/` à fond plein s'affiche seule, en pleine largeur, sans décor derrière : elle porte le sien. Le monstre y est le sujet, dans le lieu où on le rencontre.
+Une image de `monstres/` à fond plein s'affiche seule, sans décor derrière : elle porte le sien. Le monstre y est le sujet, dans le lieu où on le rencontre.
 
 ```
 [BLOC DE STYLE].
