@@ -193,6 +193,190 @@ Découpe :
 node tools/planche.mjs planche-corvin.png "scenarios/L'Auberge des Cendres/personnages/Corvin" corvin_neutre corvin_sourire corvin_ferme
 ```
 
+## Expressions supplémentaires (deuxième planche par personnage)
+
+Trois expressions de plus par personnage, sur une deuxième planche. **Joindre la première planche** (ou une de ses images découpées) au générateur : le prompt commence par demander de la prendre pour référence, ce qui garde le même visage et la même tenue. Même découpe ensuite, avec les nouveaux noms.
+
+### Ysolde (suite)
+
+```
+Use the attached expression sheet as the reference for this character: same face, hairstyle, outfit, colors and art style, only new expressions and poses.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
+from left to right: (1) serious battle expression, intense focused glare, staff raised in both hands close to her body, the red crystal glowing bright red; (2) wounded and exhausted, sweating, gritting her teeth, one hand pressed on her side, hat askew, leaning on her staff; (3) quiet sadness, lowered gaze, eyes wet, hat brim pulled down with one hand.
+A 19-year-old petite mage girl, messy short red hair, slightly singed eyebrows, oversized pointed witch hat with a scorched brim, black and purple mage robe, gnarled wooden staff topped with a red crystal held close to her body,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
+no figure touching or overlapping another,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+```
+
+Découpe :
+
+```
+node tools/planche.mjs planche-ysolde-2.png "scenarios/L'Auberge des Cendres/personnages/Ysolde" ysolde_combat ysolde_blessee ysolde_triste
+```
+
+### Pervenche (suite)
+
+```
+Use the attached expression sheet as the reference for this character: same face, hairstyle, outfit, colors and art style, only new expressions and poses.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
+from left to right: (1) calm serious concentration, both hands raised close to her chest casting a soft blue healing light, steady gaze; (2) wounded, pained expression, one hand clutching her bleeding arm, still standing straight; (3) quiet sadness, lowered gaze, holding her water-drop pendant tightly in one hand.
+A 25-year-old tall gentle priestess, long blond braid over one shoulder, round cheeks, white and blue priestess robe with beer stains, water-drop pendant, a tavern apron tied over the robe,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
+no figure touching or overlapping another,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+```
+
+Découpe :
+
+```
+node tools/planche.mjs planche-pervenche-2.png "scenarios/L'Auberge des Cendres/personnages/Pervenche" pervenche_combat pervenche_blessee pervenche_triste
+```
+
+### Brokk (suite)
+
+```
+Use the attached expression sheet as the reference for this character: same face, hairstyle, outfit, colors and art style, only new expressions and poses.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
+from left to right: (1) wounded, the breastplate cracked, one gauntlet pressed on the crack, shoulders hunched in pain, helm closed; (2) sadness shown by posture only, helm closed and bowed low, shoulders slumped, gauntlets hanging; (3) helm removed and held under his arm, the wood elf face revealed, shy anxious expression, eyes lowered.
+A huge knight more than two metres tall in dented black full plate armour, round shield strapped on his back, a tavern towel hanging from his belt; in the first two figures the closed great helm hides the face entirely, in the third figure the helm is removed and held under his arm, revealing the face of a slender young male wood elf with long pointed ears, short dark brown hair and anxious grey eyes, the armour unchanged,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
+no figure touching or overlapping another,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+```
+
+Découpe :
+
+```
+node tools/planche.mjs planche-brokk-2.png "scenarios/L'Auberge des Cendres/personnages/Brokk" brokk_blesse brokk_triste brokk_sans_heaume
+```
+
+### Gaudine (suite)
+
+```
+Use the attached expression sheet as the reference for this character: same face, hairstyle, outfit, colors and art style, only new expressions and poses.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
+from left to right: (1) fierce anger, frowning bushy eyebrows, mouth open as if scolding, pointing her iron-shod cane forward close to her body; (2) quiet sadness, lost faraway gaze, holding the ledger loosely against her chest; (3) hearty laughter, head thrown back, eyes shut, one hand on her belly.
+A very old female dwarf, short and broad-shouldered with sturdy arms, wrinkled kind face, long white braids tied with copper rings, small round glasses on the tip of her nose, red wool shawl over a dark dress, a thick leather-bound ledger held against her chest,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
+no figure touching or overlapping another,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+```
+
+Découpe :
+
+```
+node tools/planche.mjs planche-gaudine-2.png "scenarios/L'Auberge des Cendres/personnages/Gaudine" gaudine_colere gaudine_triste gaudine_rire
+```
+
+### Fenouil (suite)
+
+```
+Use the attached expression sheet as the reference for this character: same face, hairstyle, outfit, colors and art style, only new expressions and poses.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
+from left to right: (1) worried frown, biting her pencil, shoulders hunched, eyes darting sideways; (2) wounded, pained grimace, holding her bandaged forearm, a smear of dirt on her cheek; (3) proud confident smile, chin raised, a wood plane held up in one hand close to her shoulder.
+A female elf carpenter who looks 30 years old, an adult woman, tall and wiry, small tool scars on her forearms, long pointed elf ears sticking out from under a cap worn askew, freckles, auburn hair tied up in a messy bun, a pencil behind each ear, rolled-up shirt sleeves, well-stocked tool belt, small slate tablet held in one hand,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
+no figure touching or overlapping another,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+```
+
+Découpe :
+
+```
+node tools/planche.mjs planche-fenouil-2.png "scenarios/L'Auberge des Cendres/personnages/Fenouil" fenouil_inquiete fenouil_blessee fenouil_fiere
+```
+
+### Corvin (suite)
+
+```
+Use the attached expression sheet as the reference for this character: same face, hairstyle, outfit, colors and art style, only new expressions and poses.
+high-quality Japanese anime illustration, modern anime game key visual, semi-realistic anime proportions, beautiful detailed face, large detailed anime eyes with bright reflections and colored irises, fine delicate lineart, rich painterly shading with smooth gradients, glossy highlights on hair, soft rim light, cinematic lighting, warm cosy atmosphere, warm autumn palette, honey and amber tones, soft hearth light, cool blue-grey shadows.
+Character expression sheet: the same character shown 3 times side by side in a single row,
+identical outfit, hairstyle, proportions and lighting in every figure,
+a different upper-body pose and gesture for each emotion (head tilt, shoulders, arms, hands), matching the facial expression,
+arms and hands kept close to the figure, never reaching into the next figure,
+from left to right: (1) the mask falls, cold menacing rage, teeth bared, eyes narrowed, one fist clenched; (2) fear, wide eyes, sweating, pale, leaning back, hands raised defensively close to his chest; (3) sly scheming smirk, one finger on his lips, eyes half closed.
+A tall slender ageless male elf innkeeper, long silver hair in a low ponytail, long pointed ears with gold rings, refined haughty face, golden brocade waistcoat over a white silk shirt, rings on every finger,
+waist-up portrait, every figure cut at the waist by the bottom edge of the image, head near the top edge,
+body turned three-quarters toward the viewer, which keeps the shoulders narrow, large detailed face,
+strong exaggerated anime facial expressions that read at a glance,
+every figure the same size, each one fitting inside its own equal share of the image width,
+both shoulders and upper arms of every figure entirely visible, with green background on both sides of them,
+a wide green gap between figures and a green margin on the left and right edges of the image,
+no figure touching or overlapping another,
+isolated on a plain flat uniform bright chroma-key green background (#00FF00), no floor, no cast shadow, no props,
+no text, no labels, no frames or dividing lines, soft even lighting from the left,
+wide horizontal format 3:2.
+Avoid: chibi, western cartoon, western fantasy game art, pixel art, thick outlines, flat colors, photorealistic, 3d render, text, watermark, signature, frame, border, different outfits, different characters, overlapping figures, green rim light, green reflections on the character, figures cut by the side edges, cropped shoulders, cropped arms, panel borders, full body, legs, cropped head, captions, labels, grid lines, panels.
+```
+
+Découpe :
+
+```
+node tools/planche.mjs planche-corvin-2.png "scenarios/L'Auberge des Cendres/personnages/Corvin" corvin_colere corvin_peur corvin_ruse
+```
+
 ## Décors (16/9, sans personnage, tiers droit dégagé)
 
 À enregistrer dans `decors/` sous le nom du titre, en WebP : `decors/cuisine.webp`.
