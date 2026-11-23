@@ -156,7 +156,7 @@ const detour = (w, h, px, t1 = 16) => {
   const dist = new Uint8Array(N).fill(255);
   let front = [];
   for (let i = 0; i < N; i++) if (out[i]) (dist[i] = 0), front.push(i);
-  for (let r = 1; r <= 3; r++) {
+  for (let r = 1; r <= 8; r++) {
     const next = [];
     for (const i of front) for (const j of nb(i)) if (dist[j] === 255) (dist[j] = r), next.push(j);
     front = next;
@@ -206,19 +206,51 @@ const detour = (w, h, px, t1 = 16) => {
   // le fond (au plus 34 niveaux) ; une manchette blanche, plus claire, ou des cheveux blonds, teintés, restent.
   const bgL = (bg[0] + bg[1] + bg[2]) / 3;
   // Fond vif : le reflet du fond sur les bords (un liseré vert) est retiré en ramenant le canal du fond au niveau
-  // des deux autres, sur la bande de bord seulement (une veste olive, plus loin, garde sa couleur).
+  // des deux autres, sur la bande de bord seulement (une veste olive, plus loin, garde sa couleur), et les mèches
+  // fines mêlées au fond sont démêlées (ci-dessous).
   // Ailleurs, un pixel nettement plus vert que ses deux autres canaux est un reste de fond (une poche entre deux
   // mèches) : très vert, il disparaît ; un peu, il perd son excès. Une veste olive reste sous ces seuils.
   if (key) {
     const d = bg.indexOf(Math.max(...bg)),
       [o1, o2] = [0, 1, 2].filter(k => k !== d),
       kx = bg[d] - Math.max(bg[o1], bg[o2]);
+    const ex = (a, j) => a[j * 4 + d] - Math.max(a[j * 4 + o1], a[j * 4 + o2]);
     for (let i = 0; i < N; i++) {
       if (!px[i * 4 + 3]) continue;
-      const v = Math.max(px[i * 4 + o1], px[i * 4 + o2]),
-        e = px[i * 4 + d] - v;
+      const e = ex(px, i);
       if (e > kx * 0.45) px[i * 4 + 3] = 0;
-      else if (dist[i] <= 3 || e > 30) px[i * 4 + d] = Math.min(px[i * 4 + d], v);
+      else {
+        // Mèche fine sur le fond : le pixel mêle la mèche et le fond, et paraît jaune olive (vert au niveau du
+        // rouge, bleu bien plus bas), même sans excès de vert apparent. La part du fond se lit à son excès de vert,
+        // comparé à celui du personnage voisin le moins vert (des cheveux roux en ont un très négatif) ; le pixel
+        // reprend la couleur de la mèche et devient transparent d'autant. La peau, les cheveux francs (vert bien
+        // sous le rouge) et le blanc (bleu au niveau du vert) ne sont pas touchés. Le calcul part de la couleur
+        // d'origine : la passe des bords a pu donner au pixel celle d'un voisin lui-même olive. Bande de 8 pixels :
+        // entre des mèches, le fond enfermé n'est pas toujours reconnu, et la mèche est plus loin du fond retiré.
+        // Un vrai olive du personnage (une veste) ne se lit pas comme un mélange de son voisin et du fond : la
+        // couleur reconstruite s'écarte trop de la sienne, et il est laissé tel quel.
+        const eo = ex(orig, i);
+        if (dist[i] <= 8 && eo > -15 && orig[i * 4 + d] - Math.min(orig[i * 4 + o1], orig[i * 4 + o2]) > 40) {
+          const x = i % w,
+            y = (i / w) | 0;
+          let ef = eo,
+            F = i;
+          for (let yy = Math.max(0, y - 16); yy <= Math.min(h - 1, y + 16); yy++)
+            for (let xx = Math.max(0, x - 16); xx <= Math.min(w - 1, x + 16); xx++) {
+              const j = yy * w + xx;
+              if (!out[j] && ex(orig, j) < ef) (ef = ex(orig, j)), (F = j);
+            }
+          const s = (eo - ef) / (kx - ef);
+          let res = 0;
+          for (let k = 0; k < 3; k++) res = Math.max(res, Math.abs(orig[i * 4 + k] - s * bg[k] - (1 - s) * orig[F * 4 + k]));
+          if (res <= 60 && s >= 0.95) px[i * 4 + 3] = 0;
+          else if (res <= 60 && s > 0.05) {
+            px[i * 4 + 3] = Math.round((1 - s) * 255);
+            for (let k = 0; k < 3; k++) px[i * 4 + k] = Math.max(0, Math.min(255, Math.round((orig[i * 4 + k] - s * bg[k]) / (1 - s))));
+          }
+        }
+        if (dist[i] <= 3 || e > 30) px[i * 4 + d] = Math.min(px[i * 4 + d], Math.max(px[i * 4 + o1], px[i * 4 + o2]));
+      }
       // Frange de la couleur opposée (violet autour d'un fond vert) que les générateurs mettent sur les bords :
       // ramenée vers le gris, sur la bande de bord seulement (une peau, où un seul canal domine, n'est pas touchée).
       if (dist[i] <= 3 && px[i * 4 + o1] > px[i * 4 + d] && px[i * 4 + o2] > px[i * 4 + d]) {
@@ -336,13 +368,46 @@ const cuts = runs.map(([a, b], i) => [
 ]);
 mkdirSync(out, { recursive: true });
 cuts.forEach(([l, r], i) => {
+  // Fragments du voisin : entre deux silhouettes jointives, la frontière laisse dans la case un bout du personnage
+  // d'à côté (un bord de chapeau, une manche), détaché de celui de la case et collé au bord de la case. Les morceaux
+  // ainsi collés à une frontière intérieure et petits (moins de 10 % du plus grand) sont retirés.
+  const cw0 = r - l + 1,
+    lab = new Int32Array(cw0 * h).fill(-1),
+    area = [],
+    edge = [];
+  for (let s0 = 0; s0 < cw0 * h; s0++) {
+    if (lab[s0] >= 0 || !fig(((s0 / cw0) | 0) * w + l + (s0 % cw0))) continue;
+    const id = area.length,
+      q = [s0];
+    let a = 0,
+      e = false;
+    lab[s0] = id;
+    while (q.length) {
+      const t = q.pop(),
+        tx = t % cw0,
+        ty = (t / cw0) | 0;
+      a++;
+      if ((tx === 0 && l > 0) || (tx === cw0 - 1 && r < w - 1)) e = true;
+      for (const [nx, ny] of [[tx - 1, ty], [tx + 1, ty], [tx, ty - 1], [tx, ty + 1]]) {
+        if (nx < 0 || ny < 0 || nx >= cw0 || ny >= h) continue;
+        const u = ny * cw0 + nx;
+        if (lab[u] < 0 && fig(ny * w + l + nx)) (lab[u] = id), q.push(u);
+      }
+    }
+    area.push(a);
+    edge.push(e);
+  }
+  const big = area.reduce((m, a) => Math.max(m, a), 0),
+    drop = area.map((a, k) => edge[k] && a < big * 0.1),
+    gone = (x, y) => lab[y * cw0 + x - l] >= 0 && drop[lab[y * cw0 + x - l]];
   let x0 = r,
     x1 = l,
     y0 = h,
     y1 = -1;
   for (let y = 0; y < h; y++)
     for (let x = l; x <= r; x++)
-      if (fig(y * w + x)) [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
+      if (fig(y * w + x) && !gone(x, y))
+        [x0, x1, y0, y1] = [Math.min(x0, x), Math.max(x1, x), Math.min(y0, y), Math.max(y1, y)];
   if (y1 < 0) return console.warn(`${names[i]} : case vide, rien écrit`);
   // Marge de 4 % de la hauteur, puis cadre vertical 2:3, silhouette centrée. Un buste coupé par le bas de la
   // planche reste collé au bas de son image : l'application y pose la taille au bas de la scène.
@@ -360,8 +425,8 @@ cuts.forEach(([l, r], i) => {
     for (let x = x0; x <= x1; x++) {
       const s = (y * w + x) * 4,
         d = ((y - y0 + oy) * W + (x - x0 + ox)) * 4;
-      // Hors de la case (la silhouette voisine), rien n'est recopié.
-      if (x >= l && x <= r) px.copy(o, d, s, s + 4);
+      // Hors de la case (la silhouette voisine) et dans un fragment du voisin, rien n'est recopié.
+      if (x >= l && x <= r && !gone(x, y)) px.copy(o, d, s, s + 4);
     }
   const f = join(out, names[i] + '.png');
   writeFileSync(f, writePng(W, H, o, alpha));
