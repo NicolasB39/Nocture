@@ -12,7 +12,7 @@ import { tocOf } from './scene.js';
 import { TERR, getTree, loadCtx } from './scenarios.js';
 import { API, S, app, ctx, playerName } from './state.js';
 import { clean, put, save, saveSet } from './store.js';
-import { $, LS, dlg, el, ic, nz, onEnter, plain } from './util.js';
+import { $, dlg, el, ic, LS, nz, onEnter, orNote, plain } from './util.js';
 
 const EFF_NOTE = $('#sefn').textContent;
 // Modèle et effort du scénario : la note dit ce qui partira vraiment avec le modèle saisi.
@@ -134,59 +134,61 @@ const touched = s => $(s).dispatchEvent(new Event('change'));
 let MM = [];
 const memView = () => {
   $('#mml').replaceChildren(
-    ...(MM.length
-      ? MM.map((t, i) =>
+    ...orNote(
+      MM.map((t, i) =>
+        el(
+          'span',
+          { class: 'chip2' },
+          t,
           el(
-            'span',
-            { class: 'chip2' },
-            t,
-            el(
-              'button',
-              {
-                'aria-label': 'Retirer',
-                onclick: () => {
-                  MM.splice(i, 1);
-                  memView();
-                  touched('#dm');
-                }
-              },
-              ic('x', 14)
-            )
+            'button',
+            {
+              'aria-label': 'Retirer',
+              onclick: () => {
+                MM.splice(i, 1);
+                memView();
+                touched('#dm');
+              }
+            },
+            ic('x', 14)
           )
         )
-      : [el('p', { class: 'note', text: 'Aucun souvenir pour le moment.' })])
+      ),
+      'Aucun souvenir pour le moment.'
+    )
   );
 };
 let MC = [];
 // Chapitres clos : titre et résumé modifiables.
 const chView = () =>
   $('#mch').replaceChildren(
-    ...(MC.length
-      ? MC.map((c, i) =>
+    ...orNote(
+      MC.map((c, i) =>
+        el(
+          'div',
+          { class: 'chp' },
           el(
             'div',
-            { class: 'chp' },
+            { class: 'row l' },
+            el('input', { 'aria-label': 'Titre du chapitre ' + (i + 1), value: c.t, oninput: e => (c.t = e.target.value) }),
             el(
-              'div',
-              { class: 'row l' },
-              el('input', { 'aria-label': 'Titre du chapitre ' + (i + 1), value: c.t, oninput: e => (c.t = e.target.value) }),
-              el(
-                'button',
-                {
-                  'aria-label': 'Retirer le chapitre ' + (i + 1),
-                  onclick: () => {
-                    MC.splice(i, 1);
-                    chView();
-                    touched('#dm');
-                  }
-                },
-                ic('x', 14)
-              )
-            ),
-            el('textarea', { 'aria-label': 'Résumé du chapitre ' + (i + 1), text: c.s, oninput: e => (c.s = e.target.value) })
-          )
+              'button',
+              {
+                'aria-label': 'Retirer le chapitre ' + (i + 1),
+                onclick: () => {
+                  MC.splice(i, 1);
+                  chView();
+                  touched('#dm');
+                }
+              },
+              ic('x', 14)
+            )
+          ),
+          el('textarea', { 'aria-label': 'Résumé du chapitre ' + (i + 1), text: c.s, oninput: e => (c.s = e.target.value) })
         )
-      : [el('p', { class: 'note', text: 'Aucun chapitre clos. Un chapitre se clôt de lui-même quand un arc s’achève ou qu’un nouveau commence, après 60 messages résumés au moins.' })])
+      ),
+      'Aucun chapitre clos. Un chapitre se clôt de lui-même quand un arc s’achève ou qu’un nouveau commence, après 60 messages résumés au moins.'
+    )
   );
 // Mémoire telle qu'à l'ouverture de la feuille : une mise à jour faite entre-temps (summarize, ai.js) ne doit
 // pas être écrasée par la copie affichée.
@@ -496,12 +498,13 @@ $('#msm').onclick = () => {
     $('#sml').replaceChildren(...T.flatMap((s, j) => [...heads(j + 1 < T.length ? T[j + 1].from - 1 : Infinity), node(s)]));
   else
     $('#sml').replaceChildren(
-      ...(L.length
-        ? L.flatMap((x, j) => [
-            ...(x.i >= 0 ? heads((L.slice(j + 1).find(y => y.i >= 0)?.i ?? Infinity) - 1) : []),
-            hit('assistant', x.t, go(x.i))
-          ])
-        : [el('p', { class: 'note', text: 'Le sommaire se remplit à mesure que la mémoire résume les messages.' })])
+      ...orNote(
+        L.flatMap((x, j) => [
+          ...(x.i >= 0 ? heads((L.slice(j + 1).find(y => y.i >= 0)?.i ?? Infinity) - 1) : []),
+          hit('assistant', x.t, go(x.i))
+        ]),
+        'Le sommaire se remplit à mesure que la mémoire résume les messages.'
+      )
     );
   $('#dsm').showModal();
   $('#sml .tln.cur')?.scrollIntoView({ block: 'nearest' });

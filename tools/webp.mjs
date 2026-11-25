@@ -9,7 +9,7 @@
 // PW_CHANNEL=chrome prend le Chrome installé.
 import { readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { chromium } from 'playwright';
+import { launch } from './chromium.mjs';
 
 const MAX = 1920,
   Q = 0.88;
@@ -19,7 +19,7 @@ if (!files.length) {
   console.log('Aucune image PNG.');
   process.exit(0);
 }
-const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}).catch(() => chromium.launch({ channel: 'chrome' }));
+const browser = await launch();
 const page = await browser.newPage();
 let before = 0,
   after = 0;

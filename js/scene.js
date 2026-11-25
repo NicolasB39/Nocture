@@ -17,6 +17,8 @@ export const dayKey = st => head(jourOf(st));
 export const heureOf = st => (st || []).find(([k]) => isHeure(k))?.[1];
 // « Jour 2 » (ou « Jour 1/12 ») pour une valeur qui n'est qu'un nombre, sinon la valeur telle quelle (« 3 mai »).
 export const jourLabel = v => (/^\d+(\s*\/\s*\d+)?$/.test((v = String(v || '').trim())) ? 'Jour ' + v : v);
+// Libellé du jour d'un état, pour l'en-tête, la mémoire et l'encart « Précédemment ».
+export const dayLabel = st => jourLabel(dayKey(st));
 // Moment de la journée d'un état (champ Moment, Heure ou Période) : aube, soir ou nuit teintent les décors
 // (style.css, [data-mo]) ; le jour ou une valeur inconnue, aucune teinte. null : l'état ne dit rien du moment.
 export const momentOf = st => {

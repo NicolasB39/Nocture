@@ -146,13 +146,19 @@ header h1 {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-header > button {
+/* Boutons ronds de 42 px : en-tête, flèches de tour, Envoyer et Arrêter. */
+header > button,
+#nav button,
+#send,
+#stop {
   width: 42px;
   height: 42px;
   padding: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
+}
+header > button {
   color: var(--mu2);
 }
 @media (hover: hover) and (pointer: fine) {
@@ -435,7 +441,8 @@ header > button:active {
 .empty .logo {
   opacity: 0.55;
 }
-.primary {
+.primary,
+.row button.primary {
   background: var(--ac);
   color: var(--on);
   font-weight: 700;
@@ -747,8 +754,12 @@ header > button:active {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+/* Petit texte gris sous un titre (aperçu, sommaire, cartes de jet). */
 .pvh small,
-.pve {
+.pve,
+.tlh,
+.roll small,
+.rla small {
   display: block;
   color: var(--mu);
   font-size: 12px;
@@ -1280,12 +1291,6 @@ hr {
   transition-duration: 0.4s;
 }
 #nav button {
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
   background: var(--s2);
   border: 1px solid var(--bdi);
   color: var(--mu2);
@@ -1548,13 +1553,19 @@ hr {
 .scene.in {
   animation: scnf 0.5s ease-out;
 }
+/* Filets de part et d'autre des intertitres et des séparateurs de jour. */
 .scene::before,
-.scene::after {
+.scene::after,
+.day::before,
+.day::after {
   content: '';
   flex: 1;
-  min-width: 24px;
   height: 1px;
   background: var(--bd);
+}
+.scene::before,
+.scene::after {
+  min-width: 24px;
 }
 /* Lettrine au début de chaque scène. */
 .m.lt .b > p:first-of-type::first-letter {
@@ -1595,12 +1606,6 @@ footer textarea:focus-visible {
 #send,
 #stop {
   flex: none;
-  width: 42px;
-  height: 42px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
 }
 #stop {
   background: var(--s3);
@@ -1820,11 +1825,6 @@ dialog input[type='checkbox'] {
   border-radius: 14px;
   background: var(--s2);
   font-weight: 600;
-}
-.row button.primary {
-  background: var(--ac);
-  color: var(--on);
-  font-weight: 700;
 }
 /* Rangées de boutons secondaires : elles passent à la ligne plutôt que de déborder sur un téléphone. */
 .row.l {
@@ -2420,21 +2420,11 @@ dialog input[type='range'] {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 4px 0;
+  margin: 10px 0 4px;
   color: var(--mu);
   font: 600 12px/1 var(--sans);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-.day::before,
-.day::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--bd);
-}
-.day {
-  margin: 10px 0 4px;
 }
 .m.flash .b {
   border-radius: 12px;
@@ -2702,11 +2692,6 @@ dialog input[type='range'] {
 }
 .tlm {
   color: var(--mu);
-}
-.tlh {
-  display: block;
-  color: var(--mu);
-  font-size: 12px;
 }
 .tln:active {
   transform: none;
@@ -3057,13 +3042,6 @@ dialog input[type='range'] {
   padding: 0;
   text-align: left;
 }
-.pci > img {
-  width: 100%;
-  aspect-ratio: 21 / 9;
-  object-fit: cover;
-  border: 1px solid var(--bd);
-  border-radius: 12px;
-}
 .pci span {
   color: var(--mu);
   font-size: 12px;
@@ -3248,12 +3226,6 @@ dialog h2,
 }
 .roll.thrown.crit .rd b {
   color: var(--ac);
-}
-.roll small,
-.rla small {
-  display: block;
-  color: var(--mu);
-  font-size: 12px;
 }
 .roll b {
   font-weight: 600;

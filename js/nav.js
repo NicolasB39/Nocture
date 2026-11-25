@@ -5,7 +5,7 @@ import { byRecent, newGame, showList } from './list.js';
 import { coverOf, localTree } from './scenarios.js';
 import { app } from './state.js';
 import { getSome } from './store.js';
-import { $, dlg, el, hue, initial, LS, toast } from './util.js';
+import { $, dlg, el, ini, LS, toast } from './util.js';
 import { readPos, WIDE } from './view.js';
 
 export const go = async id => {
@@ -63,7 +63,7 @@ async function openSwitch() {
         },
         cv
           ? el('img', { src: cv, alt: '', decoding: 'async' })
-          : el('span', { class: 'pav', style: '--h:' + hue(s.name), 'aria-hidden': 'true', text: initial(s.name) }),
+          : ini(s.name),
         el('span', { class: 'swt' }, el('b', { text: s.name }), s.pv && el('small', { text: s.pv }))
       );
     })

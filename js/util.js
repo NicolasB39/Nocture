@@ -40,6 +40,8 @@ export const el = (t, p, ...c) => {
   for (const x of c.flat(9)) if (x != null && x !== false && x !== 0) e.append(x);
   return e;
 };
+// Les éléments d'une liste, ou une note grise s'il n'y en a aucun (inventaire, jets, souvenirs, chapitres…).
+export const orNote = (nodes, empty) => (nodes.length ? nodes : [el('p', { class: 'note', text: empty })]);
 export const ic = (n, s) => {
   const e = document.createElementNS(NS, 'svg'),
     u = document.createElementNS(NS, 'use');
@@ -73,6 +75,14 @@ export const ago = t => {
 };
 // Initiale d'un nom, emoji compris : le premier caractère entier, pas la moitié d'une paire UTF-16.
 export const initial = s => ([...(s || '').trim()][0] || '?').toUpperCase();
+// Pastille ronde à l'initiale d'un nom, teinte tirée du nom (personnage sans image, histoire sans couverture).
+export const ini = name => el('span', { class: 'pav', style: '--h:' + hue(name), 'aria-hidden': 'true', text: initial(name) });
+// Première lettre en majuscule.
+export const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+// Nombre arrondi, à la française (1 234).
+export const nfr = n => Math.round(n).toLocaleString('fr-FR');
+// Message i du fil de conversation.
+export const msgEl = i => document.querySelector('#msgs > .m[data-i="' + i + '"]');
 // Défilement doux, sauf si l'appareil demande moins d'animations.
 export const smooth = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 export const LS = {

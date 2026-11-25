@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
-import { chromium } from 'playwright';
+import { launch } from '../tools/chromium.mjs';
 
 const T = {
   '.html': 'text/html',
@@ -111,8 +111,8 @@ let delay = 0,
   pg = null,
   antFail = false,
   antN = 0;
-// PW_CHANNEL=msedge (ou chrome) : navigateur déjà installé, sans le Chromium de Playwright ; sans lui, le Chrome installé.
-const browser = await chromium.launch(process.env.PW_CHANNEL ? { channel: process.env.PW_CHANNEL } : {}).catch(() => chromium.launch({ channel: 'chrome' }));
+// Navigateur : tools/chromium.mjs (PW_CHANNEL=msedge ou chrome pour un navigateur déjà installé).
+const browser = await launch();
 const errors = [];
 const watch = pg => pg.on('pageerror', e => errors.push(e.message));
 const step = async (name, fn) => {

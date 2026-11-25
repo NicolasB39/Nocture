@@ -3,7 +3,7 @@
 import { BONUS, rollParts, rulesOf, sheetOf, signed, spent } from './dice.js';
 import { app } from './state.js';
 import { save } from './store.js';
-import { $, el, JET } from './util.js';
+import { $, el, JET, orNote } from './util.js';
 import { render } from './view.js';
 
 const fill = () => {
@@ -33,11 +33,12 @@ const fill = () => {
   for (const m of app.cur.messages) if (m.role == 'user') for (const j of m.content.matchAll(JET)) rs.push(rollParts(j[1]));
   const last = rs.filter(Boolean).slice(-8).reverse();
   $('#shr').replaceChildren(
-    ...(last.length
-      ? last.map(p =>
-          el('span', { class: 'jt' + (p.ko ? ' ko' : ''), title: p.label + ' : ' + p.sum + ', ' + p.r }, p.n + ' · ' + p.r)
-        )
-      : [el('p', { class: 'note', text: 'Aucun jet pour l’instant.' })])
+    ...orNote(
+      last.map(p =>
+        el('span', { class: 'jt' + (p.ko ? ' ko' : ''), title: p.label + ' : ' + p.sum + ', ' + p.r }, p.n + ' · ' + p.r)
+      ),
+      'Aucun jet pour l’instant.'
+    )
   );
 };
 export const openSheet = () => {

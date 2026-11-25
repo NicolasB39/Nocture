@@ -3,7 +3,7 @@ import { sync } from './backup.js';
 import { face } from './cast.js';
 import { costOf, priceOf } from './cost.js';
 import { noRolls, withRoll } from './dice.js';
-import { fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, passageLieu, setBody, split } from './format.js';
+import { bodyOf, fr, keepImgs, lastEtat, lieuTag, liveText, paintLive, passageLieu, setBody, split } from './format.js';
 import { passage } from './passage.js';
 import { buildInfo, inScene, statFields, statOn } from './prompt.js';
 import { modelOf } from './protocol.js';
@@ -11,7 +11,7 @@ import { decorNow, momentNow } from './scene.js';
 import { app, ctx, S } from './state.js';
 import { loadCtx } from './scenarios.js';
 import { save } from './store.js';
-import { $, dlg, el, err, fit, LS } from './util.js';
+import { $, cap, dlg, el, err, fit, LS, msgEl } from './util.js';
 import { far, liveEnd, liveScene, navView, newShow, render, tail, unseen } from './view.js';
 
 // Envoi d'un tour : appel au modèle, affichage progressif, erreurs, maintien du cache, zone de saisie.
@@ -154,7 +154,7 @@ export async function ask(old, cont, hint) {
         if (app.cur !== s) return;
         if (w) {
           const t = waitMsg(w, why);
-          err(t.charAt(0).toUpperCase() + t.slice(1));
+          err(cap(t));
         } else {
           err('');
           live('');
@@ -185,9 +185,9 @@ export async function ask(old, cont, hint) {
         links: cat('links'),
         content: m.content.trimEnd() + (/^[\s.,;:!?…»)]/.test(p2.content) || /<jet>[^<]*$/i.test(m.content) ? '' : ' ') + p2.content
       });
-      if (m.alts) m.alts[m.ai] = { content: m.content, choices: m.choices, state: m.state, inv: m.inv, links: m.links };
+      if (m.alts) m.alts[m.ai] = bodyOf(m);
     } else {
-      const base = old?.role == 'assistant' ? old.alts || [{ content: old.content, choices: old.choices, state: old.state, inv: old.inv, links: old.links }] : null,
+      const base = old?.role == 'assistant' ? old.alts || [bodyOf(old)] : null,
         al = base ? [...base, p2].slice(-10) : null;
       s.messages.push(
         al
@@ -257,13 +257,13 @@ export async function ask(old, cont, hint) {
       top = lv?.getBoundingClientRect().top,
       had = !!lv?.previousElementSibling?.matches('.scene');
     render();
-    const fin = lv && !msg && m.querySelector(':scope > .m[data-i="' + (s.messages.length - 1) + '"]');
+    const fin = lv && !msg && msgEl(s.messages.length - 1);
     if (fin) keepImgs(lv, fin);
     lv?.remove();
     const sc = fin?.previousElementSibling,
       nsc = !!sc?.matches('.scene') && !had;
     m.scrollTop = y;
-    const a2 = ai != null && m.querySelector(':scope > .m[data-i="' + ai + '"]');
+    const a2 = ai != null && msgEl(ai);
     if (a2) m.scrollTop += Math.round(a2.getBoundingClientRect().top - at);
     // Lieu connu seulement à la fin : l'intertitre arrive en fondu au-dessus de la réponse, et le défilement
     // compense sa hauteur pour que le texte en cours de lecture ne bouge pas. Sa hauteur seule : le message

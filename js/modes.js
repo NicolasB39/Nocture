@@ -63,7 +63,8 @@ const charOf = (chars, k) => chars.find(c => wkey(c.name) == wkey(k)) || chars.f
 export const invOn = s => !!(s?.remote && ctx.inv?.length);
 export const linksOn = s => !!(s?.remote && ctx.liens && ctx.chars?.length);
 
-// Jour de l'état (champ « Jour… » du panneau), pour la baisse quotidienne des ressources.
+// Jour de l'état (champ « Jour… » du panneau), pour la baisse quotidienne des ressources. Pas un champ Date : un
+// « 2 mai » après un « 30 avril » ferait reculer le compteur.
 const dayOf = st => {
   const e = (st || []).find(([k]) => /^jour\b/.test(wkey(k))),
     n = e && parseInt(e[1].match(/\d+/)?.[0]);
@@ -154,5 +155,5 @@ export const modesTail = s => {
   return t;
 };
 // Changements d'une réponse, pour la ligne sous le message et l'édition (raw, format.js).
-export const invText = a => a.map(([k, d]) => (d > 0 ? '+' : '−') + Math.abs(d) + ' ' + k).join(', ');
+export const invText = a => a.map(([k, d]) => signed(d) + ' ' + k).join(', ');
 export const linkText = a => a.map(([k, d]) => k + ' ' + signed(d)).join(', ');

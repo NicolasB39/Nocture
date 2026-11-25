@@ -14,10 +14,8 @@ import {
   months,
   total
 } from './stats.js';
-import { $, dlg, el } from './util.js';
+import { $, cap, dlg, el, nfr } from './util.js';
 
-const fmt = n => Math.round(n).toLocaleString('fr-FR');
-const cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 let mode = 'session',
   cur = new Date();
 
@@ -38,7 +36,7 @@ const atNow = () =>
 const cacheTxt = e => {
   const r = e[4] || 0,
     w = (e[5] || 0) + (e[6] || 0);
-  return r || w ? ' (dont ' + fmt(r) + ' lus en cache, ' + fmt(w) + ' mis en cache)' : '';
+  return r || w ? ' (dont ' + nfr(r) + ' lus en cache, ' + nfr(w) + ' mis en cache)' : '';
 };
 const rows = map => {
   const ks = Object.keys(map).sort((a, b) => map[b][0] + map[b][1] - (map[a][0] + map[a][1])),
@@ -54,7 +52,7 @@ const rows = map => {
         'div',
         { class: 'uh' },
         el('b', { text: k }),
-        el('span', { text: fmt(t) })
+        el('span', { text: nfr(t) })
       ),
       el('i', { class: 'bar' }, el('u', { style: 'width:' + Math.max(2, (t / top) * 100) + '%' })),
       el(
@@ -62,13 +60,13 @@ const rows = map => {
         { class: 'uf' },
         el('small', {
           text:
-            fmt(e[0]) +
+            nfr(e[0]) +
             ' en entrée' +
             cacheTxt(e) +
             ' · ' +
-            fmt(e[1]) +
+            nfr(e[1]) +
             ' en sortie · ' +
-            fmt(e[2]) +
+            nfr(e[2]) +
             (e[2] > 1 ? ' requêtes' : ' requête') +
             (c != null ? ' · ≈ ' + money(c, S.fx) : ' · sans tarif')
         })
@@ -90,13 +88,13 @@ const bars = ym => {
       role: 'img',
       'aria-label':
         best[1][0] + best[1][1]
-          ? 'Jour le plus chargé : ' + lab(best[0]) + ', ' + fmt(best[1][0] + best[1][1]) + ' tokens'
+          ? 'Jour le plus chargé : ' + lab(best[0]) + ', ' + nfr(best[1][0] + best[1][1]) + ' tokens'
           : 'Aucune utilisation ce mois-ci'
     },
     ds.map(([k, t]) => {
       const v = t[0] + t[1];
       return el('i', {
-        title: lab(k) + ' : ' + fmt(v) + ' tokens',
+        title: lab(k) + ' : ' + nfr(v) + ' tokens',
         style: 'height:' + (v ? Math.max(4, (v / mx) * 100) : 2) + '%',
         class: v ? 'on' : ''
       });
@@ -132,7 +130,7 @@ const monthRows = () =>
           }
         },
         el('span', { text: cap(d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })) }),
-        el('span', { text: c.any ? money(c.sum, S.fx) : fmt(t[0] + t[1]) + ' tokens' })
+        el('span', { text: c.any ? money(c.sum, S.fx) : nfr(t[0] + t[1]) + ' tokens' })
       );
     })
   );
@@ -168,17 +166,17 @@ export function view() {
     el(
       'div',
       { class: 'ut' },
-      el('b', { text: fmt(t[0] + t[1]) }),
+      el('b', { text: nfr(t[0] + t[1]) }),
       el('small', {
         text:
           'tokens · ' +
-          fmt(t[0]) +
+          nfr(t[0]) +
           ' en entrée' +
           cacheTxt(t) +
           ' · ' +
-          fmt(t[1]) +
+          nfr(t[1]) +
           ' en sortie · ' +
-          fmt(t[2]) +
+          nfr(t[2]) +
           (t[2] > 1 ? ' requêtes' : ' requête')
       }),
       cm.any ? el('span', { class: 'uc', text: '≈ ' + money(cm.sum, S.fx) + ' dépensés' }) : null
@@ -220,7 +218,7 @@ export function view() {
       ? el('p', {
           class: 'note',
           text:
-            fmt(est) +
+            nfr(est) +
             (est > 1 ? ' requêtes sont estimées' : ' requête est estimée') +
             ' : réponse interrompue, sortie comptée sur le texte reçu.'
         })

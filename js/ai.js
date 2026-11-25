@@ -2,7 +2,7 @@ import { HAIKU_LONG, LONG, base } from './cost.js';
 import { estTok, statFields, statOn } from './prompt.js';
 import { modelOf } from './protocol.js';
 import { choiceMark } from './format.js';
-import { jourLabel, jourOf } from './scene.js';
+import { dayLabel } from './scene.js';
 import { CH_MAX, CH_MIN, CH_SUM, SUM_KEEP, chStart, clip, mergeMem, mergeRel, sameName, summaryOf, unnum } from './memory.js';
 import { record } from './stats.js';
 import { API, S, app, ctx, playerName } from './state.js';
@@ -517,7 +517,7 @@ async function sumRun(s, start) {
       const nm = playerName(s),
         who = nm || 'Joueur';
       const parts = s.messages.slice(s.mem.upto, end).map(m => {
-        const d = m.role == 'assistant' && jourLabel(jourOf(m.state).split(/[,(—–]/)[0]),
+        const d = m.role == 'assistant' && dayLabel(m.state),
           tag = d && d != shown ? ' (' + (shown = d) + ')' : '';
         return (m.role == 'user' ? who + ' : ' : 'Narrateur' + tag + ' : ') + bare(m.content).trim();
       });

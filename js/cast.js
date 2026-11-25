@@ -4,13 +4,15 @@ import { linksOf, linksOn, stepsOf } from './modes.js';
 import { inScene } from './prompt.js';
 import { decorNow, momentNow, scene, zoomScene } from './scene.js';
 import { app, ctx, playerName } from './state.js';
-import { $, el, hue, ic, initial, nz, plain } from './util.js';
+import { $, cap, el, ic, ikey, ini, nz, plain } from './util.js';
 
 const urlOf = code => (ctx.images || []).find(x => x.code == code)?.url || '';
+// Étiquette d'une image : son code sans le nom du personnage, comparé sans accents (« Maëlys » et maelys_joie,
+// comme ikey pour les codes), les mots séparés par des espaces.
 const label = (c, code) => {
-  const p = c.name.toLowerCase() + '_',
-    t = (code.startsWith(p) ? code.slice(p.length) : code).replace(/[_-]+/g, ' ').trim();
-  return t.charAt(0).toUpperCase() + t.slice(1);
+  const n = ikey(c.name),
+    w = code.split(/[\s_.-]+/);
+  return cap((ikey(code).startsWith(n + '_') ? w.slice(n.split('_').length) : w).join(' ').trim());
 };
 const rels = () => Object.entries(app.cur?.mem?.relations || {});
 const relOf = name => rels().find(([k]) => sameName(k, name))?.[1] || '';
@@ -21,7 +23,7 @@ export const face = c => {
   const u = c.images?.length ? urlOf(c.images[0]) : '';
   return u
     ? scene(u, dec(), { x: 0.5, fill: 1.9, top: 0.06, sa: 1, cls: 'pav av' })
-    : el('span', { class: 'pav', style: '--h:' + hue(c.name), 'aria-hidden': 'true', text: initial(c.name) });
+    : ini(c.name);
 };
 
 // Mode Liens (modes.js) : la jauge du personnage et les paliers atteints.
@@ -50,19 +52,20 @@ const row = (c, i, on, open) => {
       ? el(
           'div',
           { class: 'pcg' },
-          imgs.map(code =>
-            el(
+          imgs.map(code => {
+            const t = label(c, code);
+            return el(
               'button',
               {
                 class: 'pci',
-                'aria-label': 'Agrandir : ' + label(c, code),
+                'aria-label': 'Agrandir : ' + t,
                 onclick: e => zoomScene(e.currentTarget.querySelector('.scn'))
               },
               // Même cadrage en buste que dans le récit, centré, sur un plan plus large.
               scene(urlOf(code), dec(), { x: 0.5, sa: 21 / 9, cls: 'tile', fill: 0.92 }),
-              el('span', { text: label(c, code) })
-            )
-          )
+              el('span', { text: t })
+            );
+          })
         )
       : null,
     lienRow(c),

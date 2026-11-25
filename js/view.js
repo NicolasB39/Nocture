@@ -4,7 +4,7 @@ import { invOf, invOn, invText, linkText, linksOf, linksOn } from './modes.js';
 import { on } from './bus.js';
 import { face } from './cast.js';
 import { money } from './cost.js';
-import { askOf, chance, checkOf, rerollOf, rulesOf, sheetOf } from './dice.js';
+import { askOf, chance, checkOf, rerollOf, rulesOf, sheetOf, signed } from './dice.js';
 import { body, fr, lastEtat, line, parseIntro } from './format.js';
 import { buildInfo, inScene, statOn } from './prompt.js';
 import { recapCheck } from './recap.js';
@@ -19,13 +19,13 @@ import {
   isHeure,
   isJour,
   isLieu,
-  jourLabel,
+  dayLabel,
   lieuOf,
   momentsOf,
   scenesOf
 } from './scene.js';
 import { app, ctx, playerName, S } from './state.js';
-import { $, el, ic, LS, smooth } from './util.js';
+import { $, el, ic, LS, msgEl, nfr, smooth } from './util.js';
 
 // Affichage de la conversation : messages, panneau d'état, scènes, compteurs, en-tête, navigation.
 let IO = null,
@@ -70,8 +70,7 @@ export function tk() {
   const r = infoOf(),
     n = app.cur.messages.length,
     sentN = Math.max(0, n - r.win),
-    f = x => x.toLocaleString('fr-FR'),
-    k = x => (x < 1000 ? f(x) : (x / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' k');
+    k = x => (x < 1000 ? nfr(x) : (x / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' k');
   e.className = e.classList.contains('open') ? 'open' : '';
   // Pastille courte (tokens et coût du dernier tour) ; le détail s'ouvre en la touchant.
   // Compteurs réels du dernier envoi : seulement s'il venait de cette histoire.
@@ -80,11 +79,11 @@ export function tk() {
     [pt = 0, , , , cr = 0, w5 = 0, w1 = 0] = t?.e || [],
     long =
       '≈ ' +
-      f(r.used) +
+      nfr(r.used) +
       ' tokens envoyés' +
-      (pt ? ' (réel : ' + f(pt) + ')' : '') +
-      (cr ? ' · ' + f(cr) + ' lus en cache' : '') +
-      (w5 + w1 ? ' · ' + f(w5 + w1) + ' mis en cache' : '') +
+      (pt ? ' (réel : ' + nfr(pt) + ')' : '') +
+      (cr ? ' · ' + nfr(cr) + ' lus en cache' : '') +
+      (w5 + w1 ? ' · ' + nfr(w5 + w1) + ' mis en cache' : '') +
       (n ? ' · ' + sentN + (sentN > 1 ? ' messages envoyés' : ' message envoyé') + ' sur ' + n : '');
   e.replaceChildren(
     el(
@@ -144,7 +143,7 @@ const stRows = (i, m) => {
 // Attributs d'une valeur changée : sa variation, qui s'envole quand la réponse arrive (render, app.fresh).
 const chg = (r, cls) => ({
   class: cls + (r.c ? ' nv' + (r.d < 0 ? ' dn' : '') : ''),
-  data: r.d != null ? { d: (r.d > 0 ? '+' : '−') + Math.round(Math.abs(r.d) * 100) / 100 } : null
+  data: r.d != null ? { d: signed((Math.sign(r.d) * Math.round(Math.abs(r.d) * 100)) / 100) } : null
 });
 const dl = (d, short) =>
   d != null &&
@@ -272,7 +271,7 @@ const titles = (sc, live = -1) => {
   for (const s of sc) {
     if (s.from < ST || !s.lieu) continue;
     const i = s.from ? s.at : 0;
-    (i == live ? $('#live') : w.querySelector(':scope > .m[data-i="' + i + '"]'))?.before(
+    (i == live ? $('#live') : msgEl(i))?.before(
       el('div', { class: 'scene', text: fr(s.lieu) })
     );
   }
@@ -300,6 +299,9 @@ const liveApply = fade => {
 };
 // Chance de réussite d'un jet avec la fiche de l'histoire ouverte (dice.js).
 const pct = k => chance(k, sheetOf(app.cur));
+// Bouton au dé sous le dernier message (lancer, relancer, fiche) : son libellé et une précision en petit.
+const rla = (cls, data, label, small) =>
+  el('button', { class: cls, data }, ic('dice', 18), el('span', null, label, el('small', { text: ' ' + small })));
 // Pour un lecteur d'écran, le bouton d'un choix dit aussi la chance de réussite.
 const chAria = (c, R) => {
   const k = checkOf(c, R);
@@ -370,7 +372,7 @@ export function jump(i) {
   if (!app.cur) return;
   while (app.cur.messages.length - app.LIM > i) app.LIM += 50;
   render();
-  const e = document.querySelector('#msgs .m[data-i="' + i + '"]');
+  const e = msgEl(i);
   if (!e) return;
   // Le début du message en haut : une réponse est souvent plus haute que l'écran.
   e.scrollIntoView({ block: 'start', behavior: smooth() });
@@ -433,7 +435,7 @@ export function render(sc) {
     const t = ms[i].t;
     if (!t) continue;
     if (pt && cut6h(t, pt))
-      w.querySelector(':scope > .m[data-i="' + i + '"]')?.before(
+      msgEl(i)?.before(
         el('div', { class: 'day', text: dayLab(t, pt) })
       );
     pt = t;
@@ -477,21 +479,9 @@ export function render(sc) {
   const it = !n && parseIntro(app.cur.remote ? ctx.intro : app.cur.intro);
   foot.replaceChildren(
     ...[
-      rr &&
-        el(
-          'button',
-          { class: 'rla rr' },
-          ic('dice', 18),
-          el('span', null, 'Relancer le dé', el('small', { text: ' ' + rr.k + ' · ' + rr.d + ' · une fois par jour' }))
-        ),
+      rr && rla('rla rr', null, 'Relancer le dé', rr.k + ' · ' + rr.d + ' · une fois par jour'),
       cs.length && chList(cs),
-      rq &&
-        el(
-          'button',
-          { class: 'rla', data: { k: rq.k, d: rq.d } },
-          ic('dice', 18),
-          el('span', null, 'Lancer le dé', el('small', { text: ' ' + rq.k + ' · ' + rq.d + ' · ' + pct(rq) + ' %' }))
-        ),
+      rq && rla('rla', { k: rq.k, d: rq.d }, 'Lancer le dé', rq.k + ' · ' + rq.d + ' · ' + pct(rq) + ' %'),
       it &&
         el(
           'div',
@@ -499,13 +489,7 @@ export function render(sc) {
           el('h2', { class: 'ith', text: app.cur.name }),
           it.pitch && el('div', { class: 'itp b' }, body(it.pitch)),
           // Mode jeu de rôle : la fiche, à remplir avant le premier tour.
-          R.length &&
-            el(
-              'button',
-              { class: 'rla shb' },
-              ic('dice', 18),
-              el('span', null, 'Fiche du personnage', el('small', { text: ' Répartissez vos points avant de commencer' }))
-            ),
+          R.length && rla('rla shb', null, 'Fiche du personnage', 'Répartissez vos points avant de commencer'),
           it.starts.length && chList(it.starts),
           el('p', {
             class: 'hint',
@@ -536,7 +520,7 @@ export function render(sc) {
   if (app.thrown) {
     const { i, at } = app.thrown,
       dt = Date.now() - at,
-      r = w.querySelector(':scope > .m[data-i="' + i + '"] .roll');
+      r = msgEl(i)?.querySelector('.roll');
     if (dt >= THROW) app.thrown = null;
     else if (r && !r.classList.contains('thrown')) throwDie(r, dt);
   }
@@ -665,7 +649,7 @@ function ctxView() {
     lieu = st ? lieuOf(st) : '',
     ov = lieu ? chapScene(ms) : '',
     title = lieu || app.cur.name,
-    t = st ? [jourLabel(dayKey(st)), heureOf(st)].filter(Boolean).join(' · ') : '';
+    t = st ? [dayLabel(st), heureOf(st)].filter(Boolean).join(' · ') : '';
   if (CXID != app.cur.id) {
     CXID = app.cur.id;
     sy = 0;
@@ -766,7 +750,7 @@ $('#tk').onclick = e => {
 };
 const goTurn = d => {
   const w = $('#msgs'),
-    e = document.querySelector('#msgs .m[data-i="' + (visibleStart() + d) + '"]');
+    e = msgEl(visibleStart() + d);
   if (e) e.scrollIntoView({ block: 'start' });
   else w.scrollTo({ top: d < 0 ? 0 : w.scrollHeight });
 };
@@ -782,7 +766,8 @@ export const visibleStart = () => {
     top = m.getBoundingClientRect().top + (parseFloat(getComputedStyle(m).scrollPaddingTop) || 0),
     els = [...m.querySelectorAll('.m')],
     e = els.find(x => x.getBoundingClientRect().bottom > top + 24) || els.at(-1);
-  return e ? +e.dataset.i : 0;
+  // La réponse en cours d'écriture (#live) n'a pas encore de numéro : elle suit le dernier message enregistré.
+  return !e ? 0 : e.dataset.i != null ? +e.dataset.i : app.cur.messages.length;
 };
 // Position de lecture d'une histoire : le premier message visible, rien si on est à la fin.
 export const readPos = id => {

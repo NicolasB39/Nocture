@@ -2,7 +2,7 @@ import { IMG, app, ctx, playerName } from './state.js';
 import { rollParts, signed } from './dice.js';
 import { decorFor, lieuOf, scene } from './scene.js';
 import { deltas, invText, linkText } from './modes.js';
-import { el, ic, ikey, JET, nz, wkey } from './util.js';
+import { cap, el, ic, ikey, JET, nz, wkey } from './util.js';
 
 export const CHX = /<choix>[\s\S]*?(?:<\/choix>|$)/gi;
 // Bloc d'état jamais fermé : il s'arrête au bloc suivant (<choix>, <jet>) au lieu d'emporter la fin de la réponse.
@@ -137,12 +137,14 @@ const tailState = (t, fields) => {
     l = looseState(t.slice(0, t.length - j.length), fields);
   return l && { ...l, content: [l.content, j.trim()].filter(Boolean).join('\n\n') };
 };
+// Récit sans les blocs du protocole (choix, état, lieu, inventaire, liens).
+const strip = t => t.replace(CHX, '').replace(ETX, '').replace(LIX, '').replace(INX, '').replace(LNX, '');
 // Marque du journal des appels : ce que la réponse du narrateur a fait de ses choix (bloc <choix> seul, recopiés
 // aussi dans le récit, écrits sans balise puis rattrapés, ou absents).
 // fields : champs du panneau, pour écarter d'abord un état écrit en clair après les choix (comme split).
 export const choiceMark = (raw, fields = '') => {
   const c = choicesOf(raw);
-  let b = raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').replace(INX, '').replace(LNX, '').trim();
+  let b = strip(raw).trim();
   b = tailState(b, fields)?.content ?? b;
   return c.length ? (dropDup(b, c) != b ? 'recopiés' : 'présents') : looseChoices(b) ? 'rattrapés' : 'absents';
 };
@@ -151,7 +153,7 @@ export const choiceMark = (raw, fields = '') => {
 export const split = (raw, loose = true, fields = '') => {
   // Demande de jet écrite dans le bloc <choix> : remise en fin de récit, où elle a son bouton.
   const inner = (raw.match(CHX) || []).join('').match(JET) || [],
-    o = { content: [raw.replace(CHX, '').replace(ETX, '').replace(LIX, '').replace(INX, '').replace(LNX, '').trim(), ...inner].join('\n\n').trim() },
+    o = { content: [strip(raw).trim(), ...inner].join('\n\n').trim() },
     inv = [...raw.matchAll(INX)].flatMap(m => deltas(m[1] ?? m[2])),
     links = [...raw.matchAll(LNX)].flatMap(m => deltas(m[1] ?? m[2])),
     c = choicesOf(raw),
@@ -199,18 +201,18 @@ export const lastEtat = (ms, before = ms.length) => {
     if (ms[i].role == 'assistant' && ms[i].state?.length) return ms[i].state;
   return null;
 };
+// Champs du corps d'un message, en plus du texte.
+const BODY = ['choices', 'state', 'inv', 'links'];
 // Remplace le texte, les choix et l'état d'un message par ceux de p (split, ou une variante).
 export const setBody = (m, p) => {
   m.content = p.content;
-  delete m.choices;
-  delete m.state;
-  delete m.inv;
-  delete m.links;
-  if (p.choices) m.choices = p.choices;
-  if (p.state) m.state = p.state;
-  if (p.inv) m.inv = p.inv;
-  if (p.links) m.links = p.links;
+  for (const k of BODY) {
+    delete m[k];
+    if (p[k]) m[k] = p[k];
+  }
 };
+// Le corps d'un message (variante enregistrée) : son texte et ses champs.
+export const bodyOf = m => Object.fromEntries(['content', ...BODY].map(k => [k, m[k]]));
 const imgFor = c => {
   c = c.trim();
   const k = ikey(c);
@@ -368,7 +370,7 @@ const rollCard = x => {
       'span',
       { class: 'rt' },
       el('span', { class: 'sr', text: 'Dé ' + p.n + ', bonus ' + signed(p.b) + '. ' }),
-      el('span', null, el('b', { text: p.r[0].toUpperCase() + p.r.slice(1) }), ' · ' + p.tot + ' / ' + p.dc),
+      el('span', null, el('b', { text: cap(p.r) }), ' · ' + p.tot + ' / ' + p.dc),
       el('small', { text: p.what })
     )
   );
@@ -378,11 +380,7 @@ const rollCard = x => {
 // son début (« <je ») disparaît jusqu'au morceau suivant.
 export const body = (t, d, user) => {
   const out = [];
-  t.replace(CHX, '')
-    .replace(ETX, '')
-    .replace(LIX, '')
-    .replace(INX, '')
-    .replace(LNX, '')
+  strip(t)
     .replace(/<jet>[^<]*(?:<\/?j?e?t?)?$/i, '')
     // Début de balise pas encore complet pendant l'écriture (« <inv », « <li », « <je »).
     .replace(/<\/?[a-z]{0,10}$/i, '')

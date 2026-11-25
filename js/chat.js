@@ -13,7 +13,7 @@ import { ask, regen, regenHint, sessionSum } from './send.js';
 import { app, ctx, playerName } from './state.js';
 import { statFields, statOn } from './prompt.js';
 import { forkOf, getOne, save } from './store.js';
-import { $, dlg, err, fit, isRoll, JET, LS, plain, smooth, toast, uid, vt } from './util.js';
+import { $, dlg, err, fit, isRoll, JET, LS, msgEl, plain, smooth, toast, uid, vt } from './util.js';
 import { hdReset, hhNow, readPos, render } from './view.js';
 
 // Conversation : ouverture d'une histoire et actions sur les messages (variantes, modification,
@@ -63,7 +63,7 @@ export async function openScenario(id) {
   sessionSum(app.cur);
   recap(app.cur);
   if (back > 0) {
-    const e = document.querySelector('#msgs .m[data-i="' + back + '"]');
+    const e = msgEl(back);
     if (e) {
       hhNow();
       e.scrollIntoView({ block: 'start' });

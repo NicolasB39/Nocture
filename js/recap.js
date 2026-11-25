@@ -2,7 +2,7 @@ import { chat, memModel } from './ai.js';
 import { face } from './cast.js';
 import { fr, lastEtat, line } from './format.js';
 import { inScene } from './prompt.js';
-import { jourLabel, jourOf, lieuOf } from './scene.js';
+import { dayLabel, lieuOf } from './scene.js';
 import { playerName } from './state.js';
 import { $, ago, el, plain } from './util.js';
 
@@ -38,7 +38,7 @@ export function recap(s) {
     t = ms.at(-1)?.t;
   if (!m || !t || Date.now() - t < GAP) return;
   const st = lastEtat(ms),
-    where = [lieuOf(st), jourLabel(jourOf(st))].filter(Boolean).join(', '),
+    where = [lieuOf(st), dayLabel(st)].filter(Boolean).join(', '),
     who = inScene(ms.slice(-6)).slice(0, 4),
     nm = playerName(s),
     p = el('p', { class: 'pvt', tabindex: '-1', 'aria-live': 'polite' }, line(tail(plain(m.content, nm)))),

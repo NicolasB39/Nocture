@@ -3,7 +3,7 @@ import { costOf, money, priceOf } from './cost.js';
 import { estTok, toks } from './prompt.js';
 import { S } from './state.js';
 import { clearCalls, getCallBody, getCalls } from './store.js';
-import { $, dlg, el, saveFile, toast } from './util.js';
+import { $, dlg, el, nfr, saveFile, toast } from './util.js';
 
 // Journal des appels : chaque requête envoyée à Claude (ai.js, quand la case des Réglages est cochée), avec ce
 // qu'elle a coûté. Pour une requête de narration, deux lectures utiles pour le cache : ce qui part hors cache
@@ -54,7 +54,6 @@ export const tailParts = b => {
   return [['Dernier message du joueur', estTok(rest.trim())], ...out];
 };
 
-const f = x => Math.round(x).toLocaleString('fr-FR');
 const hm = t => new Date(t).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 const start = c => c.t - (c.ms || 0);
 const head = c => {
@@ -62,7 +61,7 @@ const head = c => {
     k = c.e ? costOf(c.e, priceOf(c.key || '')) : null;
   return (
     (c.e
-      ? '≈ ' + f(p) + ' envoyés · ' + f(cr) + ' lus en cache · ' + f(w5 + w1) + ' écrits · ' + f(o) + ' en sortie' + (k != null ? ' · ' + money(k, S.fx) : '')
+      ? '≈ ' + nfr(p) + ' envoyés · ' + nfr(cr) + ' lus en cache · ' + nfr(w5 + w1) + ' écrits · ' + nfr(o) + ' en sortie' + (k != null ? ' · ' + money(k, S.fx) : '')
       : '') +
     (c.err ? (c.e ? ' · ' : '') + 'échec : ' + c.err : c.stop && c.stop != 'end_turn' ? ' · fin : ' + c.stop : '') +
     (c.ch ? ' · choix ' + c.ch : '')
@@ -86,7 +85,7 @@ const detail = async (c, prev, reads) => {
     sys = b?.system || [],
     ms = b?.messages || [],
     out = [];
-  if (e.length) out.push(line('Hors cache', '≈ ' + f(e[0] - (e[4] || 0) - (e[5] || 0) - (e[6] || 0)) + ' tokens, payés plein tarif'));
+  if (e.length) out.push(line('Hors cache', '≈ ' + nfr(e[0] - (e[4] || 0) - (e[5] || 0) - (e[6] || 0)) + ' tokens, payés plein tarif'));
   if (!b) return [...out, el('p', { class: 'scx', text: 'Requête effacée.' })];
   if (NARR.includes(c.kind))
     out.push(
@@ -94,16 +93,16 @@ const detail = async (c, prev, reads) => {
       line(
         'Composition',
         [
-          'partie fixe ≈ ' + f(estTok(sys[0]?.text || '')),
-          sys.length > 1 && 'mémoire ≈ ' + f(toks(sys.slice(1))),
-          ms.length - 1 + ' messages d’historique ≈ ' + f(ms.slice(0, -1).reduce((a, m) => a + estTok(txt(m.content)), 0)),
-          'fin de requête ≈ ' + f(estTok(txt(ms.at(-1)?.content)))
+          'partie fixe ≈ ' + nfr(estTok(sys[0]?.text || '')),
+          sys.length > 1 && 'mémoire ≈ ' + nfr(toks(sys.slice(1))),
+          ms.length - 1 + ' messages d’historique ≈ ' + nfr(ms.slice(0, -1).reduce((a, m) => a + estTok(txt(m.content)), 0)),
+          'fin de requête ≈ ' + nfr(estTok(txt(ms.at(-1)?.content)))
         ]
           .filter(Boolean)
           .join(' · ') + ' (tokens estimés)'
       ),
       el('p', { class: 'scx', text: 'Fin de requête, hors cache :' }),
-      el('ul', { class: 'jrt' }, tailParts(b).filter(x => x[1] > 4).map(([k, v]) => el('li', { text: k + ' ≈ ' + f(v) })))
+      el('ul', { class: 'jrt' }, tailParts(b).filter(x => x[1] > 4).map(([k, v]) => el('li', { text: k + ' ≈ ' + nfr(v) })))
     );
   const raw = el('pre', { class: 'jrr' }),
     dt = el('details', null, el('summary', { text: 'Requête complète' }), raw);
