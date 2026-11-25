@@ -210,11 +210,21 @@ const detour = (w, h, px, t1 = 16) => {
   // fines mêlées au fond sont démêlées (ci-dessous).
   // Ailleurs, un pixel nettement plus vert que ses deux autres canaux est un reste de fond (une poche entre deux
   // mèches) : très vert, il disparaît ; un peu, il perd son excès. Une veste olive reste sous ces seuils.
+  // Canaux hauts du fond (le vert ; le rouge et le bleu d'un magenta) et canaux bas : l'excès d'un pixel est son
+  // plus faible canal haut moins son plus fort canal bas. Sur un magenta, ne garder que le rouge effacerait toute
+  // peau et tous les cheveux roux, où le rouge domine.
   if (key) {
-    const d = bg.indexOf(Math.max(...bg)),
-      [o1, o2] = [0, 1, 2].filter(k => k !== d),
-      kx = bg[d] - Math.max(bg[o1], bg[o2]);
-    const ex = (a, j) => a[j * 4 + d] - Math.max(a[j * 4 + o1], a[j * 4 + o2]);
+    const top = Math.max(...bg),
+      H = [0, 1, 2].filter(k => bg[k] > top - 80),
+      L = [0, 1, 2].filter(k => bg[k] <= top - 80),
+      lo = (a, j, C) => Math.min(...C.map(k => a[j * 4 + k])),
+      hi = (a, j, C) => Math.max(...C.map(k => a[j * 4 + k])),
+      ex = (a, j) => lo(a, j, H) - hi(a, j, L),
+      kx = ex(bg, 0),
+      exO = Int16Array.from({ length: N }, (_, j) => ex(orig, j));
+    // Fond jaune ou orange (rouge et vert hauts) : l'excès sur le bleu est positif sur toute peau et tout blond.
+    if (H.includes(0) && H.includes(1))
+      console.warn('Fond jaune ou orange : la peau et les cheveux blonds risquent d’être ternis. Préférez un fond vert ou magenta.');
     for (let i = 0; i < N; i++) {
       if (!px[i * 4 + 3]) continue;
       const e = ex(px, i);
@@ -229,8 +239,8 @@ const detour = (w, h, px, t1 = 16) => {
         // entre des mèches, le fond enfermé n'est pas toujours reconnu, et la mèche est plus loin du fond retiré.
         // Un vrai olive du personnage (une veste) ne se lit pas comme un mélange de son voisin et du fond : la
         // couleur reconstruite s'écarte trop de la sienne, et il est laissé tel quel.
-        const eo = ex(orig, i);
-        if (dist[i] <= 8 && eo > -15 && orig[i * 4 + d] - Math.min(orig[i * 4 + o1], orig[i * 4 + o2]) > 40) {
+        const eo = exO[i];
+        if (dist[i] <= 8 && eo > -15 && lo(orig, i, H) - lo(orig, i, L) > 40) {
           const x = i % w,
             y = (i / w) | 0;
           let ef = eo,
@@ -238,7 +248,7 @@ const detour = (w, h, px, t1 = 16) => {
           for (let yy = Math.max(0, y - 16); yy <= Math.min(h - 1, y + 16); yy++)
             for (let xx = Math.max(0, x - 16); xx <= Math.min(w - 1, x + 16); xx++) {
               const j = yy * w + xx;
-              if (!out[j] && ex(orig, j) < ef) (ef = ex(orig, j)), (F = j);
+              if (!out[j] && exO[j] < ef) (ef = exO[j]), (F = j);
             }
           const s = (eo - ef) / (kx - ef);
           let res = 0;
@@ -249,14 +259,16 @@ const detour = (w, h, px, t1 = 16) => {
             for (let k = 0; k < 3; k++) px[i * 4 + k] = Math.max(0, Math.min(255, Math.round((orig[i * 4 + k] - s * bg[k]) / (1 - s))));
           }
         }
-        if (dist[i] <= 3 || e > 30) px[i * 4 + d] = Math.min(px[i * 4 + d], Math.max(px[i * 4 + o1], px[i * 4 + o2]));
+        // Reflet du fond : les canaux hauts perdent leur excès sur les canaux bas.
+        const r = ex(px, i);
+        if ((dist[i] <= 3 || e > 30) && r > 0) for (const k of H) px[i * 4 + k] -= r;
       }
       // Frange de la couleur opposée (violet autour d'un fond vert) que les générateurs mettent sur les bords :
       // ramenée vers le gris, sur la bande de bord seulement (une peau, où un seul canal domine, n'est pas touchée).
-      if (dist[i] <= 3 && px[i * 4 + o1] > px[i * 4 + d] && px[i * 4 + o2] > px[i * 4 + d]) {
-        const m = px[i * 4 + d] + 8;
-        px[i * 4 + o1] = Math.min(px[i * 4 + o1], m);
-        px[i * 4 + o2] = Math.min(px[i * 4 + o2], m);
+      // Pas sur un magenta : la couleur opposée y est le vert, celui de la robe pour laquelle ce fond est choisi.
+      if (H.length == 1 && dist[i] <= 3 && lo(px, i, L) > hi(px, i, H)) {
+        const m = hi(px, i, H) + 8;
+        for (const k of L) px[i * 4 + k] = Math.min(px[i * 4 + k], m);
       }
     }
   }
