@@ -1,6 +1,6 @@
 import { test, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { SA, decorFor, decorNow, decorsOf, head, heureOf, isGoal, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
+import { SA, decorFor, decorNow, decorsOf, head, heureOf, isGoal, isWorse, jourLabel, jourOf, lieuOf, momentNow, momentOf, momentsOf, place } from '../js/scene.js';
 import { ctx } from '../js/state.js';
 
 const re = k => new RegExp('(^|[^a-z0-9])' + k + '(?![a-z0-9])');
@@ -118,4 +118,11 @@ test('ligne de contexte de l’en-tête : première partie d’une valeur, heure
 test('isGoal reconnaît les objectifs, pas le butin', () => {
   for (const k of ['Objectif', 'Objectifs', 'Quête secondaire', 'Mission', 'But', 'Quête en cours']) assert.ok(isGoal(k), k);
   for (const k of ['Butin', 'Questions', 'Rang', 'Missionnaire']) assert.ok(!isGoal(k), k);
+});
+
+test('isWorse reconnaît les valeurs où monter est mauvais', () => {
+  for (const k of ['Stress', 'Fatigue', 'Faim', 'Soupçons de la guilde', 'Dette envers Gaudine', 'Peur (0/10)', 'Blessures', 'Corruption'])
+    assert.ok(isWorse(k), k);
+  for (const k of ['Santé', 'Mana', 'Énergie', 'Réputation', 'Moral des troupes', 'Patience de l’huissier', 'Dangereux', 'Faiblesse'])
+    assert.ok(!isWorse(k), k);
 });

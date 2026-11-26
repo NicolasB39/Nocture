@@ -8,6 +8,12 @@ export const isJour = k => /^(jour|date)(\s|\(|$)/.test(nz(k).trim());
 export const isHeure = k => /^(moment|heure|periode)/.test(nz(k));
 // Objectifs (Objectif, Quête, Mission, But ; pas « Butin ») : encart doré de la carte d'état (view.js).
 export const isGoal = k => /^(objectifs?|quetes?|missions?|buts?)(\s|$)/.test(nz(k));
+// Valeurs où monter est une mauvaise nouvelle (Stress, Fatigue, Faim, Soupçons, Dette…) : la carte d'état les
+// alerte quand elles sont hautes et colore une hausse en rouge (view.js).
+export const isWorse = k =>
+  /^(stress|fatigue|epuisement|faim|soif|peur|terreur|panique|corruption|folie|demence|douleur|blessures?|poison|toxicite|infection|maladie|danger|menace|alerte|tension|soupcons?|suspicion|dette|traque)(\s|\(|$)/.test(
+    nz(k).trim()
+  );
 export const lieuOf = st => (st || []).find(([k]) => isLieu(k))?.[1] || '';
 export const jourOf = st => (st || []).find(([k]) => isJour(k))?.[1] || '';
 // Première partie d'une valeur d'état, avant une virgule, une parenthèse ou un tiret (« J+3, 14h, pluie » → « J+3 »).

@@ -61,7 +61,7 @@ Si le temps compte dans l'histoire, ajoutez **`Jour`** et **`Heure`** (valeur «
 
 Dites dans la section Rythme de `systeme.md` comment l'heure avance et quand le Jour change (voir `reference/systeme.md`).
 
-Ces champs sont injectés par l'application dans le format qu'elle impose. N'écrivez pas le gabarit du bloc, seulement la liste. Une valeur bornée s'écrit `80/100` dans la réponse de l'IA, ce qui déclenche l'affichage d'une barre et du delta par rapport au tour précédent.
+Ces champs sont injectés par l'application dans le format qu'elle impose. N'écrivez pas le gabarit du bloc, seulement la liste. Une valeur bornée s'écrit `80/100` dans la réponse de l'IA, ce qui déclenche l'affichage d'une barre et du delta par rapport au tour précédent. La barre passe au rouge sous 30 % ; pour une valeur où monter est mauvais (Stress, Fatigue, Faim, Peur, Corruption, Douleur, Danger, Soupçons, Dette…, reconnue à son nom), au-dessus de 70 %, et une hausse s'affiche en rouge.
 
 Trois à cinq champs. Chaque champ est réémis à chaque tour, dans la partie non mise en cache du prompt.
 

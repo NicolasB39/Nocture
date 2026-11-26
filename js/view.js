@@ -16,6 +16,7 @@ import {
   head,
   heureOf,
   isGoal,
+  isWorse,
   isHeure,
   isJour,
   isLieu,
@@ -137,19 +138,25 @@ const stRows = (i, m) => {
     const a = numOf(v),
       b = pm.has(k) ? numOf(pm.get(k)) : null,
       d = a && b && a.u == b.u && a.n !== b.n ? a.n - b.n : null;
-    return { k, v, d, c: pm.size > 0 && pm.get(k) !== v, p: pctOf(v), p0: pctOf(pm.get(k)) };
+    const p = pctOf(v),
+      w = isWorse(k);
+    return { k, v, d, c: pm.size > 0 && pm.get(k) !== v, p, p0: pctOf(pm.get(k)), w, lo: p != null && (w ? p > 100 - LOW : p < LOW) };
   });
 };
-// Attributs d'une valeur changée : sa variation, qui s'envole quand la réponse arrive (render, app.fresh).
+// Une variation est mauvaise quand la valeur baisse, ou monte pour une valeur comme Stress ou Faim (isWorse).
+const bad = r => (r.w ? r.d > 0 : r.d < 0);
+// Attributs d'une valeur changée : sa variation, qui s'envole quand la réponse arrive (render, app.fresh), en
+// rouge si elle est mauvaise.
 const chg = (r, cls) => ({
-  class: cls + (r.c ? ' nv' + (r.d < 0 ? ' dn' : '') : ''),
+  class: cls + (r.c ? ' nv' + (bad(r) ? ' dn' : '') : ''),
   data: r.d != null ? { d: signed((Math.sign(r.d) * Math.round(Math.abs(r.d) * 100)) / 100) } : null
 });
-const dl = (d, short) =>
-  d != null &&
+// Variation affichée : la flèche suit le sens, la couleur dit si c'est une bonne ou une mauvaise nouvelle.
+const dl = (r, short) =>
+  r.d != null &&
   el('em', {
-    class: 'dl ' + (d > 0 ? 'up' : 'dn'),
-    text: (d > 0 ? (short ? '▲' : '▲ +') : short ? '▼' : '▼ ') + Math.round(Math.abs(d) * 100) / 100
+    class: 'dl ' + (bad(r) ? 'dn' : 'up'),
+    text: (r.d > 0 ? (short ? '▲' : '▲ +') : short ? '▼' : '▼ ') + Math.round(Math.abs(r.d) * 100) / 100
   });
 // Grille détaillée : une case par valeur, une tuile à jauge (stTile) pour les valeurs « 40/100 ».
 const stGrid = rows =>
@@ -157,37 +164,38 @@ const stGrid = rows =>
     'div',
     { class: 'stg' },
     rows.map(r =>
-      r.p != null ? stTile(r) : el('div', chg(r, 'kv'), el('span', { text: r.k }), el('b', null, r.v, dl(r.d)))
+      r.p != null ? stTile(r) : el('div', chg(r, 'kv'), el('span', { text: r.k }), el('b', null, r.v, dl(r)))
     )
   );
 // Ligne « Clé : valeur » (carte dépliée).
-const cxLine = r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r.d));
+const cxLine = r => el('p', chg(r, 'cxl'), el('b', { text: r.k + ' :' }), ' ' + r.v, dl(r));
 // Carte sous la réponse, jamais avec ce que l'en-tête montre déjà (lieu, jour, heure). Repliée : les jauges
 // (« 40/100 » : vie, mana, énergie…) toujours, le reste seulement s'il a changé depuis l'état précédent (tout, au
 // premier état), en pastilles sur deux colonnes (un texte, sur toute la largeur) ; puis les objets gagnés ou perdus
 // et les liens changés par la réponse ; puis les objectifs (Objectif, Quête, Mission, But), un encart doré chacun,
 // sur deux lignes au plus. Dépliée : tout l'état (jauges en tuiles, valeurs en lignes, objectifs en entier) ;
 // l'inventaire complet est dans sa feuille (inv.js). Le choix plié / déplié vaut pour toute l'appli (chat.js). Une
-// jauge sous LOW % passe au rouge.
+// jauge sous LOW % passe au rouge (« Bas ») ; une jauge où monter est mauvais (Stress, Faim…), au-dessus de
+// 100 − LOW % (« Haut »).
 const LOW = 30;
 const gauge = (r, p, cls) =>
   el('i', { class: 'bar ' + cls }, el('u', { style: 'width:' + p + '%;--p0:' + (r.p0 ?? p) + '%' }));
 const stPill = r =>
   el(
     'span',
-    chg(r, 'stp' + (r.p != null ? (r.p < LOW ? ' low' : '') : numOf(r.v) ? '' : ' wide')),
+    chg(r, 'stp' + (r.p != null ? (r.lo ? ' low' : '') : numOf(r.v) ? '' : ' wide')),
     el('span', { class: 'stk', text: r.k }),
     el('b', { text: r.p != null ? String(r.v).split('/')[0].trim() : r.v }),
     r.p != null && gauge(r, r.p, 'mini'),
-    dl(r.d, true)
+    dl(r, true)
   );
 const stTile = r => {
   const [n, max] = String(r.v).split('/');
   return el(
     'div',
-    chg(r, 'stt' + (r.p < LOW ? ' low' : '')),
-    el('span', { class: 'stk' }, r.k, r.p < LOW && el('em', { class: 'stw', text: 'Bas' })),
-    el('b', null, n.trim(), el('small', { text: '/' + max.trim() }), dl(r.d)),
+    chg(r, 'stt' + (r.lo ? ' low' : '')),
+    el('span', { class: 'stk' }, r.k, r.lo && el('em', { class: 'stw', text: r.w ? 'Haut' : 'Bas' })),
+    el('b', null, n.trim(), el('small', { text: '/' + max.trim() }), dl(r)),
     gauge(r, r.p, '')
   );
 };
